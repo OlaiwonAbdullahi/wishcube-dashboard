@@ -90,7 +90,7 @@ export const Overview = () => {
             href="#"
           />
           <QuickAction
-            title="Gift"
+            title="Send Gift"
             icon={GiftCardIcon}
             color="bg-[#D1F7FF]"
             href="#"

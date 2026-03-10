@@ -39,19 +39,19 @@ const navItems: NavItem[] = [
     href: "/dashboard",
   },
   {
-    title: "Cards",
+    title: "Create Cards",
     icon: Cards02Icon,
     iconColor: "text-blue-500",
     href: "/dashboard/cards",
   },
   {
-    title: "Websites",
+    title: "Create Websites",
     icon: WebDesign02Icon,
     iconColor: "text-amber-500",
     href: "/dashboard/websites",
   },
   {
-    title: "Gifts",
+    title: "Send Gifts",
     icon: GiftCardIcon,
     iconColor: "text-green-500",
     href: "/dashboard/gifts",
