@@ -9,7 +9,7 @@ import { CardGenerator } from "./card-generator";
 import { ColorPicker } from "./color-picker";
 import { GOOGLE_FONTS } from "./use-google-fonts";
 import { CardState } from "../page";
-import { Palette, Type, Zap } from "lucide-react";
+import { Palette, PaletteIcon, Type, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const PRESET_COLORS = [
@@ -211,7 +211,7 @@ export function CardCustomizer({
           <Card className="border-border/40 shadow-none">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
-                <Palette className="size-4" />
+                <PaletteIcon className="size-4" />
                 Design & Colors
               </CardTitle>
             </CardHeader>
