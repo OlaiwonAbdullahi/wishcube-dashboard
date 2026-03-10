@@ -2,6 +2,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "./_components/sidebar";
 import { DashboardHeader } from "./_components/header";
 import Overview from "./_components/overview";
+import RecentWorks from "./_components/recent-works";
 
 export default function DashboardPage() {
   return (
@@ -12,6 +13,7 @@ export default function DashboardPage() {
           <DashboardHeader />
           <main className="w-full flex-1 overflow-auto bg-white">
             <Overview />
+            <RecentWorks />
           </main>
         </div>
       </div>

@@ -4,8 +4,14 @@ import {
   WalletAdd02Icon,
   Cards02Icon,
   WebDesign02Icon,
-  ArrowUpRight01Icon,
+  GiftCardIcon,
+  WalletAdd01Icon,
+  AiMagicIcon,
+  Layout01Icon,
+  GridIcon,
+  MoreHorizontalIcon,
 } from "@hugeicons/core-free-icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -55,60 +61,73 @@ export const Overview = () => {
         <KpiCard title="Gifts attached" value="0" hint="Cards with value" />
       </div>
 
-      <Card className="shadow-none border border-[#191A23] border-b-4 bg-[#F3F3F3]">
-        <CardHeader className="pb-0">
-          <CardTitle className="text-base font-bold text-[#191A23]">
-            Quick start
-          </CardTitle>
-          <CardDescription className="text-neutral-600">
-            Jump straight into the parts of WishCube you&apos;ll use most.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-3 pt-2 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-lg font-bold text-[#191A23]">Quick start</h2>
+          <p className="text-xs text-neutral-600">
+            What would you like to create today?
+          </p>
+        </div>
+        <div className="flex items-start gap-8 overflow-x-auto py-4 scrollbar-hide no-scrollbar">
           <QuickAction
-            title="Generate a greeting Card"
-            description="AI-assisted message + shareable Card"
-            icon={
-              <HugeiconsIcon
-                icon={Cards02Icon}
-                size={16}
-                color="currentColor"
-                strokeWidth={1.5}
-              />
-            }
+            title="Magic AI"
+            icon={AiMagicIcon}
+            color="bg-[#E6D1FF]"
+            isNew
             href="#"
-            accent="text-indigo-600"
+          />
+
+          <QuickAction
+            title="Create Cards"
+            icon={Cards02Icon}
+            color="bg-[#FFD1D1]"
+            href="#"
           />
           <QuickAction
-            title="Generate an greeting Website"
-            description="AI-assisted message + shareable Website"
-            icon={
-              <HugeiconsIcon
-                icon={WebDesign02Icon}
-                size={16}
-                color="currentColor"
-                strokeWidth={1.5}
-              />
-            }
+            title="Party Room"
+            icon={Video02Icon}
+            color="bg-[#F8D1FF]"
             href="#"
-            accent="text-indigo-600"
           />
           <QuickAction
-            title="Join a Virtual Party Room"
-            description="Live video calls, interactive games, group chat, shared music, and contextual decorations"
-            icon={
-              <HugeiconsIcon
-                icon={Video02Icon}
-                size={16}
-                color="currentColor"
-                strokeWidth={1.5}
-              />
-            }
+            title="Gift"
+            icon={GiftCardIcon}
+            color="bg-[#D1F7FF]"
             href="#"
-            accent="text-indigo-600"
           />
-        </CardContent>
-      </Card>
+          <QuickAction
+            title="Create Website"
+            icon={WebDesign02Icon}
+            color="bg-[#D1E9FF]"
+            href="#"
+          />
+          <QuickAction
+            title="Fund Wallet"
+            icon={WalletAdd01Icon}
+            color="bg-[#E0D1FF]"
+            href="#"
+          />
+          <QuickAction
+            title="Explore Templates"
+            icon={GridIcon}
+            color="bg-[#D1FFEB]"
+            href="#"
+          />
+          <QuickAction
+            title="Custom Designs"
+            icon={Layout01Icon}
+            color="bg-white"
+            href="#"
+          />
+
+          <QuickAction
+            title="More"
+            icon={MoreHorizontalIcon}
+            color="bg-white"
+            href="#"
+          />
+        </div>
+      </div>
     </div>
   );
 };
@@ -141,47 +160,46 @@ function KpiCard({
 
 function QuickAction({
   title,
-  description,
   icon,
   href,
-  accent,
+  color,
+  isNew,
 }: {
   title: string;
-  description: string;
-  icon: React.ReactNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
   href: string;
-  accent: string;
+  color: string;
+  isNew?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="group flex flex-col items-start gap-4 rounded-sm border border-[#191A23] bg-white p-5 transition-all hover:scale-[1.02] hover:-translate-y-1 border-b-4"
+      className="group flex flex-col items-center gap-2 flex-shrink-0"
     >
-      <div
-        className={cn(
-          "flex size-10 items-center justify-center rounded-sm bg-[#F3F3F3] border border-[#191A23]",
-          accent,
+      <div className="relative">
+        {isNew && (
+          <Badge className="absolute -top-2 -right-2 z-10 bg-[#191A23] text-white text-[8px] px-1.5 py-0.5 rounded-full border border-white">
+            New
+          </Badge>
         )}
-      >
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-bold leading-none truncate text-[#191A23]">
-            {title}
-          </p>
+        <div
+          className={cn(
+            "flex size-14 items-center justify-center rounded-full border border-[#191A23] border-b-4 transition-all group-hover:scale-110 group-hover:-translate-y-1 shadow-sm",
+            color,
+          )}
+        >
           <HugeiconsIcon
-            icon={ArrowUpRight01Icon}
-            size={16}
-            color="currentColor"
+            icon={icon}
+            size={24}
+            color="#191A23"
             strokeWidth={1.5}
-            className="text-[#191A23] opacity-0 transition-opacity group-hover:opacity-100"
           />
         </div>
-        <p className="mt-2 text-xs text-neutral-600 line-clamp-2">
-          {description}
-        </p>
       </div>
+      <p className="text-[10px] whitespace-nowrap font-bold text-[#191A23] text-center max-w-[70px] leading-tight">
+        {title}
+      </p>
     </Link>
   );
 }
