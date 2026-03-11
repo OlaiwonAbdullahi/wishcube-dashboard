@@ -10,12 +10,12 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <SidebarProvider className="bg-sidebar">
+    <SidebarProvider className="bg-[#F3F3F3] font-space text-[#191A23]">
       <DashboardSidebar />
-      <div className="h-svh overflow-hidden lg:p-4 w-full bg-white z-20">
-        <div className="lg:border lg:border-border/60 lg:rounded-lg overflow-hidden flex flex-col h-full w-full bg-background/95 shadow-xs">
+      <div className="h-svh overflow-hidden lg:p-2 w-full bg-[#191A23]/5 z-20">
+        <div className="lg:border lg:border-[#191A23] lg:rounded-sm lg:border-b-8 overflow-hidden flex flex-col h-full w-full bg-white">
           <DashboardHeader />
-          <main className="w-full flex-1 overflow-auto bg-gradient-to-br from-background via-background to-muted/30">
+          <main className="w-full flex-1 overflow-auto bg-white">
             <div className="px-4 sm:px-6 py-8 space-y-8">{children}</div>
           </main>
         </div>

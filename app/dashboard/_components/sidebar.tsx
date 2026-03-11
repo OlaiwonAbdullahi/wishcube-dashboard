@@ -93,8 +93,7 @@ export function DashboardSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      isActive={isActive}
-                      className="h-9"
+                      className={`h-9 ${isActive ? "bg-neutral-300 text-black" : ""}`}
                     >
                       <Link href={item.href}>
                         <HugeiconsIcon

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CardGenerator } from "./_components/card-generator";
+import { useState } from "react";
 import { CardPreview } from "./_components/card-preview";
 import { CardCustomizer } from "./_components/card-customizer";
-import { useGoogleFonts } from "./_components/use-google-fonts";
+import { useLoadSelectedFont } from "./_components/use-google-fonts";
 
 export interface CardTemplate {
   id: string;
@@ -19,45 +18,48 @@ export interface CardTemplate {
 
 export interface CardState {
   templateId: string;
+  userName: string;
+  recipientName: string;
+  occasion: string;
   title: string;
   message: string;
   backgroundColor: string;
   textColor: string;
   accentColor: string;
-  selectedIcon: string;
   fontSize: number;
   fontFamily: string;
-  backgroundPattern: string;
 }
 
 export default function CardsPage() {
-  useGoogleFonts();
-
   const [cardState, setCardState] = useState<CardState>({
     templateId: "birthday",
+    userName: "404 dev",
+    recipientName: "Abdullahi",
+    occasion: "Birthday",
     title: "Happy Birthday! 🎉",
-    message: "Wishing you a wonderful day filled with joy and celebration!",
-    backgroundColor: "#FFFFFF",
-    textColor: "#1A202C",
-    accentColor: "#A855F7",
-    selectedIcon: "gift-2",
-    fontSize: 16,
+    message:
+      "Wishing you a wonderful day filled with joy and celebration! On your special day, we're celebrating the incredible person you are - kind, generous, and full of life.",
+    backgroundColor: "#000000",
+    textColor: "#FFFFFF",
+    accentColor: "#EAB308",
+    fontSize: 14,
     fontFamily: "Inter",
-    backgroundPattern: "none",
   });
 
+  useLoadSelectedFont(cardState.fontFamily);
+
   return (
-    <div className="space-y-6">
+    <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
       {/* Page Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Greeting Card Generator
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-2xl">
-          Create beautiful, personalized greeting cards for any occasion. Choose
-          from stunning templates, customize with your own colors and fonts, or
-          start from scratch and design something unique!
-        </p>
+      <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
+            Greeting Card Generator
+          </h1>
+          <p className="text-sm text-neutral-600 max-w-2xl">
+            Create beautiful, personalized greeting cards for any occasion.
+          </p>
+        </div>
       </div>
 
       {/* Main Content */}
