@@ -48,7 +48,7 @@ const navItems: NavItem[] = [
     title: "Create Websites",
     icon: WebDesign02Icon,
     iconColor: "text-amber-500",
-    href: "/dashboard/websites",
+    href: "/dashboard/website",
   },
   {
     title: "Send Gifts",
