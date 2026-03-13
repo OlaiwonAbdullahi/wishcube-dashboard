@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useRef } from "react";
 import Image from "next/image";
@@ -30,6 +31,15 @@ import Gift from "./_components/gift";
 import Music from "./_components/music";
 import VoiceMessage from "./_components/voiceMessage";
 import { callAI } from "@/lib/ai";
+import {
+  useGoogleFontsList,
+  useLoadSelectedFont,
+  useLoadFontPreview,
+  FALLBACK_FONTS,
+} from "@/lib/use-google-fonts";
+import { Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 // Define theme type
 interface Theme {
@@ -164,6 +174,41 @@ const OCCASIONS: Occasion[] = [
   { value: "other", label: "Other" },
 ];
 
+// Font option component
+const FontOption = ({
+  font,
+  isSelected,
+  onSelect,
+}: {
+  font: any;
+  isSelected: boolean;
+  onSelect: (f: string) => void;
+}) => {
+  useLoadFontPreview(font.family);
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(font.family)}
+      className={cn(
+        "w-full text-left px-3 py-2.5 border-2 border-[#191A23] rounded-sm transition-all hover:bg-[#191A23]/5 flex items-center justify-between group",
+        isSelected
+          ? "bg-[#191A23] text-white hover:bg-[#191A23] shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+          : "bg-white text-[#191A23]"
+      )}
+    >
+      <span
+        style={{ fontFamily: font.family, fontStyle: "normal" }}
+        className="text-sm font-medium"
+      >
+        {font.family}
+      </span>
+      {isSelected && (
+        <div className="size-2 bg-[#B4F8C8] border border-[#191A23] rounded-full" />
+      )}
+    </button>
+  );
+};
+
 const Generator: React.FC = () => {
   // Form state
   const [selectedTheme, setSelectedTheme] = useState<Theme>(THEMES[0]);
@@ -186,6 +231,12 @@ const Generator: React.FC = () => {
   const [isSuggestingGifts, setIsSuggestingGifts] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [giftSuggestions, setGiftSuggestions] = useState<string[]>([]);
+  const [selectedFont, setSelectedFont] = useState<string>("Space Grotesk");
+  const [fontSearch, setFontSearch] = useState("");
+  const [isSuggestingFont, setIsSuggestingFont] = useState(false);
+
+  const { fonts, loading: fontsLoading } = useGoogleFontsList();
+  useLoadSelectedFont(selectedFont);
 
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
@@ -202,7 +253,7 @@ const Generator: React.FC = () => {
 
   const generateMessage = async (): Promise<void> => {
     if (!recipientName || !occasion) {
-      alert("Please provide recipient name and occasion first.");
+      toast.error("Please provide recipient name and occasion first.");
       return;
     }
 
@@ -229,7 +280,7 @@ Do not include a signature or sender name. Use emojis.
 
   const suggestTheme = async (): Promise<void> => {
     if (!occasion) {
-      alert("Please select an occasion first.");
+      toast.error("Please select an occasion first.");
       return;
     }
 
@@ -254,7 +305,7 @@ Return ONLY the theme name.
 
   const suggestGifts = async (): Promise<void> => {
     if (!occasion || !recipientName) {
-      alert("Please provide recipient name and occasion first.");
+      toast.error("Please provide recipient name and occasion first.");
       return;
     }
 
@@ -268,7 +319,7 @@ Format as a simple comma-separated list of items without any other text.
       const response = await callAI(prompt, "deepseek/deepseek-v3.2");
       const suggestions = response
         .split(",")
-        .map((s) => s.trim())
+        .map((s: string) => s.trim())
         .filter(Boolean);
       setGiftSuggestions(suggestions);
     } catch (error) {
@@ -280,7 +331,7 @@ Format as a simple comma-separated list of items without any other text.
 
   const generateAIImage = async (): Promise<void> => {
     if (!occasion || !recipientName) {
-      alert("Please provide recipient name and occasion first.");
+      toast.error("Please provide recipient name and occasion first.");
       return;
     }
 
@@ -314,6 +365,37 @@ Return ONLY a URL to the generated image.
       console.error("Failed to generate image:", error);
     } finally {
       setIsGeneratingImage(false);
+    }
+  };
+
+  const suggestFont = async (): Promise<void> => {
+    if (!occasion) {
+      toast.error("Please select an occasion first.");
+      return;
+    }
+
+    setIsSuggestingFont(true);
+    const fontListNames = (fonts.length > 0 ? fonts : FALLBACK_FONTS)
+      .map((f) => f.family)
+      .slice(0, 30)
+      .join(", ");
+
+    const prompt = `
+Based on the occasion "${occasion}", suggest the most appropriate font name from this list:
+${fontListNames}.
+Return ONLY the font name.
+`;
+    try {
+      const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
+      const font =
+        (fonts.length > 0 ? fonts : FALLBACK_FONTS).find(
+          (f) => f.family.toLowerCase() === suggestedName.trim().toLowerCase()
+        ) || FALLBACK_FONTS[0];
+      setSelectedFont(font.family);
+    } catch (error) {
+      console.error("Failed to suggest font:", error);
+    } finally {
+      setIsSuggestingFont(false);
     }
   };
 
@@ -366,12 +448,12 @@ Return ONLY a URL to the generated image.
       await navigator.clipboard.writeText(greetingUrl);
 
       // Show success message
-      alert(
+      toast.error(
         "Greeting link copied to clipboard! Share this link with your recipient."
       );
     } catch (err) {
       console.error("Failed to copy greeting link:", err);
-      alert("Failed to copy the greeting link. Please try again.");
+      toast.error("Failed to copy the greeting link. Please try again.");
     }
   };
 
@@ -387,7 +469,7 @@ Return ONLY a URL to the generated image.
       }
     } catch (err) {
       console.error("Failed to read clipboard:", err);
-      alert(
+      toast.error(
         "Unable to access clipboard. Please check your browser permissions."
       );
     }
@@ -623,7 +705,7 @@ Return ONLY a URL to the generated image.
             {imagePreview ? (
               <div className="flex flex-col items-center">
                 <div className="h-24 w-48 relative mb-3 rounded-sm overflow-hidden border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                  <img src={imagePreview} alt="Preview" objectFit="cover" />
+                  <img src={imagePreview} alt="Preview" />
                 </div>
                 <span className="text-[10px] font-bold text-[#191A23] uppercase">
                   {imageName}
@@ -698,6 +780,55 @@ Return ONLY a URL to the generated image.
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Font Picker */}
+      <div className="flex flex-col">
+        <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
+          <span>Select Font</span>
+          <button
+            type="button"
+            onClick={suggestFont}
+            disabled={isSuggestingFont}
+            className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-300 rounded-sm text-[8px] font-black text-green-700 hover:bg-green-200 transition-all disabled:opacity-50"
+          >
+            <HugeiconsIcon
+              icon={MagicWand01Icon}
+              size={10}
+              className={isSuggestingFont ? "animate-spin" : ""}
+            />
+            {isSuggestingFont ? "SUGGESTING..." : "MAGIC SUGGEST"}
+          </button>
+        </label>
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-[#191A23]/40" />
+            <input
+              type="text"
+              placeholder="Search fonts..."
+              value={fontSearch}
+              onChange={(e) => setFontSearch(e.target.value)}
+              className="w-full pl-8 pr-4 py-2 border-2 border-[#191A23] rounded-sm text-xs font-bold focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all bg-white"
+            />
+          </div>
+          <div className="">Popular Fonts</div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+            {(fonts.length > 0 ? fonts : FALLBACK_FONTS)
+              .filter((f) =>
+                f.family.toLowerCase().includes(fontSearch.toLowerCase())
+              )
+              .slice(0, 50)
+              .map((font) => (
+                <FontOption
+                  key={font.family}
+                  font={font}
+                  isSelected={selectedFont === font.family}
+                  onSelect={setSelectedFont}
+                />
+              ))}
+          </div>
         </div>
       </div>
 
@@ -938,10 +1069,11 @@ Return ONLY a URL to the generated image.
 
           <div className="space-y-6 text-center">
             <div className="flex md:flex-row flex-col space-y-6 items-center justify-between">
-              <div className="space-y-3.5">
+              <div className="space-y-3.5 text-left">
                 {recipientName && (
                   <h1
                     className={`text-3xl font-bold ${selectedTheme.textPrimary}`}
+                    style={{ fontFamily: selectedFont }}
                   >
                     Hey, {recipientName}
                   </h1>
@@ -957,7 +1089,9 @@ Return ONLY a URL to the generated image.
                         size={16}
                         color="currentColor"
                       />
-                      {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
+                      <span style={{ fontFamily: selectedFont }}>
+                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
+                      </span>
                     </div>
                   </div>
                 )}
@@ -988,7 +1122,10 @@ Return ONLY a URL to the generated image.
                     : "bg-white"
                 }`}
               >
-                <p className="text-gray-700 leading-relaxed">
+                <p
+                  className="text-gray-700 leading-relaxed"
+                  style={{ fontFamily: selectedFont }}
+                >
                   {message || customMessage}
                 </p>
               </div>

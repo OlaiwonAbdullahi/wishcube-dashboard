@@ -152,8 +152,8 @@ export default function Music({ onSelectMusic, selectedMusic }: MusicProps) {
           <div className="space-y-4">
             <div className="p-4 border-2 border-dashed border-[#191A23]/30 rounded-sm bg-[#F3F3F3]/50 text-center space-y-3">
               <p className="text-[10px] font-bold text-neutral-500 uppercase">
-                Generate a unique background track tailored to your website's
-                mood
+                Generate a unique background track tailored to your
+                website&apos;s mood
               </p>
               <button
                 type="button"
