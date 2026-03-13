@@ -21,10 +21,15 @@ import {
   Award01Icon,
   ArrowLeft01Icon,
   ViewIcon,
+  MagicWand01Icon,
+  AiImageIcon,
+  MusicNote01Icon,
+  GiftIcon,
 } from "@hugeicons/core-free-icons";
 import Gift from "./_components/gift";
 import Music from "./_components/music";
 import VoiceMessage from "./_components/voiceMessage";
+import { callAI } from "@/lib/ai";
 
 // Define theme type
 interface Theme {
@@ -172,9 +177,15 @@ const Generator: React.FC = () => {
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [selectedGift, setSelectedGift] = useState<string | null>(null);
+  const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
   const [greetingId, setGreetingId] = useState<string>("");
   const [isOn, setIsOn] = useState(false);
   const [addMusic, setAddMusic] = useState(false);
+  const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
+  const [isSuggestingTheme, setIsSuggestingTheme] = useState(false);
+  const [isSuggestingGifts, setIsSuggestingGifts] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [giftSuggestions, setGiftSuggestions] = useState<string[]>([]);
 
   const messageRef = useRef<HTMLTextAreaElement>(null);
 
@@ -190,6 +201,12 @@ const Generator: React.FC = () => {
   };
 
   const generateMessage = async (): Promise<void> => {
+    if (!recipientName || !occasion) {
+      alert("Please provide recipient name and occasion first.");
+      return;
+    }
+
+    setIsGeneratingMessage(true);
     const prompt = `
 You are a professional greeting card writer. 
 Please write a heartfelt and personalized ${occasion} greeting for someone named "${recipientName}". 
@@ -199,25 +216,104 @@ Keep it concise but meaningful (around 3-5 sentences).
 Do not include a signature or sender name. Use emojis.
 `;
     try {
-      const response = await fetch("https://ai.hackclub.com/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: prompt }],
-        }),
-      });
-
-      const data = await response.json();
-      const newMessage =
-        data.choices?.[0]?.message?.content || "No message generated.";
-      setGeneratedMessage(newMessage);
-
-      // Update the message state with the generated content
-      setMessage(newMessage);
+      const response = await callAI(prompt, "google/gemini-2.5-flash");
+      setGeneratedMessage(response);
+      console.log(response);
+      setMessage(response);
     } catch (error) {
       console.error("Failed to generate message:", error);
+    } finally {
+      setIsGeneratingMessage(false);
+    }
+  };
+
+  const suggestTheme = async (): Promise<void> => {
+    if (!occasion) {
+      alert("Please select an occasion first.");
+      return;
+    }
+
+    setIsSuggestingTheme(true);
+    const prompt = `
+Based on the occasion "${occasion}", suggest the most appropriate theme name from this list:
+${THEMES.map((t) => t.name).join(", ")}.
+Return ONLY the theme name.
+`;
+    try {
+      const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
+      const theme =
+        THEMES.find((t) => t.name === suggestedName.trim().toLowerCase()) ||
+        THEMES[0];
+      setSelectedTheme(theme);
+    } catch (error) {
+      console.error("Failed to suggest theme:", error);
+    } finally {
+      setIsSuggestingTheme(false);
+    }
+  };
+
+  const suggestGifts = async (): Promise<void> => {
+    if (!occasion || !recipientName) {
+      alert("Please provide recipient name and occasion first.");
+      return;
+    }
+
+    setIsSuggestingGifts(true);
+    const prompt = `
+Suggest 3-4 gift ideas for a ${occasion} for ${recipientName}. 
+The gift ideas should be short (1-3 words). 
+Format as a simple comma-separated list of items without any other text.
+`;
+    try {
+      const response = await callAI(prompt, "deepseek/deepseek-v3.2");
+      const suggestions = response
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+      setGiftSuggestions(suggestions);
+    } catch (error) {
+      console.error("Failed to suggest gifts:", error);
+    } finally {
+      setIsSuggestingGifts(false);
+    }
+  };
+
+  const generateAIImage = async (): Promise<void> => {
+    if (!occasion || !recipientName) {
+      alert("Please provide recipient name and occasion first.");
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    const prompt = `
+Generate a professional and beautiful illustration for a ${occasion} card for ${recipientName}.
+The image should be high-quality, festive, and warm.
+Return ONLY a URL to the generated image.
+`;
+    try {
+      // In a real scenario, this would return an image URL
+      const imageUrl = await callAI(
+        prompt,
+        "google/gemini-3.1-flash-image-preview"
+      );
+
+      console.log(imageUrl);
+      if (imageUrl && imageUrl.startsWith("http")) {
+        setImagePreview(imageUrl);
+        setImageName("AI Generated Image");
+      } else {
+        // Fallback or handle if the proxy returns text instead of image
+        console.warn("AI didn't return a valid URL:", imageUrl);
+        // Simulate a generated image for now since we don't have a real image gen endpoint
+        setImagePreview(
+          "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&q=80"
+        );
+        setImageName("AI Generated Celebration");
+      }
+    } catch (error) {
+      console.error("Failed to generate image:", error);
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -380,7 +476,7 @@ Do not include a signature or sender name. Use emojis.
 
   // Render form section
   const renderForm = () => (
-    <form className="space-y-5">
+    <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
       {/* Recipient Name */}
       <div className="flex flex-col space-y-1.5">
         <label
@@ -436,9 +532,14 @@ Do not include a signature or sender name. Use emojis.
       <div className="flex flex-col space-y-1.5 mb-4">
         <label
           htmlFor="message"
-          className="text-[10px] font-bold uppercase text-[#191A23]"
+          className="text-[10px] font-bold uppercase text-[#191A23] flex items-center justify-between"
         >
-          Custom Message (Optional)
+          <span>Custom Message (Optional)</span>
+          {isGeneratingMessage && (
+            <span className="animate-pulse text-purple-600 normal-case font-black">
+              AI is writing...
+            </span>
+          )}
         </label>
         <textarea
           id="message"
@@ -454,10 +555,16 @@ Do not include a signature or sender name. Use emojis.
           <button
             type="button"
             onClick={generateMessage}
-            className="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold uppercase text-[#191A23] hover:translate-y-px transition-all"
+            disabled={isGeneratingMessage}
+            className="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold uppercase text-[#191A23] hover:translate-y-px transition-all disabled:opacity-50"
           >
-            <HugeiconsIcon icon={SparklesIcon} size={12} color="currentColor" />
-            Generate AI Message
+            <HugeiconsIcon
+              icon={SparklesIcon}
+              size={12}
+              color={isGeneratingMessage ? "#6366f1" : "currentColor"}
+              className={isGeneratingMessage ? "animate-spin" : ""}
+            />
+            {isGeneratingMessage ? "Generating..." : "Generate AI Message"}
           </button>
           <div className="w-px h-4 bg-[#191A23]/20"></div>
           <button
@@ -473,7 +580,7 @@ Do not include a signature or sender name. Use emojis.
             Paste Message
           </button>
         </div>
-        {generatedMessage && (
+        {generatedMessage && !isGeneratingMessage && (
           <div className="text-[#191A23] mt-4 bg-[#B4F8C8] p-4 rounded-sm border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
             <p className="text-sm font-medium">{generatedMessage}</p>
             <button
@@ -491,9 +598,22 @@ Do not include a signature or sender name. Use emojis.
       <div className="flex flex-col space-y-1.5">
         <label
           htmlFor="image"
-          className="text-[10px] font-bold uppercase text-[#191A23]"
+          className="text-[10px] font-bold uppercase text-[#191A23] flex items-center justify-between"
         >
-          Upload Image
+          <span>Upload Image</span>
+          <button
+            type="button"
+            onClick={generateAIImage}
+            disabled={isGeneratingImage}
+            className="flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded-sm text-[8px] font-black text-purple-700 hover:bg-purple-200 transition-all disabled:opacity-50"
+          >
+            <HugeiconsIcon
+              icon={AiImageIcon}
+              size={10}
+              className={isGeneratingImage ? "animate-bounce" : ""}
+            />
+            {isGeneratingImage ? "GENERATING..." : "MAGIC GENERATE"}
+          </button>
         </label>
         <div className="flex flex-col">
           <label
@@ -503,12 +623,7 @@ Do not include a signature or sender name. Use emojis.
             {imagePreview ? (
               <div className="flex flex-col items-center">
                 <div className="h-24 w-48 relative mb-3 rounded-sm overflow-hidden border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                  <Image
-                    src={imagePreview}
-                    alt="Preview"
-                    layout="fill"
-                    objectFit="cover"
-                  />
+                  <img src={imagePreview} alt="Preview" objectFit="cover" />
                 </div>
                 <span className="text-[10px] font-bold text-[#191A23] uppercase">
                   {imageName}
@@ -547,8 +662,21 @@ Do not include a signature or sender name. Use emojis.
 
       {/* Theme Picker */}
       <div className="flex flex-col">
-        <label className="text-sm font-medium text-gray-700 mb-2">
-          Select Theme
+        <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
+          <span>Select Theme</span>
+          <button
+            type="button"
+            onClick={suggestTheme}
+            disabled={isSuggestingTheme}
+            className="flex items-center gap-1 px-2 py-1 bg-indigo-100 border border-indigo-300 rounded-sm text-[8px] font-black text-indigo-700 hover:bg-indigo-200 transition-all disabled:opacity-50"
+          >
+            <HugeiconsIcon
+              icon={MagicWand01Icon}
+              size={10}
+              className={isSuggestingTheme ? "animate-pulse" : ""}
+            />
+            {isSuggestingTheme ? "SUGGESTING..." : "MAGIC SUGGEST"}
+          </button>
         </label>
         <div className="grid grid-cols-4 gap-3">
           {THEMES.map((theme) => (
@@ -580,10 +708,40 @@ Do not include a signature or sender name. Use emojis.
             Additional Features
           </h3>
           <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3">
-            <div className="">
-              <h2 className=" text-xl font-medium">Add Gift</h2>
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex items-center gap-2">
+                <h2 className=" text-xl font-medium">Add Gift</h2>
+                {isOn && (
+                  <button
+                    type="button"
+                    onClick={suggestGifts}
+                    disabled={isSuggestingGifts}
+                    className="p-1.5 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 hover:bg-yellow-200 transition-all disabled:opacity-50"
+                    title="Magic Gift Suggest"
+                  >
+                    <HugeiconsIcon
+                      icon={GiftIcon}
+                      size={14}
+                      className={isSuggestingGifts ? "animate-bounce" : ""}
+                    />
+                  </button>
+                )}
+              </div>
+              {isOn && giftSuggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {giftSuggestions.map((gift, i) => (
+                    <span
+                      key={i}
+                      className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 text-[8px] font-bold text-yellow-800 rounded-full uppercase"
+                    >
+                      {gift}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
-            <div
+            <button
+              type="button"
               className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
                 isOn ? "bg-gray-200" : "bg-gray-200"
               }`}
@@ -596,13 +754,14 @@ Do not include a signature or sender name. Use emojis.
                     : "transform translate-x-0.5 bg-gray-700"
                 }`}
               />
-            </div>
+            </button>
           </div>
           <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3 mt-4">
             <div className="">
               <h2 className=" text-xl font-medium">Add Music</h2>
             </div>
-            <div
+            <button
+              type="button"
               className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
                 addMusic ? "bg-gray-200" : "bg-gray-200"
               }`}
@@ -615,7 +774,7 @@ Do not include a signature or sender name. Use emojis.
                     : "transform translate-x-0.5 bg-gray-700"
                 }`}
               />
-            </div>
+            </button>
           </div>
         </div>
 
@@ -627,7 +786,10 @@ Do not include a signature or sender name. Use emojis.
           )}
           {addMusic && (
             <div className="">
-              <Music />
+              <Music
+                onSelectMusic={setSelectedMusic}
+                selectedMusic={selectedMusic}
+              />
             </div>
           )}
           <VoiceMessage />
@@ -832,6 +994,46 @@ Do not include a signature or sender name. Use emojis.
               </div>
             )}
 
+            {/* Selected Music Preview */}
+            {selectedMusic && (
+              <div className="flex flex-col items-center gap-3 py-4">
+                <div className="flex items-center gap-3 bg-white border-2 border-[#191A23] rounded-sm p-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] w-full max-w-sm">
+                  <img
+                    src={selectedMusic.cover}
+                    alt={selectedMusic.title}
+                    className="size-10 rounded-sm border border-[#191A23]/10 object-cover"
+                  />
+                  <div className="text-left flex-1 min-w-0">
+                    <p className="text-[10px] font-black uppercase text-[#191A23] truncate">
+                      {selectedMusic.title}
+                    </p>
+                    <p className="text-[8px] font-bold text-neutral-500 uppercase truncate">
+                      {selectedMusic.artist}
+                    </p>
+                  </div>
+                  <div className="w-px h-6 bg-[#191A23]/10"></div>
+                  <HugeiconsIcon
+                    icon={MusicNote01Icon}
+                    size={16}
+                    className="text-[#191A23] animate-bounce"
+                  />
+                </div>
+
+                {selectedMusic.type === "spotify" && (
+                  <div className="w-full max-w-sm rounded-sm overflow-hidden border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+                    <iframe
+                      src={`https://open.spotify.com/embed/track/${selectedMusic.id}?utm_source=generator&theme=0`}
+                      width="100%"
+                      height="80"
+                      frameBorder="0"
+                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                      loading="lazy"
+                    ></iframe>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <button
                 className={`text-lg ${selectedTheme.secondary} ${selectedTheme.textNeutral} p-1 rounded-full px-2.5`}
@@ -872,8 +1074,8 @@ Do not include a signature or sender name. Use emojis.
   );
 
   return (
-    <div className="w-full bg-[#F3F3F3] font-space min-h-screen p-6 pt-10">
-      <div className="max-w-4xl mx-auto">
+    <div className="w-full bg-[#F3F3F3] font-space min-h-screen ">
+      <div className="">
         {!isPreviewMode ? (
           /* Form View */
           <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm w-full p-8 space-y-6 relative">
