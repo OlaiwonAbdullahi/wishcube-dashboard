@@ -977,6 +977,7 @@ Return ONLY the font name.
         {/* Greeting Preview */}
         <div
           className={`${selectedTheme.bgNeutral} p-8 min-h-[500px] max-h-[600px] overflow-y-auto`}
+          style={{ fontFamily: selectedFont }}
         >
           <div className="relative">
             {/* Header Section */}
