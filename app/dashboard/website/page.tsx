@@ -448,7 +448,7 @@ Return ONLY the font name.
       await navigator.clipboard.writeText(greetingUrl);
 
       // Show success message
-      toast.error(
+      toast.success(
         "Greeting link copied to clipboard! Share this link with your recipient."
       );
     } catch (err) {
