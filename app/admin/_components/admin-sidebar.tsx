@@ -5,11 +5,13 @@ import { usePathname } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DashboardSquare01Icon,
+  UserGroupIcon,
   Cards02Icon,
-  WebDesign02Icon,
-  GiftCardIcon,
-  Video02Icon,
+  Analytics01Icon,
   Settings01Icon,
+  WebDesign02Icon,
+  Store01Icon,
+  Mail02Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Sidebar,
@@ -36,54 +38,66 @@ const navItems: NavItem[] = [
     title: "Overview",
     icon: DashboardSquare01Icon,
     iconColor: "text-violet-500",
-    href: "/dashboard",
+    href: "/admin",
   },
   {
-    title: "Create Cards",
-    icon: Cards02Icon,
+    title: "User Management",
+    icon: UserGroupIcon,
     iconColor: "text-blue-500",
-    href: "/dashboard/cards",
+    href: "/admin/users",
   },
   {
-    title: "Create Websites",
-    icon: WebDesign02Icon,
+    title: "Vendor Management",
+    icon: Store01Icon,
+    iconColor: "text-pink-500",
+    href: "/admin/vendors",
+  },
+  {
+    title: "Waitlist Management",
+    icon: Mail02Icon,
+    iconColor: "text-indigo-500",
+    href: "/admin/waitlist",
+  },
+  {
+    title: "Card Management",
+    icon: Cards02Icon,
     iconColor: "text-amber-500",
-    href: "/dashboard/website",
+    href: "/admin/cards",
   },
   {
-    title: "Marketplace",
-    icon: GiftCardIcon,
+    title: "Website Management",
+    icon: WebDesign02Icon,
     iconColor: "text-green-500",
-    href: "/dashboard/gifts",
+    href: "/admin/websites",
   },
   {
-    title: "Party Rooms",
-    icon: Video02Icon,
+    title: "Analytics",
+    icon: Analytics01Icon,
     iconColor: "text-cyan-500",
-    href: "/dashboard/party-rooms",
+    href: "/admin/analytics",
   },
   {
     title: "Settings",
     icon: Settings01Icon,
     iconColor: "text-muted-foreground",
-    href: "/dashboard/settings",
+    href: "/admin/settings",
   },
 ];
 
-export function DashboardSidebar(props: React.ComponentProps<typeof Sidebar>) {
+export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   return (
     <Sidebar collapsible="offcanvas" className="!border-r-0" {...props}>
       <SidebarHeader className="px-4 py-5 border-b border-neutral-300">
-        <div className="flex items-end gap-1  w-full">
+        <div className="flex items-end gap-1 w-full">
           <img
             src="/logo.png"
             alt="WishCube Logo"
             className="w-8 h-8 rounded-md"
           />
           <span className="font-semibold text-[#191A23] truncate">
-            WishCube
+            WishCube Admin
           </span>
         </div>
       </SidebarHeader>
@@ -98,17 +112,30 @@ export function DashboardSidebar(props: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       asChild
-                      className={`h-9 ${
-                        isActive ? "bg-neutral-300 text-black" : ""
-                      }`}
+                      className={cn(
+                        "h-10 px-3 transition-all duration-200",
+                        isActive
+                          ? "bg-[#191A23] text-white hover:bg-[#191A23] hover:text-white"
+                          : "text-[#191A23]/60 hover:bg-[#191A23]/5 hover:text-[#191A23]"
+                      )}
                     >
                       <Link href={item.href}>
-                        <HugeiconsIcon
-                          icon={item.icon}
-                          className={cn("size-4 shrink-0", item.iconColor)}
-                          strokeWidth={1.5}
-                        />
-                        <h2 className="text-md">{item.title}</h2>
+                        <div
+                          className={cn(
+                            "flex items-center justify-center w-5 h-5 mr-3 transition-transform duration-200",
+                            isActive ? "scale-110" : "group-hover:scale-110"
+                          )}
+                        >
+                          <HugeiconsIcon
+                            icon={item.icon}
+                            size={20}
+                            color="currentColor"
+                            strokeWidth={isActive ? 2 : 1.5}
+                          />
+                        </div>
+                        <span className="text-sm font-medium">
+                          {item.title}
+                        </span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

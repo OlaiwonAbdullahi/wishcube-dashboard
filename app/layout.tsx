@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const spaceGrotesk = Space_Grotesk({
@@ -38,8 +39,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Toaster position="top-right" richColors />
-        {children}
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+          <Toaster position="top-right" richColors />
+          {children}
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

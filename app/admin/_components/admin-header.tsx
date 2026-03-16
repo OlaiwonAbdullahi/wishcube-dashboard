@@ -1,6 +1,6 @@
 "use client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Folder01Icon, Logout01Icon } from "@hugeicons/core-free-icons";
+import { Folder01Icon, Logout01Icon, Shield01Icon } from "@hugeicons/core-free-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { getAuth, clearAuth, User } from "@/lib/auth";
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
-export function DashboardHeader() {
+export function AdminHeader() {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
 
@@ -36,12 +36,12 @@ export function DashboardHeader() {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-muted-foreground">
           <HugeiconsIcon
-            icon={Folder01Icon}
+            icon={Shield01Icon}
             size={16}
             color="currentColor"
             strokeWidth={1.5}
           />
-          <span className="text-sm font-medium">Dashboard</span>
+          <span className="text-sm font-medium">Admin Panel</span>
         </div>
       </div>
 
@@ -53,11 +53,11 @@ export function DashboardHeader() {
                 <AvatarImage
                   src={
                     user?.avatar ||
-                    "https://api.dicebear.com/9.x/glass/svg?seed=a"
+                    "https://api.dicebear.com/9.x/glass/svg?seed=admin"
                   }
                   alt={user?.name}
                 />
-                <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
+                <AvatarFallback>{user?.name?.charAt(0) || "A"}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
