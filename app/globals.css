@@ -123,3 +123,7 @@
     font-family: var(--font-space), sans-serif;
   }
 }
+
+Card {
+  padding-top: 0;
+}

@@ -11,6 +11,7 @@ import {
 import { toast } from "sonner";
 
 export default function UsersPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
