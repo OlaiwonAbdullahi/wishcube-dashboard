@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -11,28 +12,107 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
-import { useState, FormEvent } from "react";
-import { register, googleAuth } from "@/lib/auth";
+import { useState, FormEvent, useEffect } from "react";
+import { register, googleAuth, getAuth, clearAuth } from "@/lib/auth";
+import { applyVendor } from "@/lib/vendor";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGoogleLogin } from "@react-oauth/google";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Store01Icon,
+  ArrowRight01Icon,
+  Tick01Icon,
+  BankIcon,
+  MapsCircle02Icon,
+} from "@hugeicons/core-free-icons";
 
-export default function SignUp() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function JoinAsVendor() {
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
+  // Step 1: Account
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  // Step 2: Store Details
+  const [storeName, setStoreName] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Cakes");
+  const [deliveryZones, setDeliveryZones] = useState<string[]>([]);
+  const [newZone, setNewZone] = useState("");
+
+  // Step 3: Bank Details
+  const [accountName, setAccountName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bankCode, setBankCode] = useState("058");
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [banks, setBanks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const response = await fetch(
+          "https://api.paystack.co/bank?country=nigeria",
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_PAYSTACK_SECRET_KEY}`,
+            },
+          }
+        );
+        const resData = await response.json();
+        if (resData.status && resData.data) {
+          setBanks(resData.data);
+        } else {
+          throw new Error("Failed to fetch banks");
+        }
+      } catch (error) {
+        console.error("Error fetching banks from Paystack:", error);
+      }
+    };
+
+    fetchBanks();
+  }, []);
+
+  useEffect(() => {
+    const auth = getAuth();
+    if (auth) {
+      setCurrentUser(auth.user);
+      if (step === 1) setStep(2);
+    }
+  }, [step]);
+
+  const categories = [
+    "Cakes",
+    "Flowers",
+    "Fashion",
+    "Gifts",
+    "Food",
+    "Accessories",
+    "Art & Decor",
+    "Beauty & Spa",
+    "Events & Parties",
+    "Personalized Gifts",
+  ];
+
+  const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       const response = await register(name, email, password);
       if (response.success) {
         toast.success("Account created successfully!");
-        router.push("/dashboard");
+        setStep(2);
       } else {
         toast.error(response.message || "Signup failed");
       }
@@ -43,6 +123,46 @@ export default function SignUp() {
     }
   };
 
+  const handleApply = async (e: FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const application = {
+        storeName,
+        description,
+        category,
+        deliveryZones,
+        bankDetails: {
+          accountName,
+          accountNumber,
+          bankCode,
+        },
+      };
+      const response = await applyVendor(application);
+      if (response.success) {
+        toast.success("Application submitted successfully!");
+        router.push("/dashboard");
+      } else {
+        toast.error(response.message || "Application failed");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred during application");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addZone = () => {
+    if (newZone && !deliveryZones.includes(newZone)) {
+      setDeliveryZones([...deliveryZones, newZone]);
+      setNewZone("");
+    }
+  };
+
+  const removeZone = (zone: string) => {
+    setDeliveryZones(deliveryZones.filter((z) => z !== zone));
+  };
+
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       setLoading(true);
@@ -50,7 +170,7 @@ export default function SignUp() {
         const response = await googleAuth(tokenResponse.access_token);
         if (response.success) {
           toast.success("Signed up with Google successfully!");
-          router.push("/dashboard");
+          setStep(2);
         } else {
           toast.error(response.message || "Google signup failed");
         }
@@ -66,110 +186,407 @@ export default function SignUp() {
   });
 
   return (
-    <div>
-      <div className="min-h-screen w-full flex items-center font-space justify-center px-4 py-16">
-        <div className="relative w-full max-w-4xl flex gap-10 justify-center ">
-          <form onSubmit={handleSignup} className="w-full max-w-md">
-            <Card className="w-full border border-[#191A23] border-b-4 bg-[#F3F3F3] ">
-              <CardHeader className="space-y-1">
-                <CardTitle className="text-3xl text-[#191A23] font-bold text-center">
-                  Signup
-                </CardTitle>
-                <CardDescription className="text-neutral-600 text-center">
-                  Create your account
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-4">
-                <div className="flex flex-col gap-4 mb-4">
-                  <div className="flex justify-center w-full">
+    <div className="min-h-screen w-full flex items-center font-space justify-center px-4 py-16 bg-[#F3F3F3]">
+      <div className="w-full max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <Card className="w-full border-4 border-[#191A23] rounded-sm shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] bg-white">
+          <CardHeader className="border-b-4 border-[#191A23] p-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-pink-50 border-2 border-[#191A23] rounded-sm">
+                <HugeiconsIcon
+                  icon={Store01Icon}
+                  size={24}
+                  className="text-pink-500"
+                />
+              </div>
+              <CardTitle className="text-3xl font-black text-[#191A23] uppercase tracking-tight">
+                Become a Vendor
+              </CardTitle>
+            </div>
+            <CardDescription className="text-sm font-bold uppercase text-neutral-500 tracking-wider">
+              {step === 1
+                ? "Step 1: Create your account"
+                : step === 2
+                ? "Step 2: Tell us about your store"
+                : "Step 3: Financial Details"}
+            </CardDescription>
+
+            <div className="flex gap-2 mt-6">
+              {[1, 2, 3].map((s) => (
+                <div
+                  key={s}
+                  className={`h-2 flex-1 border-2 border-[#191A23] rounded-full transition-all ${
+                    step >= s ? "bg-[#B4F8C8]" : "bg-neutral-100"
+                  }`}
+                />
+              ))}
+            </div>
+          </CardHeader>
+
+          <CardContent className="p-8">
+            {step === 1 && (
+              <div className="space-y-6">
+                {currentUser ? (
+                  <div className="bg-[#B4F8C8]/20 border-2 border-[#191A23] p-6 rounded-sm space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-white border-2 border-[#191A23] rounded-full flex items-center justify-center font-black text-xl">
+                        {currentUser.name?.[0] || "U"}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-neutral-500">
+                          Logged in as
+                        </p>
+                        <p className="font-black text-[#191A23]">
+                          {currentUser.name}
+                        </p>
+                        <p className="text-xs font-bold text-neutral-500">
+                          {currentUser.email}
+                        </p>
+                      </div>
+                    </div>
                     <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => handleGoogleLogin()}
-                      disabled={loading}
-                      className="w-full flex items-center justify-center gap-2 border-[#191A23] border-b-4 hover:translate-y-[2px] hover:border-b-2 active:translate-y-[4px] active:border-b-0 transition-all bg-white"
+                      onClick={() => setStep(2)}
+                      className="w-full h-14 bg-[#191A23] text-white rounded-sm font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(180,248,200,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
                     >
-                      <img
-                        src="https://www.google.com/favicon.ico"
-                        alt="Google Logo"
-                        className="w-4 h-4"
+                      Continue Application
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={18}
+                        className="ml-2"
                       />
-                      <span className="font-bold text-[#191A23]">
-                        {loading ? "Connecting..." : "Continue with Google"}
-                      </span>
                     </Button>
+                    <button
+                      onClick={() => {
+                        clearAuth();
+                        setCurrentUser(null);
+                        window.location.reload();
+                      }}
+                      className="w-full text-[10px] font-black uppercase text-neutral-400 hover:text-red-500 transition-colors"
+                    >
+                      Not you? Logout and switch account
+                    </button>
                   </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-neutral-300"></span>
+                ) : (
+                  <form onSubmit={handleSignup} className="space-y-6">
+                    <div className="flex flex-col gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleGoogleLogin()}
+                        disabled={loading}
+                        className="w-full flex items-center justify-center gap-2 border-2 border-[#191A23] h-12 rounded-sm font-black uppercase text-sm hover:bg-neutral-50 transition-all shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                      >
+                        <img
+                          src="https://www.google.com/favicon.ico"
+                          alt="Google"
+                          className="w-4 h-4"
+                        />
+                        Connect with Google
+                      </Button>
+                      <div className="relative py-2">
+                        <div className="absolute inset-0 flex items-center">
+                          <span className="w-full border-t-2 border-[#191A23]/10"></span>
+                        </div>
+                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
+                          <span className="bg-white px-4 text-neutral-400">
+                            Or use email
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-[#F3F3F3] px-2 text-neutral-500">
-                        Or continue with
-                      </span>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                          Full Name
+                        </Label>
+                        <Input
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder="John Doe"
+                          className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                          Email Address
+                        </Label>
+                        <Input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="vendor@example.com"
+                          className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                          Password
+                        </Label>
+                        <Input
+                          type="password"
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-14 bg-[#191A23] text-white rounded-sm font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(180,248,200,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+                      onClick={() =>
+                        window.scrollTo({ top: 0, behavior: "smooth" })
+                      }
+                    >
+                      {loading ? "Creating Account..." : "Next Step"}
+                      <HugeiconsIcon
+                        icon={ArrowRight01Icon}
+                        size={18}
+                        className="ml-2"
+                      />
+                    </Button>
+                  </form>
+                )}
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Store Name
+                    </Label>
+                    <Input
+                      required
+                      value={storeName}
+                      onChange={(e) => setStoreName(e.target.value)}
+                      placeholder="Sweet Delights Bakery"
+                      className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Category
+                    </Label>
+                    <Select value={category} onValueChange={setCategory}>
+                      <SelectTrigger className="w-full py-6 border-2 border-[#191A23] rounded-sm h-12 px-3 text-sm font-bold bg-white focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent className="border-2 border-[#191A23] rounded-sm font-bold">
+                        {categories.map((cat) => (
+                          <SelectItem
+                            key={cat}
+                            value={cat}
+                            className="focus:bg-[#B4F8C8] focus:text-[#191A23] cursor-pointer"
+                          >
+                            {cat}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Description
+                    </Label>
+                    <textarea
+                      required
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Tell us about your store and what makes it unique..."
+                      className="w-full border-2 border-[#191A23] rounded-sm h-32 p-3 text-sm font-bold focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all resize-none"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23] flex items-center gap-1">
+                      <HugeiconsIcon icon={MapsCircle02Icon} size={12} />
+                      Delivery Zones (where can you deliver to?)
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newZone}
+                        onChange={(e) => setNewZone(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            addZone();
+                          }
+                        }}
+                        placeholder="e.g. Lagos"
+                        className="border-2 border-[#191A23] rounded-sm h-10 text-xs font-bold flex-1"
+                      />
+                      <Button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          addZone();
+                        }}
+                        className="bg-[#191A23] text-white rounded-sm px-4 h-10 text-[10px] font-black uppercase"
+                      >
+                        Add
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {deliveryZones.map((zone) => (
+                        <div
+                          key={zone}
+                          className="flex items-center gap-2 px-3 py-1.5 bg-[#F3F3F3] border-2 border-[#191A23] rounded-sm"
+                        >
+                          <span className="text-[10px] font-black uppercase text-[#191A23]">
+                            {zone}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeZone(zone)}
+                            className="text-[#191A23]/50 hover:text-red-500 transition-colors"
+                          >
+                            <HugeiconsIcon
+                              icon={Tick01Icon}
+                              size={14}
+                              className="rotate-45"
+                            />
+                          </button>
+                        </div>
+                      ))}
+                      {deliveryZones.length === 0 && (
+                        <p className="text-[10px] font-bold text-neutral-400 italic">
+                          No zones added yet. Please add at least one zone.
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2 text-left">
-                  <Label className="text-xs text-neutral-500">Name</Label>
-                  <Input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your Name"
-                    className="bg-transparent border-[#191A23]/50 rounded-sm h-10 text-sm placeholder:text-neutral-500"
-                  />
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="flex-1 h-14 border-2 border-[#191A23] rounded-sm font-black uppercase text-sm hover:bg-neutral-50 transition-all"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setStep(3);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    disabled={
+                      !storeName || !description || deliveryZones.length === 0
+                    }
+                    className="flex-[2] h-14 bg-[#191A23] text-white rounded-sm font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(180,248,200,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+                  >
+                    Next: Bank Details
+                    <HugeiconsIcon
+                      icon={ArrowRight01Icon}
+                      size={18}
+                      className="ml-2"
+                    />
+                  </Button>
                 </div>
-                <div className="space-y-2 text-left">
-                  <Label className="text-xs text-neutral-500">
-                    Email address
-                  </Label>
-                  <Input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="bg-transparent border-[#191A23]/50 rounded-sm h-10 text-sm placeholder:text-neutral-500"
-                  />
+              </div>
+            )}
+
+            {step === 3 && (
+              <form
+                onSubmit={handleApply}
+                className="space-y-6 animate-in slide-in-from-right-4 duration-300"
+              >
+                <div className="bg-neutral-50 border-2 border-dashed border-[#191A23]/20 rounded-sm p-4 mb-6">
+                  <div className="flex items-center gap-2 text-[#191A23] mb-1">
+                    <HugeiconsIcon icon={BankIcon} size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-tight">
+                      Payout Information
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-medium text-neutral-500 uppercase leading-relaxed">
+                    We need your bank details to process payments for your sales
+                    on WishCube.
+                  </p>
                 </div>
 
-                <div className="space-y-2 text-left">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs text-neutral-500">Password</Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Account Name
+                    </Label>
+                    <Input
+                      required
+                      value={accountName}
+                      onChange={(e) => setAccountName(e.target.value)}
+                      placeholder="Sweet Delights Ltd"
+                      className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                    />
                   </div>
-                  <Input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Your password"
-                    className="bg-transparent border-[#191A23]/50 rounded-sm h-10 text-sm placeholder:text-neutral-500"
-                  />
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Account Number
+                    </Label>
+                    <Input
+                      required
+                      value={accountNumber}
+                      onChange={(e) => setAccountNumber(e.target.value)}
+                      placeholder="0011223344"
+                      className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Bank
+                    </Label>
+                    <Select value={bankCode} onValueChange={setBankCode}>
+                      <SelectTrigger className="w-full  py-6 border-2 border-[#191A23] rounded-sm  px-3 text-sm font-bold bg-white focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all">
+                        <SelectValue placeholder="Select your bank" />
+                      </SelectTrigger>
+                      <SelectContent className="border-2 border-[#191A23] rounded-sm font-bold max-h-[300px]">
+                        {banks.map((bank: any) => (
+                          <SelectItem
+                            key={bank.name}
+                            value={bank.code}
+                            className="focus:bg-[#B4F8C8] focus:text-[#191A23] cursor-pointer"
+                          >
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </CardContent>
-              <CardFooter className="flex flex-col gap-3">
-                <Button
-                  disabled={loading}
-                  type="submit"
-                  className="w-full cursor-pointer rounded-sm h-10 bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform"
-                >
-                  {loading ? "Signing up..." : "Signup"}
-                </Button>
-                <Button
-                  variant="link"
-                  size="sm"
-                  asChild
-                  className="text-xs cursor-pointer text-neutral-500 hover:text-neutral-500/90"
-                >
-                  <Link href="/login">Already have an account? Login</Link>
-                </Button>
-              </CardFooter>
-            </Card>
-          </form>
-        </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className="flex-1 h-14 border-2 border-[#191A23] rounded-sm font-black uppercase text-sm hover:bg-neutral-50 transition-all"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={loading || !accountName || !accountNumber}
+                    className="flex-[2] h-14 bg-[#B4F8C8] text-[#191A23] border-2 border-[#191A23] rounded-sm font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+                  >
+                    {loading ? "Submitting..." : "Submit Application"}
+                  </Button>
+                </div>
+              </form>
+            )}
+          </CardContent>
+
+          <CardFooter className="border-t-2 border-[#191A23]/10 bg-neutral-50 p-6 flex justify-center">
+            <Link
+              href="/login"
+              className="text-[10px] font-black uppercase text-neutral-400 hover:text-[#191A23] transition-colors"
+            >
+              Already have an account? Login
+            </Link>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -39,9 +40,10 @@ export default function Page() {
       const response = await login(email, password);
       if (response.success) {
         toast.success("Logged in successfully!");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if ((response as any)?.data?.user?.role === "admin") {
           router.push("/admin");
+        } else if ((response as any)?.data?.user?.role === "vendor") {
+          router.push("/mystore");
         } else {
           router.push("/dashboard");
         }
