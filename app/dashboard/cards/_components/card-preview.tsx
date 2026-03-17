@@ -120,18 +120,49 @@ export function CardPreview({ cardState }: CardPreviewProps) {
 
   // Get background pattern
   const getBackgroundStyle = () => {
+    if (cardState.backgroundImageUrl) {
+      return {
+        backgroundImage: `url(${cardState.backgroundImageUrl})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    }
     // Premium elegant dark-fade background using the editable backgroundColor
     return {
-      background: `linear-gradient(180deg, ${cardState.backgroundColor} 0%, rgba(0,0,0,0.95) 100%)`,
+      background: `linear-gradient(180deg, ${
+        cardState.backgroundColor || "#FFFFFF"
+      } 0%, rgba(0,0,0,0.95) 100%)`,
     };
+  };
+
+  const getFontSizeValue = () => {
+    if (cardState.textSize === "small") return 12;
+    if (cardState.textSize === "large") return 28;
+    return 20;
   };
 
   const DecorativeIcons = () => (
     <div className="flex items-center justify-center gap-6 opacity-60">
-      <SelectedHugeIcon name="sparkles" size={20} style={{ color: "white" }} />
-      <SelectedHugeIcon name="heart" size={20} style={{ color: "white" }} />
-      <SelectedHugeIcon name="balloon" size={20} style={{ color: "white" }} />
-      <SelectedHugeIcon name="party" size={20} style={{ color: "white" }} />
+      <SelectedHugeIcon
+        name="sparkles"
+        size={20}
+        style={{ color: cardState.textColor || "white" }}
+      />
+      <SelectedHugeIcon
+        name="heart"
+        size={20}
+        style={{ color: cardState.textColor || "white" }}
+      />
+      <SelectedHugeIcon
+        name="balloon"
+        size={20}
+        style={{ color: cardState.textColor || "white" }}
+      />
+      <SelectedHugeIcon
+        name="party"
+        size={20}
+        style={{ color: cardState.textColor || "white" }}
+      />
     </div>
   );
 
@@ -166,8 +197,12 @@ export function CardPreview({ cardState }: CardPreviewProps) {
               <div
                 className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{
-                  background: `radial-gradient(circle at 20% 20%, ${cardState.accentColor} 0%, transparent 40%), 
-                              radial-gradient(circle at 80% 80%, ${cardState.accentColor} 0%, transparent 40%)`,
+                  background: `radial-gradient(circle at 20% 20%, ${
+                    cardState.textColor || "#FFFFFF"
+                  } 0%, transparent 40%), 
+                              radial-gradient(circle at 80% 80%, ${
+                                cardState.textColor || "#FFFFFF"
+                              } 0%, transparent 40%)`,
                 }}
               />
 
@@ -181,16 +216,16 @@ export function CardPreview({ cardState }: CardPreviewProps) {
                 {/* Header */}
                 <div className="flex flex-col items-center mt-6 mb-4">
                   <span className="text-[8px] font-bold tracking-[0.3em] uppercase opacity-60 mb-1">
-                    {cardState.occasion.toUpperCase()}
+                    {(cardState.occasion || "Birthday").toUpperCase()}
                   </span>
                   <h2
                     className="text-2xl font-black tracking-tight text-center leading-tight"
                     style={{
-                      fontFamily: cardState.fontFamily,
-                      color: "white",
+                      fontFamily: cardState.font,
+                      color: cardState.textColor || "white",
                     }}
                   >
-                    {cardState.title}
+                    Happy {cardState.occasion}
                   </h2>
                 </div>
 
@@ -223,11 +258,14 @@ export function CardPreview({ cardState }: CardPreviewProps) {
                       <p
                         className="text-xs leading-relaxed opacity-90 italic font-medium max-w-[90%] mx-auto"
                         style={{
-                          fontSize: `${cardState.fontSize}px`,
-                          fontFamily: cardState.fontFamily,
+                          fontSize: `${getFontSizeValue()}px`,
+                          fontFamily: cardState.font,
                         }}
                       >
-                        &quot;{cardState.message}&quot;
+                        &quot;
+                        {cardState.message ||
+                          "Your message will appear here..."}
+                        &quot;
                       </p>
 
                       <div className="pt-2 flex flex-col items-end">
@@ -235,7 +273,7 @@ export function CardPreview({ cardState }: CardPreviewProps) {
                           With love,
                         </p>
                         <p className="font-bold text-xs tracking-tight">
-                          {cardState.userName || "Your Friend"}
+                          {cardState.senderName || "Your Friend"}
                         </p>
                       </div>
                     </div>
@@ -252,7 +290,7 @@ export function CardPreview({ cardState }: CardPreviewProps) {
                   <span>Wishcube Premium</span>
                   <div className="text-right">
                     <p>© Wishcube</p>
-                    <p>Built by {cardState.userName || "Wishcube"}</p>
+                    <p>Built by {cardState.senderName || "Wishcube"}</p>
                   </div>
                 </div>
               </div>
@@ -265,7 +303,7 @@ export function CardPreview({ cardState }: CardPreviewProps) {
               variant="outline"
               className="gap-2 rounded-sm border-[#191A23] border-b-4 hover:translate-y-[2px] hover:border-b-2 transition-all font-bold uppercase text-xs"
               onClick={handleDownload}
-              disabled={isDownloading}
+              disabled={isDownloading || !cardState._id}
             >
               <Download className="size-4" />
               Download
@@ -273,6 +311,7 @@ export function CardPreview({ cardState }: CardPreviewProps) {
             <Button
               className="gap-2 rounded-sm bg-[#191A23] text-white border-[#191A23] border-b-4 hover:translate-y-[2px] hover:border-b-2 transition-all font-bold uppercase text-xs"
               onClick={handleShare}
+              disabled={!cardState._id}
             >
               <Share2 className="size-4" />
               Share
