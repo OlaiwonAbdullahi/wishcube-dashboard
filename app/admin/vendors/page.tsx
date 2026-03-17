@@ -39,15 +39,21 @@ export default function VendorsPage() {
     setLoading(true);
     try {
       const response = await getAllVendors(activeTab);
-      console.log(response);
-      if (response.success && response.data) {
-        setVendors(response.data.vendors);
-        setTotal(response.data.total);
+      if (response.success) {
+        const vendorList =
+          response.data?.vendors || (response as any).vendors || [];
+        const vendorTotal =
+          response.data?.total || (response as any).total || 0;
+
+        setVendors(Array.isArray(vendorList) ? vendorList : []);
+        setTotal(vendorTotal);
       } else {
         toast.error(response.message || "Failed to fetch vendors");
+        setVendors([]);
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
+      setVendors([]);
     } finally {
       setLoading(false);
     }
@@ -164,7 +170,7 @@ export default function VendorsPage() {
                     </div>
                   </td>
                 </tr>
-              ) : vendors.length === 0 ? (
+              ) : (vendors || []).length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -174,7 +180,7 @@ export default function VendorsPage() {
                   </td>
                 </tr>
               ) : (
-                vendors.map((vendor) => {
+                (vendors || []).map((vendor) => {
                   const vendorId = vendor._id || vendor.id;
                   return (
                     <tr

@@ -20,14 +20,21 @@ export default function WaitlistPage() {
     setLoading(true);
     try {
       const response = await getWaitlist();
-      if (response.success && response.data) {
-        setWaitlist(response.data.waitlist);
-        setTotal(response.data.total);
+      if (response.success) {
+        const list =
+          response.data?.waitlist || (response as any).waitlist || [];
+        const waitlistTotal =
+          response.data?.total || (response as any).total || 0;
+
+        setWaitlist(Array.isArray(list) ? list : []);
+        setTotal(waitlistTotal);
       } else {
         toast.error(response.message || "Failed to fetch waitlist");
+        setWaitlist([]);
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
+      setWaitlist([]);
     } finally {
       setLoading(false);
     }
@@ -97,7 +104,7 @@ export default function WaitlistPage() {
                     </div>
                   </td>
                 </tr>
-              ) : waitlist.length === 0 ? (
+              ) : (waitlist || []).length === 0 ? (
                 <tr>
                   <td
                     colSpan={3}
@@ -107,7 +114,7 @@ export default function WaitlistPage() {
                   </td>
                 </tr>
               ) : (
-                waitlist.map((entry) => (
+                (waitlist || []).map((entry) => (
                   <tr
                     key={entry.id}
                     className="hover:bg-neutral-50 transition-colors"

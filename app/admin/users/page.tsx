@@ -24,14 +24,19 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const response = await getAllUsers();
-      if (response.success && response.data) {
-        setUsers(response.data.users);
-        setTotal(response.data.total);
+      if (response.success) {
+        const userList = response.data?.users || (response as any).users || [];
+        const userTotal = response.data?.total || (response as any).total || 0;
+
+        setUsers(Array.isArray(userList) ? userList : []);
+        setTotal(userTotal);
       } else {
         toast.error(response.message || "Failed to fetch users");
+        setUsers([]);
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -91,7 +96,7 @@ export default function UsersPage() {
                     </div>
                   </td>
                 </tr>
-              ) : users.length === 0 ? (
+              ) : (users || []).length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
@@ -101,7 +106,7 @@ export default function UsersPage() {
                   </td>
                 </tr>
               ) : (
-                users.map((user) => {
+                (users || []).map((user) => {
                   const userId = user._id || user.id;
                   return (
                     <tr

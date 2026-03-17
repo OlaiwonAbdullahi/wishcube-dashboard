@@ -34,19 +34,38 @@ const getHeaders = () => {
   };
 };
 
-// Get all products (with optional vendor filtering if needed)
-export const getVendorProducts = async (): Promise<
-  ProductResponse<{ total: number; products: Product[] }>
-> => {
+// Get products by vendor ID
+export const getProductsByVendorId = async (
+  vendorId: string
+): Promise<ProductResponse<{ total: number; products: Product[] }>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}`, {
+    const response = await fetch(`${API_BASE_URL}?vendorId=${vendorId}`, {
       method: "GET",
       headers: getHeaders(),
     });
     return await response.json();
   } catch (error) {
-    console.error("Fetch vendor products error:", error);
-    return { success: false, message: "Network error fetching products" };
+    console.error("Fetch products by vendor error:", error);
+    return {
+      success: false,
+      message: "Network error fetching vendor products",
+    };
+  }
+};
+
+// Get a single product by ID
+export const getProductById = async (
+  id: string
+): Promise<ProductResponse<{ product: Product }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch product error:", error);
+    return { success: false, message: "Network error fetching product" };
   }
 };
 

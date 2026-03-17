@@ -1,6 +1,10 @@
 "use client";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Folder01Icon, Logout01Icon } from "@hugeicons/core-free-icons";
+import {
+  Folder01Icon,
+  Logout01Icon,
+  ShoppingBasket03Icon,
+} from "@hugeicons/core-free-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { getAuth, clearAuth, User } from "@/lib/auth";
@@ -46,6 +50,14 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        <div className="">
+          <HugeiconsIcon
+            icon={ShoppingBasket03Icon}
+            size={20}
+            color="currentColor"
+            strokeWidth={1.5}
+          />
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">

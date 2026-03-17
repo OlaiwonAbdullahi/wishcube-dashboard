@@ -12,6 +12,7 @@ import {
   WebDesign02Icon,
   Store01Icon,
   Mail02Icon,
+  PackageIcon,
 } from "@hugeicons/core-free-icons";
 import {
   Sidebar,
@@ -63,6 +64,12 @@ const navItems: NavItem[] = [
     icon: Cards02Icon,
     iconColor: "text-amber-500",
     href: "/admin/cards",
+  },
+  {
+    title: "Digital Gifts",
+    icon: PackageIcon,
+    iconColor: "text-purple-500",
+    href: "/admin/digital-gifts",
   },
   {
     title: "Website Management",

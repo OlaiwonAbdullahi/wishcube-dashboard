@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
     title: "Marketplace",
     icon: GiftCardIcon,
     iconColor: "text-green-500",
-    href: "/dashboard/gifts",
+    href: "/dashboard/marketplace",
   },
   {
     title: "Party Rooms",
