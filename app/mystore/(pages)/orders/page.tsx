@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -185,7 +184,7 @@ export default function OrdersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-medium text-neutral-600">
-                          {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                          {order.createdAt}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -403,6 +402,7 @@ export default function OrdersPage() {
                   variant="destructive"
                   className="h-11 border-2 border-[#191A23] rounded-sm font-black uppercase text-xs shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all gap-2"
                   onClick={() =>
+                    selectedOrder &&
                     handleStatusUpdate(selectedOrder._id, "cancelled")
                   }
                   disabled={isActionLoading}

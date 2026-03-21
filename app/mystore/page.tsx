@@ -15,7 +15,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAuth } from "@/lib/auth";
 import { getVendorOrders, Order } from "@/lib/orders";
-import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
 export default function MyStorePage() {
@@ -168,7 +167,7 @@ export default function MyStorePage() {
                           {order.customerName}
                         </p>
                         <p className="text-xs text-neutral-500">
-                          {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                          {order.createdAt}
                         </p>
                       </div>
                     </div>
