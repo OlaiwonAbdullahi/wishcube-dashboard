@@ -107,7 +107,7 @@ export function CardPreview({ cardState }: CardPreviewProps) {
         await navigator.share({
           files: [file],
           title: "My Greeting Card",
-          text: cardState.title,
+          text: cardState.message || "Check out my greeting card!",
         });
       } else {
         // Fallback: Copy to clipboard
