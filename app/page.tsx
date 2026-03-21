@@ -29,7 +29,13 @@ export default function Page() {
     // Redirect if already logged in
     const auth = getAuth();
     if (auth) {
-      router.push("/dashboard");
+      if (auth.user.role === "admin") {
+        router.push("/admin");
+      } else if (auth.user.role === "vendor") {
+        router.push("/mystore");
+      } else {
+        router.push("/dashboard");
+      }
     }
   }, [router]);
 
@@ -42,8 +48,6 @@ export default function Page() {
         toast.success("Logged in successfully!");
         if ((response as any)?.data?.user?.role === "admin") {
           router.push("/admin");
-        } else if ((response as any)?.data?.user?.role === "vendor") {
-          router.push("/mystore");
         } else {
           router.push("/dashboard");
         }

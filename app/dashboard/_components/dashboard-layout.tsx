@@ -20,6 +20,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     const auth = getAuth();
     if (!auth) {
       router.push("/");
+    } else if (auth.user.role === "vendor") {
+      router.push("/mystore");
     } else {
       // Defer state update to avoid synchronous setState in effect
       queueMicrotask(() => setIsAuthorized(true));

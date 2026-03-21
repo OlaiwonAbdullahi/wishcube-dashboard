@@ -48,6 +48,35 @@ const getHeaders = () => {
   };
 };
 
+// Register as a vendor
+export const registerVendor = async (data: {
+  ownerName: string;
+  email: string;
+  password: string;
+  storeName: string;
+  category: string;
+  description?: string;
+}) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vendors/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const resData = await response.json();
+    
+    // If successful, we should transform the 'vendor' field to 'user' for setAuth compatibility 
+    // or just handle it in the component. Let's handle it in the component or add a helper.
+    return resData;
+  } catch (error) {
+    console.log("Vendor registration error:", error);
+    return {
+      success: false,
+      message: "Network error during vendor registration",
+    };
+  }
+};
+
 // Apply to be a vendor
 export const applyVendor = async (application: VendorApplication) => {
   try {

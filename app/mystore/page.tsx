@@ -31,7 +31,7 @@ export default function MyStorePage() {
   useEffect(() => {
     const auth = getAuth();
     if (auth) {
-      queueMicrotask(() => setUserName(auth.user.name));
+      setUserName(auth.user.name);
     }
     fetchDashboardData();
   }, []);

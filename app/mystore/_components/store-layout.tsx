@@ -19,13 +19,13 @@ export function StoreLayout({ children }: StoreLayoutProps) {
   useEffect(() => {
     const auth = getAuth();
     if (!auth) {
-      router.push("/");
+      router.replace("/");
     } else if (auth.user.role !== "vendor") {
-      router.push("/dashboard");
+      router.replace("/dashboard");
     } else {
-      queueMicrotask(() => setIsAuthorized(true));
+      setIsAuthorized(true);
     }
-    queueMicrotask(() => setLoading(false));
+    setLoading(false);
   }, [router]);
 
   if (loading) {
