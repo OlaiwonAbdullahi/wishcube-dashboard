@@ -52,7 +52,7 @@ export default function CardsPage() {
     setLoading(true);
     const auth = getAuth();
     try {
-      const res = await fetch("http://localhost:5000/api/cards", {
+      const res = await fetch("https://api.usewishcube.com/api/cards", {
         headers: {
           Authorization: `Bearer ${auth?.token}`,
         },
@@ -178,7 +178,7 @@ export default function CardsPage() {
                         "text-[8px] font-black uppercase px-1.5 py-0.5 border border-[#191A23]",
                         card.status === "completed"
                           ? "bg-[#B4F8C8] text-[#191A23]"
-                          : "bg-[#FFE5E5] text-[#191A23]"
+                          : "bg-[#FFE5E5] text-[#191A23]",
                       )}
                     >
                       {card.status}

@@ -14,16 +14,73 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getAuth } from "@/lib/auth";
+import { getVendorOrders, Order } from "@/lib/orders";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 export default function MyStorePage() {
   const [userName, setUserName] = useState("");
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    activeProducts: 0,
+    customers: 0,
+  });
 
   useEffect(() => {
     const auth = getAuth();
     if (auth) {
       queueMicrotask(() => setUserName(auth.user.name));
     }
+    fetchDashboardData();
   }, []);
+
+  const fetchDashboardData = async () => {
+    setLoading(true);
+    try {
+      const response = await getVendorOrders();
+      if (response.success && response.data) {
+        const orders = response.data.orders;
+        setRecentOrders(orders.slice(0, 5));
+
+        const totalSales = orders
+          .filter((o) => o.status !== "cancelled")
+          .reduce((acc, o) => acc + o.totalAmount, 0);
+
+        const uniqueCustomers = new Set(orders.map((o) => o.customerId)).size;
+
+        setStats({
+          totalOrders: orders.length,
+          totalSales,
+          activeProducts: 0, // This would ideally come from a products API
+          customers: uniqueCustomers,
+        });
+      }
+    } catch (error) {
+      console.error("Dashboard data fetch error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status: Order["status"]) => {
+    switch (status) {
+      case "pending":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      case "processing":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "shipped":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "delivered":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "cancelled":
+        return "bg-red-100 text-red-700 border-red-200";
+      default:
+        return "bg-neutral-100 text-neutral-700 border-neutral-200";
+    }
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -58,25 +115,25 @@ export default function MyStorePage() {
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Sales"
-          value="NGN 0"
+          value={`NGN ${stats.totalSales.toLocaleString()}`}
           icon={Wallet01Icon}
           color="bg-green-50 text-green-600"
         />
         <StatCard
           title="Total Orders"
-          value="0"
+          value={stats.totalOrders.toString()}
           icon={ShoppingBag01Icon}
           color="bg-blue-50 text-blue-600"
         />
         <StatCard
           title="Active Products"
-          value="0"
+          value={stats.activeProducts.toString()}
           icon={PackageIcon}
           color="bg-purple-50 text-purple-600"
         />
         <StatCard
           title="Customers"
-          value="0"
+          value={stats.customers.toString()}
           icon={UserGroupIcon}
           color="bg-pink-50 text-pink-600"
         />
@@ -90,15 +147,65 @@ export default function MyStorePage() {
               Recent Orders
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-              <div className="w-12 h-12 bg-neutral-100 border-2 border-[#191A23] rounded-sm flex items-center justify-center opacity-50">
-                <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="p-6 text-center animate-pulse">Loading...</div>
+            ) : recentOrders.length > 0 ? (
+              <div className="divide-y-2 border-[#191A23]">
+                {recentOrders.map((order) => (
+                  <div
+                    key={order._id}
+                    className="p-4 flex items-center justify-between group hover:bg-neutral-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-neutral-100 border-2 border-[#191A23] rounded-sm flex items-center justify-center">
+                        <span className="text-[10px] font-black">
+                          #{order._id.slice(-3)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-[#191A23]">
+                          {order.customerName}
+                        </p>
+                        <p className="text-xs text-neutral-500">
+                          {format(new Date(order.createdAt), "MMM dd, yyyy")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-sm font-black text-[#191A23]">
+                        NGN {order.totalAmount.toLocaleString()}
+                      </span>
+                      <Badge
+                        className={cn(
+                          "px-2 py-0 rounded-sm border-2 font-bold uppercase text-[8px] shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]",
+                          getStatusColor(order.status),
+                        )}
+                      >
+                        {order.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+                <div className="p-4 bg-neutral-50 text-center border-t-2 border-[#191A23]">
+                  <Link
+                    href="/mystore/orders"
+                    className="text-xs font-black uppercase hover:underline"
+                  >
+                    View All Orders
+                  </Link>
+                </div>
               </div>
-              <p className="text-xs font-bold uppercase text-neutral-400">
-                No orders yet
-              </p>
-            </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+                <div className="w-12 h-12 bg-neutral-100 border-2 border-[#191A23] rounded-sm flex items-center justify-center opacity-50">
+                  <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
+                </div>
+                <p className="text-xs font-bold uppercase text-neutral-400">
+                  No orders yet
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 

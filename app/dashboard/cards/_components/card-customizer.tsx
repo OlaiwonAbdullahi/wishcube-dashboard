@@ -41,7 +41,7 @@ function FontOption({
         "w-full text-left px-3 py-2 border border-[#191A23] rounded-sm transition-all hover:bg-[#191A23]/5 flex items-center justify-between",
         isSelected
           ? "bg-[#191A23] text-white hover:bg-[#191A23]"
-          : "bg-white text-[#191A23]"
+          : "bg-white text-[#191A23]",
       )}
     >
       <span style={{ fontFamily: font.family }} className="text-sm">
@@ -96,7 +96,7 @@ export function CardCustomizer({
     const auth = getAuth();
     try {
       const res = await fetch(
-        `http://localhost:5000/api/cards/${newState._id}`,
+        `https://api.usewishcube.com/api/cards/${newState._id}`,
         {
           method: "PUT",
           headers: {
@@ -104,7 +104,7 @@ export function CardCustomizer({
             Authorization: `Bearer ${auth?.token}`,
           },
           body: JSON.stringify(newState),
-        }
+        },
       );
       const data = await res.json();
       if (!data.success) {
@@ -127,7 +127,7 @@ export function CardCustomizer({
     setIsSaving(true);
     const auth = getAuth();
     try {
-      const res = await fetch("http://localhost:5000/api/cards", {
+      const res = await fetch("https://api.usewishcube.com/api/cards", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,14 +162,14 @@ export function CardCustomizer({
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/cards/${cardState._id}/background`,
+        `https://api.usewishcube.com/api/cards/${cardState._id}/background`,
         {
           method: "POST",
           headers: {
             Authorization: `Bearer ${auth?.token}`,
           },
           body: formData,
-        }
+        },
       );
       const data = await res.json();
       if (data.success) {
@@ -246,8 +246,8 @@ export function CardCustomizer({
                 isActive
                   ? "bg-[#191A23] text-white"
                   : isPast
-                  ? "bg-[#191A23]/10 text-[#191A23]"
-                  : "text-neutral-400 hover:bg-[#191A23]/5"
+                    ? "bg-[#191A23]/10 text-[#191A23]"
+                    : "text-neutral-400 hover:bg-[#191A23]/5",
               )}
             >
               <div
@@ -255,7 +255,7 @@ export function CardCustomizer({
                   "size-5 rounded-full flex items-center justify-center text-[10px] border shrink-0",
                   isActive
                     ? "border-white bg-[#191A23]"
-                    : "border-[#191A23] bg-white text-[#191A23]"
+                    : "border-[#191A23] bg-white text-[#191A23]",
                 )}
               >
                 {index + 1}
@@ -455,7 +455,7 @@ export function CardCustomizer({
                         "h-8 rounded-sm border transition-all",
                         cardState.backgroundColor === color
                           ? "border-[#191A23] border-b-4 -translate-y-0.5"
-                          : "border-[#191A23]/20 hover:border-[#191A23]"
+                          : "border-[#191A23]/20 hover:border-[#191A23]",
                       )}
                       style={{ backgroundColor: color }}
                     />
@@ -513,7 +513,7 @@ export function CardCustomizer({
             "flex-1 py-3 border border-[#191A23] rounded-sm font-bold uppercase text-[10px] transition-all",
             currentStep === 0 || isSaving
               ? "opacity-50 cursor-not-allowed bg-neutral-100"
-              : "bg-white hover:translate-y-[-2px] border-b-4 hover:border-b-4 active:border-b-2 active:translate-y-0 shadow-sm"
+              : "bg-white hover:translate-y-[-2px] border-b-4 hover:border-b-4 active:border-b-2 active:translate-y-0 shadow-sm",
           )}
         >
           Back
@@ -525,7 +525,7 @@ export function CardCustomizer({
             "flex-1 py-3 border border-[#191A23] rounded-sm font-bold uppercase text-[10px] transition-all",
             currentStep === steps.length - 1 && cardState._id
               ? "bg-[#191A23] text-white"
-              : "bg-[#191A23] text-white hover:translate-y-[-2px] border-b-4 hover:border-b-4 active:border-b-2 active:translate-y-0 shadow-[0_4px_0_0_rgba(0,0,0,1)]"
+              : "bg-[#191A23] text-white hover:translate-y-[-2px] border-b-4 hover:border-b-4 active:border-b-2 active:translate-y-0 shadow-[0_4px_0_0_rgba(0,0,0,1)]",
           )}
         >
           {isSaving ? (

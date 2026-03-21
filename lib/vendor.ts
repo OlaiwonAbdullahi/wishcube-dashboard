@@ -3,7 +3,7 @@
 import { getAuth } from "./auth";
 import { Product } from "./products";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://api.usewishcube.com/api";
 
 export interface VendorApplication {
   storeName: string;

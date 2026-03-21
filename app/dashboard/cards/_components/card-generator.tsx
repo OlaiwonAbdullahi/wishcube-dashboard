@@ -16,7 +16,7 @@ export function CardGenerator({ cardState, setCardState }: CardGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setCardState({ ...cardState, [name]: value });
@@ -31,21 +31,24 @@ export function CardGenerator({ cardState, setCardState }: CardGeneratorProps) {
     setIsGenerating(true);
     const auth = getAuth();
     try {
-      const res = await fetch("http://localhost:5000/api/cards/ai/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${auth?.token}`,
+      const res = await fetch(
+        "https://api.usewishcube.com/api/cards/ai/generate",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${auth?.token}`,
+          },
+          body: JSON.stringify({
+            recipientName: cardState.recipientName,
+            senderName: cardState.senderName,
+            occasion: cardState.occasion,
+            relationship: cardState.relationship || "Friend",
+            language: cardState.language || "English",
+            tone: cardState.aiTone || "Heartfelt",
+          }),
         },
-        body: JSON.stringify({
-          recipientName: cardState.recipientName,
-          senderName: cardState.senderName,
-          occasion: cardState.occasion,
-          relationship: cardState.relationship || "Friend",
-          language: cardState.language || "English",
-          tone: cardState.aiTone || "Heartfelt",
-        }),
-      });
+      );
 
       const data = await res.json();
       if (data.success && data.data.suggestions.length > 0) {
@@ -180,7 +183,7 @@ export function CardGenerator({ cardState, setCardState }: CardGeneratorProps) {
                   <option key={tone} value={tone}>
                     {tone}
                   </option>
-                )
+                ),
               )}
             </select>
           </div>

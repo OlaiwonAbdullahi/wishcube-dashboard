@@ -1,6 +1,6 @@
 "use client";
 
-const API_BASE_URL = "http://localhost:5000/api/auth";
+const API_BASE_URL = "https://api.usewishcube.com/api/auth";
 
 export interface User {
   id: string;
@@ -53,7 +53,7 @@ export const clearAuth = () => {
 export const register = async (
   name: string,
   email: string,
-  password: string
+  password: string,
 ): Promise<AuthResponse> => {
   try {
     const response = await fetch(`${API_BASE_URL}/register`, {
@@ -74,7 +74,7 @@ export const register = async (
 
 export const login = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<AuthResponse> => {
   try {
     const response = await fetch(`${API_BASE_URL}/login`, {

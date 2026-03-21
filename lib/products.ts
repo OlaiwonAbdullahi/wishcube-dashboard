@@ -2,7 +2,7 @@
 
 import { getAuth } from "./auth";
 
-const API_BASE_URL = "http://localhost:5000/api/products";
+const API_BASE_URL = "https://api.usewishcube.com/api/products";
 
 export interface Product {
   _id: string;
@@ -36,7 +36,7 @@ const getHeaders = () => {
 
 // Get products by vendor ID
 export const getProductsByVendorId = async (
-  vendorId: string
+  vendorId: string,
 ): Promise<ProductResponse<{ total: number; products: Product[] }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}?vendorId=${vendorId}`, {
@@ -74,7 +74,7 @@ export const getVendorProducts = async (): Promise<
 
 // Get a single product by ID
 export const getProductById = async (
-  id: string
+  id: string,
 ): Promise<ProductResponse<{ product: Product }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -90,7 +90,7 @@ export const getProductById = async (
 
 // Create a new product
 export const createProduct = async (
-  productData: Partial<Product>
+  productData: Partial<Product>,
 ): Promise<ProductResponse<{ product: Product }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}`, {
@@ -108,7 +108,7 @@ export const createProduct = async (
 // Update an existing product
 export const updateProduct = async (
   id: string,
-  productData: Partial<Product>
+  productData: Partial<Product>,
 ): Promise<ProductResponse<{ product: Product }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -125,7 +125,7 @@ export const updateProduct = async (
 
 // Delete a product
 export const deleteProduct = async (
-  id: string
+  id: string,
 ): Promise<ProductResponse<null>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -141,7 +141,7 @@ export const deleteProduct = async (
 
 // Upload product images
 export const uploadProductImages = async (
-  files: File[]
+  files: File[],
 ): Promise<
   ProductResponse<{ images: { url: string; publicId: string }[] }>
 > => {
@@ -168,7 +168,7 @@ export const uploadProductImages = async (
 
 // Deprecated: Use uploadProductImages instead. Keeping it for compatibility if needed.
 export const uploadProductImage = async (
-  file: File
+  file: File,
 ): Promise<ProductResponse<{ url: string; publicId: string }>> => {
   const response = await uploadProductImages([file]);
   if (response.success && response.data && response.data.images.length > 0) {

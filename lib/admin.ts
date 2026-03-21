@@ -4,7 +4,7 @@
 import { getAuth } from "./auth";
 import { ProductResponse } from "./products";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://api.usewishcube.com/api";
 
 export interface AdminResponse<T> {
   success: boolean;
@@ -53,7 +53,7 @@ export const getAllVendorsAdmin = async (): Promise<
 };
 
 export const toggleVendorActive = async (
-  id: string
+  id: string,
 ): Promise<AdminResponse<any>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/vendors/${id}/active`, {
@@ -105,7 +105,7 @@ export interface DigitalGiftData {
 }
 
 export const createDigitalGift = async (
-  data: DigitalGiftData
+  data: DigitalGiftData,
 ): Promise<AdminResponse<any>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/digital-gifts`, {
@@ -142,7 +142,7 @@ export const getDigitalGifts = async (): Promise<
 };
 
 export const deleteDigitalGift = async (
-  id: string
+  id: string,
 ): Promise<AdminResponse<any>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/digital-gifts/${id}`, {
@@ -159,7 +159,7 @@ export const deleteDigitalGift = async (
 // Admin Image Upload
 
 export const uploadProductImages = async (
-  files: File[]
+  files: File[],
 ): Promise<
   ProductResponse<{ images: { url: string; publicId: string }[] }>
 > => {
@@ -189,7 +189,7 @@ export const uploadProductImages = async (
 
 // Deprecated: Use uploadProductImages instead. Keeping it for compatibility if needed.
 export const uploadProductImage = async (
-  file: File
+  file: File,
 ): Promise<ProductResponse<{ url: string; publicId: string }>> => {
   const response = await uploadProductImages([file]);
   if (response.success && response.data && response.data.images.length > 0) {

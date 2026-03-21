@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = "https://api.usewishcube.com/api";
 
 const categories = [
   "All",
@@ -104,7 +104,7 @@ const MarketplacePage = () => {
     <div
       className={cn(
         "flex flex-wrap gap-3",
-        isMobile ? "flex-col w-full" : "flex-row justify-end items-end"
+        isMobile ? "flex-col w-full" : "flex-row justify-end items-end",
       )}
     >
       {!isMobile && (
@@ -120,7 +120,7 @@ const MarketplacePage = () => {
             onChange={(e) => setSearch(e.target.value)}
             className={cn(
               "pl-10 border-2 border-[#191A23] py-4 rounded-sm  focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all font-bold placeholder:text-neutral-300",
-              isMobile ? "w-full" : "w-64"
+              isMobile ? "w-full" : "w-64",
             )}
           />
         </div>
@@ -198,7 +198,7 @@ const MarketplacePage = () => {
             variant="outline"
             className={cn(
               "border border-[#191A23] rounded-sm  font-black uppercase text-[10px] h-10 gap-2 hover:bg-[#191A23] hover:text-white transition-all",
-              isMobile ? "w-full" : ""
+              isMobile ? "w-full" : "",
             )}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -283,7 +283,7 @@ const MarketplacePage = () => {
         }
         if (!digitalGiftsData.success) {
           toast.error(
-            digitalGiftsData.message || "Failed to load digital gifts"
+            digitalGiftsData.message || "Failed to load digital gifts",
           );
         }
         if (!vendorsData.success) {
@@ -523,7 +523,7 @@ const ProductCard = ({ product }: { product: any }) => (
             "border border-[#191A23] font-black uppercase text-[8px] px-1.5 py-0.5",
             product.category === "Vouchers" || product.stock > 0
               ? "bg-[#B4F8C8] text-[#191A23]"
-              : "bg-red-100 text-red-600"
+              : "bg-red-100 text-red-600",
           )}
         >
           {product.category === "Vouchers" || product.stock > 0
@@ -631,7 +631,7 @@ const VendorCard = ({ vendor }: { vendor: any }) => (
                 key={i}
                 className={cn(
                   "w-2.5 h-2.5 fill-current",
-                  i < Math.floor(vendor.rating) ? "opacity-100" : "opacity-30"
+                  i < Math.floor(vendor.rating) ? "opacity-100" : "opacity-30",
                 )}
                 viewBox="0 0 20 20"
               >
