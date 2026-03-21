@@ -1,9 +1,7 @@
 "use client";
 
-import { Icon as LucideIcon } from "lucide-react";
-
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon: any;
   title: string;
   description: string;
 }
