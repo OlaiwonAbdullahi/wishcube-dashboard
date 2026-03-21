@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getVendorProducts, deleteProduct, Product } from "@/lib/products";
+import { getProductsByVendorId, deleteProduct, Product } from "@/lib/products";
+import { getMyVendorProfile } from "@/lib/vendor";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PackageIcon,
@@ -14,13 +15,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -47,13 +42,25 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     setLoading(true);
     try {
-      const response = await getVendorProducts();
-      if (response.success && response.data) {
-        setProducts(response.data.products);
+      const profileRes = await getMyVendorProfile();
+
+      if (profileRes.success && profileRes.data?.vendor) {
+        const response = await getProductsByVendorId(
+          profileRes.data.vendor._id
+        );
+        if (response.success && response.data) {
+          setProducts(response.data.products);
+        } else {
+          toast.error(response.message || "Failed to fetch products");
+        }
       } else {
-        toast.error(response.message || "Failed to fetch products");
+        toast.error(
+          profileRes.message ||
+            "Could not find your vendor profile. Please ensure your store is set up correctly."
+        );
       }
     } catch (error) {
+      console.error("Products fetch error:", error);
       toast.error("An unexpected error occurred while fetching products");
     } finally {
       setLoading(false);
@@ -131,7 +138,7 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 ">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Card

@@ -2,13 +2,23 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getAllVendors, approveVendor, rejectVendor } from "@/lib/admin";
+import {
+  getAllVendorsAdmin,
+  toggleVendorActive,
+  deleteVendor,
+} from "@/lib/admin";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Store01Icon,
   Tick01Icon,
   Cancel01Icon,
   Alert01Icon,
+  Delete02Icon,
+  ViewIcon,
+  Store01FreeIcons,
+  Cancel01FreeIcons,
+  Tick01FreeIcons,
+  Delete02FreeIcons,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import {
@@ -20,30 +30,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function VendorsPage() {
   const [vendors, setVendors] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("pending");
-  const [rejectReason, setRejectReason] = useState("");
-  const [rejectingVendor, setRejectingVendor] = useState<any>(null);
-  const [approvingVendor, setApprovingVendor] = useState<any>(null);
+  const [deletingVendor, setDeletingVendor] = useState<any>(null);
+  const [togglingVendor, setTogglingVendor] = useState<any>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
     fetchVendors();
-  }, [activeTab]);
+  }, []);
 
   const fetchVendors = async () => {
     setLoading(true);
     try {
-      const response = await getAllVendors(activeTab);
+      const response = await getAllVendorsAdmin();
       if (response.success) {
-        const vendorList =
-          response.data?.vendors || (response as any).vendors || [];
-        const vendorTotal =
-          response.data?.total || (response as any).total || 0;
+        const vendorList = response.data?.vendors || [];
+        const vendorTotal = response.data?.total || 0;
 
         setVendors(Array.isArray(vendorList) ? vendorList : []);
         setTotal(vendorTotal);
@@ -59,42 +68,41 @@ export default function VendorsPage() {
     }
   };
 
-  const handleApprove = async () => {
-    if (!approvingVendor) return;
+  const handleToggleActive = async (vendor: any) => {
+    setTogglingVendor(vendor);
     setIsActionLoading(true);
-    const vendorId = approvingVendor._id || approvingVendor.id;
+    const vendorId = vendor._id || vendor.id;
     try {
-      const response = await approveVendor(vendorId);
+      const response = await toggleVendorActive(vendorId);
       if (response.success) {
-        toast.success(response.message || "Vendor approved successfully!");
-        setApprovingVendor(null);
+        toast.success(response.message || "Vendor status updated!");
         await fetchVendors();
       } else {
-        toast.error(response.message || "Approval failed");
+        toast.error(response.message || "Update failed");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred during approval");
+      toast.error("An unexpected error occurred");
     } finally {
       setIsActionLoading(false);
+      setTogglingVendor(null);
     }
   };
 
-  const handleReject = async () => {
-    if (!rejectingVendor || !rejectReason.trim()) return;
+  const handleDelete = async () => {
+    if (!deletingVendor) return;
     setIsActionLoading(true);
-    const vendorId = rejectingVendor._id || rejectingVendor.id;
+    const vendorId = deletingVendor._id || deletingVendor.id;
     try {
-      const response = await rejectVendor(vendorId, rejectReason);
+      const response = await deleteVendor(vendorId);
       if (response.success) {
-        toast.success(response.message || "Vendor application rejected.");
-        setRejectingVendor(null);
-        setRejectReason("");
+        toast.success("Vendor deleted successfully");
+        setDeletingVendor(null);
         await fetchVendors();
       } else {
-        toast.error(response.message || "Rejection failed");
+        toast.error(response.message || "Deletion failed");
       }
     } catch (error) {
-      toast.error("An unexpected error occurred during rejection");
+      toast.error("An unexpected error occurred during deletion");
     } finally {
       setIsActionLoading(false);
     }
@@ -113,27 +121,11 @@ export default function VendorsPage() {
         </div>
         <div className="p-3 rounded-sm border-2 border-[#191A23] bg-pink-50">
           <HugeiconsIcon
-            icon={Store01Icon}
+            icon={Store01FreeIcons}
             size={24}
             className="text-pink-500"
           />
         </div>
-      </div>
-
-      <div className="flex gap-4 border-b-2 border-[#191A23]/10 pb-4">
-        {["pending", "approved", "rejected", "suspended"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-xs font-black uppercase transition-all border-2 border-[#191A23] rounded-sm ${
-              activeTab === tab
-                ? "bg-[#191A23] text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] -translate-x-0.5 -translate-y-0.5"
-                : "bg-white text-[#191A23] hover:bg-neutral-50"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
       </div>
 
       <div className="bg-white border-2 border-[#191A23] rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] overflow-hidden">
@@ -142,19 +134,22 @@ export default function VendorsPage() {
             <thead>
               <tr className="bg-[#F3F3F3] border-b-2 border-[#191A23]">
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
-                  Store Name
+                  Store Details
                 </th>
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
-                  Category
+                  Owner
                 </th>
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
-                  Earnings
+                  Status
                 </th>
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
-                  Rating
+                  Status
                 </th>
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
-                  Action
+                  Rating/Sales
+                </th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
+                  Actions
                 </th>
               </tr>
             </thead>
@@ -182,6 +177,10 @@ export default function VendorsPage() {
               ) : (
                 (vendors || []).map((vendor) => {
                   const vendorId = vendor._id || vendor.id;
+                  const isToggling =
+                    togglingVendor?._id === vendorId ||
+                    togglingVendor?.id === vendorId;
+
                   return (
                     <tr
                       key={vendorId}
@@ -189,7 +188,7 @@ export default function VendorsPage() {
                     >
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-sm bg-neutral-100 border-2 border-[#191A23] overflow-hidden flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-sm bg-neutral-100 border-2 border-[#191A23] overflow-hidden flex items-center justify-center shrink-0">
                             {vendor.logo ? (
                               <img
                                 src={vendor.logo}
@@ -197,54 +196,116 @@ export default function VendorsPage() {
                                 className="w-full h-full object-cover"
                               />
                             ) : (
-                              <span className="text-[10px] font-black uppercase">
-                                {vendor.storeName.charAt(0)}
-                              </span>
+                              <HugeiconsIcon
+                                icon={Store01FreeIcons}
+                                size={16}
+                                className="text-neutral-400"
+                              />
                             )}
                           </div>
-                          <span className="text-sm font-bold text-[#191A23]">
-                            {vendor.storeName}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2 py-1 rounded-sm text-[10px] font-black uppercase border-2 border-[#191A23] bg-pink-100 text-pink-700">
-                          {vendor.category}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm font-black text-[#191A23]">
-                        NGN {vendor.totalEarnings.toLocaleString()}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5 text-amber-500 font-black">
-                          <span className="text-sm">{vendor.rating}</span>
-                          <div className="w-3 h-3 bg-amber-500 rounded-full border border-[#191A23]"></div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {activeTab === "pending" && (
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => setApprovingVendor(vendor)}
-                              className="p-1.5 rounded-sm bg-green-100 border-2 border-[#191A23] text-green-600 hover:bg-green-200 transition-colors"
-                              title="Approve Application"
-                            >
-                              <HugeiconsIcon icon={Tick01Icon} size={16} />
-                            </button>
-                            <button
-                              onClick={() => setRejectingVendor(vendor)}
-                              className="p-1.5 rounded-sm bg-red-100 border-2 border-[#191A23] text-red-600 hover:bg-red-200 transition-colors"
-                              title="Reject Application"
-                            >
-                              <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                            </button>
+                          <div>
+                            <span className="text-sm font-black uppercase text-[#191A23] block">
+                              {vendor.storeName}
+                            </span>
+                            <span className="text-[10px] font-bold text-neutral-400 uppercase">
+                              {vendor.category}
+                            </span>
                           </div>
-                        )}
-                        {activeTab !== "pending" && (
-                          <span className="text-[10px] font-black uppercase text-neutral-400">
-                            Processed
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-[#191A23]">
+                            {vendor.userId?.name || "Unknown"}
                           </span>
-                        )}
+                          <span className="text-[10px] text-neutral-400">
+                            {vendor.userId?.email || "No email"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <Badge
+                            className={cn(
+                              "w-fit text-[8px] font-black uppercase border-2 border-[#191A23]",
+                              vendor.isActive
+                                ? "bg-[#B4F8C8] text-[#191A23]"
+                                : "bg-[#FFE5E5] text-[#191A23]"
+                            )}
+                          >
+                            {vendor.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                          <Badge className="w-fit text-[8px] font-black uppercase border-2 border-[#191A23] bg-blue-50 text-blue-600">
+                            {vendor.status}
+                          </Badge>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <Badge
+                            className={cn(
+                              "w-fit text-[8px] font-black uppercase border-2 border-[#191A23]",
+                              vendor.isActive
+                                ? "bg-[#B4F8C8] text-[#191A23]"
+                                : "bg-[#FFE5E5] text-[#191A23]"
+                            )}
+                          >
+                            {vendor.isActive ? "Active" : "Inactive"}
+                          </Badge>
+                          <Badge className="w-fit text-[8px] font-black uppercase border-2 border-[#191A23] bg-blue-50 text-blue-600">
+                            {vendor.status}
+                          </Badge>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-1 text-amber-500 font-black">
+                            <span className="text-sm">{vendor.rating}</span>
+                            <div className="w-2.5 h-2.5 bg-amber-500 rounded-full border border-[#191A23]"></div>
+                          </div>
+                          <span className="text-[10px] font-bold text-neutral-400 uppercase">
+                            NGN {vendor.totalEarnings?.toLocaleString() || 0}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleToggleActive(vendor)}
+                            disabled={isActionLoading}
+                            className={cn(
+                              "p-1.5 rounded-sm border-2 border-[#191A23] transition-all",
+                              vendor.isActive
+                                ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                : "bg-green-100 text-green-600 hover:bg-green-200",
+                              isToggling && "opacity-50 animate-pulse"
+                            )}
+                            title={vendor.isActive ? "Deactivate" : "Activate"}
+                          >
+                            {vendor.isActive ? (
+                              <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                            ) : (
+                              <HugeiconsIcon icon={Tick01Icon} size={16} />
+                            )}
+                          </button>
+                          {vendor.slug && (
+                            <Link
+                              href={`/marketplace/store/${vendor.slug}`}
+                              target="_blank"
+                              className="p-1.5 rounded-sm bg-blue-100 border-2 border-[#191A23] text-blue-600 hover:bg-blue-200 transition-colors"
+                              title="View Public Store"
+                            >
+                              <HugeiconsIcon icon={ViewIcon} size={16} />
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => setDeletingVendor(vendor)}
+                            className="p-1.5 rounded-sm bg-neutral-100 border-2 border-[#191A23] text-[#191A23] hover:bg-neutral-200 transition-colors"
+                            title="Delete Permanently"
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -255,93 +316,42 @@ export default function VendorsPage() {
         </div>
       </div>
 
-      {/* Approve Modal */}
+      {/* Delete Confirmation Modal */}
       <Dialog
-        open={!!approvingVendor}
-        onOpenChange={(open) => !open && setApprovingVendor(null)}
-      >
-        <DialogContent className="border-4 border-[#191A23] rounded-sm p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)]">
-          <DialogHeader>
-            <div className="flex items-center gap-2 text-[#191A23] mb-2">
-              <HugeiconsIcon
-                icon={Tick01Icon}
-                size={24}
-                className="text-green-600"
-              />
-              <DialogTitle className="text-xl font-black uppercase tracking-tight">
-                Approve Vendor
-              </DialogTitle>
-            </div>
-            <DialogDescription className="text-sm font-medium text-neutral-500 uppercase tracking-wider">
-              Are you sure you want to approve{" "}
-              <span className="text-[#191A23] font-black">
-                {approvingVendor?.storeName}
-              </span>{" "}
-              as a vendor? This will grant them access to the dashboard.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="mt-6 flex gap-3 sm:justify-start">
-            <Button
-              variant="outline"
-              onClick={() => setApprovingVendor(null)}
-              className="flex-1 border-2 border-[#191A23] rounded-sm text-xs font-black uppercase hover:bg-neutral-50 transition-colors h-12"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleApprove}
-              disabled={isActionLoading}
-              className="flex-1 border-2 border-[#191A23] rounded-sm bg-[#B4F8C8] text-[#191A23] text-xs font-black uppercase hover:bg-[#97e5ad] transition-colors h-12 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-            >
-              {isActionLoading ? "Approving..." : "Confirm Approval"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Reject Modal */}
-      <Dialog
-        open={!!rejectingVendor}
-        onOpenChange={(open) => !open && setRejectingVendor(null)}
+        open={!!deletingVendor}
+        onOpenChange={(open) => !open && setDeletingVendor(null)}
       >
         <DialogContent className="border-4 border-[#191A23] rounded-sm p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)]">
           <DialogHeader>
             <div className="flex items-center gap-2 text-red-600 mb-2">
-              <HugeiconsIcon icon={Alert01Icon} size={24} />
+              <HugeiconsIcon icon={Delete02Icon} size={24} />
               <DialogTitle className="text-xl font-black uppercase tracking-tight">
-                Reject Application
+                Delete Vendor Permanently
               </DialogTitle>
             </div>
             <DialogDescription className="text-sm font-medium text-neutral-500 uppercase tracking-wider">
-              Please provide a reason for rejecting{" "}
+              Are you sure you want to delete{" "}
               <span className="text-[#191A23] font-black">
-                {rejectingVendor?.storeName}
+                {deletingVendor?.storeName}
               </span>
-              .
+              ? This will reset the user to a regular role and delete all store
+              data. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <div className="mt-4">
-            <textarea
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-              placeholder="E.g. Business documentation is invalid or incomplete..."
-              className="w-full h-32 p-3 border-2 border-[#191A23] rounded-sm text-sm font-medium placeholder:text-neutral-400 focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-neutral-50"
-            ></textarea>
-          </div>
           <DialogFooter className="mt-6 flex gap-3 sm:justify-start">
             <Button
               variant="outline"
-              onClick={() => setRejectingVendor(null)}
+              onClick={() => setDeletingVendor(null)}
               className="flex-1 border-2 border-[#191A23] rounded-sm text-xs font-black uppercase hover:bg-neutral-50 transition-colors h-12"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleReject}
-              disabled={!rejectReason.trim() || isActionLoading}
+              onClick={handleDelete}
+              disabled={isActionLoading}
               className="flex-1 border-2 border-[#191A23] rounded-sm bg-red-100 text-red-600 text-xs font-black uppercase hover:bg-red-200 transition-colors h-12 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
-              {isActionLoading ? "Rejecting..." : "Confirm Reject"}
+              {isActionLoading ? "Deleting..." : "Confirm Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

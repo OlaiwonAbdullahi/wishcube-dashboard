@@ -37,53 +37,46 @@ export const getAllUsers = async (): Promise<
 };
 
 // Vendor Management
-export const getAllVendors = async (
-  status?: string
-): Promise<AdminResponse<{ total: number; vendors: any[] }>> => {
+export const getAllVendorsAdmin = async (): Promise<
+  AdminResponse<{ total: number; vendors: any[] }>
+> => {
   try {
-    const url = status
-      ? `${API_BASE_URL}/vendors?status=${status}`
-      : `${API_BASE_URL}/vendors`;
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/vendors/admin/all`, {
       method: "GET",
       headers: getHeaders(),
     });
     return await response.json();
   } catch (error) {
-    console.error("Fetch vendors error:", error);
+    console.error("Fetch vendors admin error:", error);
     return { success: false, message: "Network error fetching vendors" };
   }
 };
 
-export const approveVendor = async (
+export const toggleVendorActive = async (
   id: string
 ): Promise<AdminResponse<any>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/vendors/${id}/approve`, {
-      method: "PUT",
+    const response = await fetch(`${API_BASE_URL}/vendors/${id}/active`, {
+      method: "PATCH",
       headers: getHeaders(),
     });
     return await response.json();
   } catch (error) {
-    console.error("Approve vendor error:", error);
-    return { success: false, message: "Network error approving vendor" };
+    console.error("Toggle vendor active error:", error);
+    return { success: false, message: "Network error toggling vendor status" };
   }
 };
 
-export const rejectVendor = async (
-  id: string,
-  reason: string
-): Promise<AdminResponse<any>> => {
+export const deleteVendor = async (id: string): Promise<AdminResponse<any>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/vendors/${id}/reject`, {
-      method: "PUT",
+    const response = await fetch(`${API_BASE_URL}/vendors/${id}`, {
+      method: "DELETE",
       headers: getHeaders(),
-      body: JSON.stringify({ reason }),
     });
     return await response.json();
   } catch (error) {
-    console.error("Reject vendor error:", error);
-    return { success: false, message: "Network error rejecting vendor" };
+    console.error("Delete vendor error:", error);
+    return { success: false, message: "Network error deleting vendor" };
   }
 };
 

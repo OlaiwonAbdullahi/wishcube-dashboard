@@ -2,7 +2,6 @@
 
 import React, { useState, useRef } from "react";
 import { createProduct, uploadProductImage } from "@/lib/products";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   Upload01Icon,
@@ -10,6 +9,7 @@ import {
   Cancel01Icon,
   ImageAdd01Icon,
 } from "@hugeicons/core-free-icons";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,13 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +38,7 @@ const categories = [
   "Other",
 ];
 
-export default function NewProductPage() {
+const NewProductPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -108,13 +102,17 @@ export default function NewProductPage() {
 
     try {
       const productData = {
-        ...formData,
+        name: formData.name,
+        description: formData.description,
         price: Number(formData.price),
+        category: formData.category,
         stock: Number(formData.stock),
-        images: images,
+        deliveryZones: formData.deliveryZones,
+        images,
       };
 
       const response = await createProduct(productData);
+
       if (response.success) {
         toast.success("Product created successfully!");
         router.push("/mystore/products");
@@ -153,6 +151,7 @@ export default function NewProductPage() {
 
       <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-8">
+          {/* Basic Information */}
           <Card className="border-2 border-[#191A23] rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
             <CardHeader className="border-b-2 border-[#191A23] bg-[#F3F3F3]">
               <CardTitle className="text-sm font-black uppercase tracking-wider">
@@ -204,7 +203,7 @@ export default function NewProductPage() {
                     <SelectTrigger className="h-12 py-5 w-full border-2 border-[#191A23] rounded-sm font-bold focus:ring-0">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="border-2  border-[#191A23] rounded-sm font-bold">
+                    <SelectContent className="border-2 border-[#191A23] rounded-sm font-bold">
                       {categories.map((cat) => (
                         <SelectItem
                           key={cat}
@@ -236,6 +235,7 @@ export default function NewProductPage() {
             </CardContent>
           </Card>
 
+          {/* Pricing & Delivery */}
           <Card className="border-2 border-[#191A23] rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
             <CardHeader className="border-b-2 border-[#191A23] bg-[#F3F3F3]">
               <CardTitle className="text-sm font-black uppercase tracking-wider">
@@ -274,7 +274,7 @@ export default function NewProductPage() {
                   <Input
                     value={newZone}
                     onChange={(e) => setNewZone(e.target.value)}
-                    onKeyPress={(e) =>
+                    onKeyDown={(e) =>
                       e.key === "Enter" && (e.preventDefault(), handleAddZone())
                     }
                     placeholder="e.g. Lagos Island"
@@ -312,6 +312,7 @@ export default function NewProductPage() {
           </Card>
         </div>
 
+        {/* Sidebar */}
         <div className="space-y-8">
           <Card className="border-2 border-[#191A23] rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,1)]">
             <CardHeader className="border-b-2 border-[#191A23] bg-[#F3F3F3]">
@@ -387,4 +388,5 @@ export default function NewProductPage() {
       </form>
     </div>
   );
-}
+};
+export default NewProductPage;

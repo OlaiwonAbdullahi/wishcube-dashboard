@@ -1,6 +1,7 @@
 "use client";
 
 import { getAuth } from "./auth";
+import { Product } from "./products";
 
 const API_BASE_URL = "http://localhost:5000/api";
 
@@ -10,28 +11,32 @@ export interface VendorApplication {
   category: string;
   deliveryZones: string[];
   bankDetails: {
-    accountName: string;
+    bankName: string;
     accountNumber: string;
-    bankCode: string;
+    accountName: string;
   };
+  logo?: string;
 }
 
 export interface Vendor {
   _id: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  userId: any; // Populated user object
   storeName: string;
   description: string;
   category: string;
   slug: string;
   logo?: string;
   rating: number;
+  totalEarnings: number;
   deliveryZones: string[];
   bankDetails: {
+    bankName: string;
     accountName: string;
     accountNumber: string;
-    bankCode: string;
   };
+  status: "pending" | "approved" | "rejected";
   isActive: boolean;
-  isApproved: boolean;
   createdAt: string;
 }
 
@@ -53,7 +58,7 @@ export const applyVendor = async (application: VendorApplication) => {
     });
     return await response.json();
   } catch (error) {
-    console.error("Vendor application error:", error);
+    console.log("Vendor application error:", error);
     return {
       success: false,
       message: "Network error during vendor application",
@@ -75,10 +80,13 @@ export const getAllVendors = async (params?: {
     if (params?.category) queryParams.append("category", params.category);
     if (params?.search) queryParams.append("search", params.search);
 
-    const response = await fetch(`${API_BASE_URL}/vendors?${queryParams.toString()}`, {
-      method: "GET",
-      headers: getHeaders(),
-    });
+    const response = await fetch(
+      `${API_BASE_URL}/vendors?${queryParams.toString()}`,
+      {
+        method: "GET",
+        headers: getHeaders(),
+      },
+    );
     return await response.json();
   } catch (error) {
     console.error("Fetch vendors error:", error);
@@ -87,10 +95,12 @@ export const getAllVendors = async (params?: {
 };
 
 // Get vendor by slug (Public)
-export const getVendorBySlug = async (slug: string): Promise<{
+export const getVendorBySlug = async (
+  slug: string,
+): Promise<{
   success: boolean;
   message: string;
-  data?: { vendor: Vendor };
+  data?: { vendor: Vendor; products: Product[] };
 }> => {
   try {
     const response = await fetch(`${API_BASE_URL}/vendors/store/${slug}`, {
@@ -101,5 +111,50 @@ export const getVendorBySlug = async (slug: string): Promise<{
   } catch (error) {
     console.error("Fetch vendor error:", error);
     return { success: false, message: "Network error fetching vendor" };
+  }
+};
+
+// Get the currently authenticated vendor's profile
+export const getMyVendorProfile = async (): Promise<{
+  success: boolean;
+  message: string;
+  data?: { vendor: Vendor };
+}> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vendors/me`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch my vendor profile error:", error);
+    return { success: false, message: "Network error fetching vendor profile" };
+  }
+};
+
+// Upload vendor logo
+export const uploadVendorLogo = async (
+  logo: File,
+): Promise<{
+  success: boolean;
+  message: string;
+  data?: { logo: string };
+}> => {
+  try {
+    const formData = new FormData();
+    formData.append("logo", logo);
+
+    const auth = getAuth();
+    const response = await fetch(`${API_BASE_URL}/vendors/logo`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${auth?.token || ""}`,
+      },
+      body: formData,
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Upload logo error:", error);
+    return { success: false, message: "Network error uploading logo" };
   }
 };

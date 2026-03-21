@@ -53,6 +53,25 @@ export const getProductsByVendorId = async (
   }
 };
 
+// Get products for the current vendor (identifies by token)
+export const getVendorProducts = async (): Promise<
+  ProductResponse<{ total: number; products: Product[] }>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vendor`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch vendor products error:", error);
+    return {
+      success: false,
+      message: "Network error fetching vendor products",
+    };
+  }
+};
+
 // Get a single product by ID
 export const getProductById = async (
   id: string
@@ -123,7 +142,9 @@ export const deleteProduct = async (
 // Upload product images
 export const uploadProductImages = async (
   files: File[]
-): Promise<ProductResponse<{ images: { url: string; publicId: string }[] }>> => {
+): Promise<
+  ProductResponse<{ images: { url: string; publicId: string }[] }>
+> => {
   try {
     const formData = new FormData();
     files.forEach((file) => {

@@ -21,11 +21,10 @@ import {
 } from "@/components/ui/select";
 import Link from "next/link";
 import { useState, FormEvent, useEffect } from "react";
-import { register, googleAuth, getAuth, clearAuth } from "@/lib/auth";
-import { applyVendor } from "@/lib/vendor";
+import { register, getAuth, clearAuth } from "@/lib/auth";
+import { applyVendor, uploadVendorLogo } from "@/lib/vendor";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useGoogleLogin } from "@react-oauth/google";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Store01Icon,
@@ -53,9 +52,15 @@ export default function JoinAsVendor() {
   const [newZone, setNewZone] = useState("");
 
   // Step 3: Bank Details
-  const [accountName, setAccountName] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [bankCode, setBankCode] = useState(""); // ✅ was missing
   const [accountNumber, setAccountNumber] = useState("");
-  const [bankCode, setBankCode] = useState("058");
+  const [accountName, setAccountName] = useState("");
+
+  // Step 4: Logo
+  const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [banks, setBanks] = useState<any[]>([]);
 
@@ -105,6 +110,14 @@ export default function JoinAsVendor() {
     "Personalized Gifts",
   ];
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setLogo(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSignup = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -123,25 +136,40 @@ export default function JoinAsVendor() {
     }
   };
 
-  const handleApply = async (e: FormEvent) => {
-    e.preventDefault();
+  // ✅ No longer takes a FormEvent — called directly
+  const handleApply = async () => {
+    if (!logo) {
+      toast.error("Please upload a logo to continue.");
+      return;
+    }
     setLoading(true);
     try {
+      const logoResponse = await uploadVendorLogo(logo);
+      if (!logoResponse.success || !logoResponse.data?.logo) {
+        toast.error(logoResponse.message || "Failed to upload logo");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Removed duplicate — uses bankCode to look up bank name
+      const selectedBank = banks.find((b) => b.code === bankCode);
       const application = {
         storeName,
         description,
         category,
         deliveryZones,
+        logo: logoResponse.data.logo,
         bankDetails: {
+          bankName: selectedBank?.name || "",
           accountName,
           accountNumber,
-          bankCode,
         },
       };
+
       const response = await applyVendor(application);
       if (response.success) {
         toast.success("Application submitted successfully!");
-        router.push("/dashboard");
+        router.push("/mystore");
       } else {
         toast.error(response.message || "Application failed");
       }
@@ -162,28 +190,6 @@ export default function JoinAsVendor() {
   const removeZone = (zone: string) => {
     setDeliveryZones(deliveryZones.filter((z) => z !== zone));
   };
-
-  const handleGoogleLogin = useGoogleLogin({
-    onSuccess: async (tokenResponse) => {
-      setLoading(true);
-      try {
-        const response = await googleAuth(tokenResponse.access_token);
-        if (response.success) {
-          toast.success("Signed up with Google successfully!");
-          setStep(2);
-        } else {
-          toast.error(response.message || "Google signup failed");
-        }
-      } catch (error) {
-        toast.error("An unexpected error occurred during Google signup");
-      } finally {
-        setLoading(false);
-      }
-    },
-    onError: () => {
-      toast.error("Google authentication failed");
-    },
-  });
 
   return (
     <div className="min-h-screen w-full flex items-center font-space justify-center px-4 py-16 bg-[#F3F3F3]">
@@ -207,11 +213,13 @@ export default function JoinAsVendor() {
                 ? "Step 1: Create your account"
                 : step === 2
                 ? "Step 2: Tell us about your store"
-                : "Step 3: Financial Details"}
+                : step === 3
+                ? "Step 3: Financial Details"
+                : "Step 4: Upload Your Logo"}
             </CardDescription>
 
             <div className="flex gap-2 mt-6">
-              {[1, 2, 3].map((s) => (
+              {[1, 2, 3, 4].map((s) => (
                 <div
                   key={s}
                   className={`h-2 flex-1 border-2 border-[#191A23] rounded-full transition-all ${
@@ -267,33 +275,6 @@ export default function JoinAsVendor() {
                   </div>
                 ) : (
                   <form onSubmit={handleSignup} className="space-y-6">
-                    <div className="flex flex-col gap-4">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => handleGoogleLogin()}
-                        disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 border-2 border-[#191A23] h-12 rounded-sm font-black uppercase text-sm hover:bg-neutral-50 transition-all shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-                      >
-                        <img
-                          src="https://www.google.com/favicon.ico"
-                          alt="Google"
-                          className="w-4 h-4"
-                        />
-                        Connect with Google
-                      </Button>
-                      <div className="relative py-2">
-                        <div className="absolute inset-0 flex items-center">
-                          <span className="w-full border-t-2 border-[#191A23]/10"></span>
-                        </div>
-                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest">
-                          <span className="bg-white px-4 text-neutral-400">
-                            Or use email
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
                     <div className="space-y-4">
                       <div className="space-y-2">
                         <Label className="text-[10px] font-black uppercase text-[#191A23]">
@@ -412,7 +393,8 @@ export default function JoinAsVendor() {
                       <Input
                         value={newZone}
                         onChange={(e) => setNewZone(e.target.value)}
-                        onKeyPress={(e) => {
+                        onKeyDown={(e) => {
+                          // ✅ replaced deprecated onKeyPress
                           if (e.key === "Enter") {
                             e.preventDefault();
                             addZone();
@@ -493,10 +475,7 @@ export default function JoinAsVendor() {
             )}
 
             {step === 3 && (
-              <form
-                onSubmit={handleApply}
-                className="space-y-6 animate-in slide-in-from-right-4 duration-300"
-              >
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                 <div className="bg-neutral-50 border-2 border-dashed border-[#191A23]/20 rounded-sm p-4 mb-6">
                   <div className="flex items-center gap-2 text-[#191A23] mb-1">
                     <HugeiconsIcon icon={BankIcon} size={16} />
@@ -540,13 +519,13 @@ export default function JoinAsVendor() {
                       Bank
                     </Label>
                     <Select value={bankCode} onValueChange={setBankCode}>
-                      <SelectTrigger className="w-full  py-6 border-2 border-[#191A23] rounded-sm  px-3 text-sm font-bold bg-white focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all">
+                      <SelectTrigger className="w-full py-6 border-2 border-[#191A23] rounded-sm px-3 text-sm font-bold bg-white focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all">
                         <SelectValue placeholder="Select your bank" />
                       </SelectTrigger>
                       <SelectContent className="border-2 border-[#191A23] rounded-sm font-bold max-h-[300px]">
                         {banks.map((bank: any) => (
                           <SelectItem
-                            key={bank.name}
+                            key={bank.code} // ✅ was bank.name — codes are unique, names can clash
                             value={bank.code}
                             className="focus:bg-[#B4F8C8] focus:text-[#191A23] cursor-pointer"
                           >
@@ -567,14 +546,90 @@ export default function JoinAsVendor() {
                     Back
                   </Button>
                   <Button
-                    type="submit"
-                    disabled={loading || !accountName || !accountNumber}
+                    onClick={() => {
+                      setStep(4);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    disabled={!accountName || !accountNumber || !bankCode}
+                    className="flex-[2] h-14 bg-[#191A23] text-white rounded-sm font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(180,248,200,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
+                  >
+                    Next: Upload Logo
+                    <HugeiconsIcon
+                      icon={ArrowRight01Icon}
+                      size={18}
+                      className="ml-2"
+                    />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                <div className="bg-neutral-50 border-2 border-dashed border-[#191A23]/20 rounded-sm p-4 mb-6">
+                  <div className="flex items-center gap-2 text-[#191A23] mb-1">
+                    <HugeiconsIcon icon={Store01Icon} size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-tight">
+                      Store Logo
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-medium text-neutral-500 uppercase leading-relaxed">
+                    Upload a logo to represent your brand on WishCube.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Logo Preview
+                    </Label>
+                    <div className="w-full h-48 border-2 border-dashed border-[#191A23]/20 rounded-sm flex items-center justify-center bg-neutral-50 overflow-hidden">
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo Preview"
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <div className="text-center text-neutral-400 space-y-2">
+                          <HugeiconsIcon icon={Store01Icon} size={32} />
+                          <p className="text-xs font-bold uppercase">
+                            Your logo will appear here
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-black uppercase text-[#191A23]">
+                      Upload Logo
+                    </Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all file:bg-[#191A23] file:text-white file:h-full file:border-0 file:font-black file:uppercase file:text-xs file:px-6"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={() => setStep(3)}
+                    className="flex-1 h-14 border-2 border-[#191A23] rounded-sm font-black uppercase text-sm hover:bg-neutral-50 transition-all"
+                  >
+                    Back
+                  </Button>
+                  <Button
+                    onClick={handleApply} // ✅ called directly, no fake Event
+                    disabled={!logo || loading}
                     className="flex-[2] h-14 bg-[#B4F8C8] text-[#191A23] border-2 border-[#191A23] rounded-sm font-black uppercase text-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all disabled:opacity-50"
                   >
                     {loading ? "Submitting..." : "Submit Application"}
                   </Button>
                 </div>
-              </form>
+              </div>
             )}
           </CardContent>
 
