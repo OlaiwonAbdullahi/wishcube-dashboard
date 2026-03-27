@@ -193,12 +193,12 @@ interface WebsiteFormProps {
   generateMessage: () => void;
   handlePasteMessage: () => void;
   useGeneratedMessage: () => void;
-  messageRef: React.RefObject<HTMLTextAreaElement>;
+  messageRef: React.RefObject<HTMLTextAreaElement | null>;
   images: { url: string; publicId: string }[];
   isUploading: boolean;
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeImage: (index: number) => void;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   generateAIImage: () => void;
   isGeneratingImage: boolean;
   selectedTheme: Theme;
