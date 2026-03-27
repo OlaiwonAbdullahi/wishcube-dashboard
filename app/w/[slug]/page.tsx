@@ -10,11 +10,9 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   SparklesIcon,
   Agreement01Icon,
-  MusicNote01Icon,
   RocketIcon,
   SentIcon,
 } from "@hugeicons/core-free-icons";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -194,10 +192,9 @@ export default function PublicWebsitePage() {
 
             {website.images?.[0] && (
               <div className="relative size-48 md:size-56 rounded-full border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] overflow-hidden bg-neutral-100">
-                <Image
+                <img
                   src={website.images[0].url}
                   alt="Greeting"
-                  fill
                   className="object-cover"
                 />
               </div>

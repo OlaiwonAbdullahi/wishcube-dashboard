@@ -210,12 +210,7 @@ export default function WebsitePreview({
                             : "w-32 h-32 sm:w-40 sm:h-40",
                         )}
                       >
-                        <Image
-                          src={img.url}
-                          alt={`Greeting ${index + 1}`}
-                          layout="fill"
-                          objectFit="cover"
-                        />
+                        <img src={img.url} alt={`Greeting ${index + 1}`} />
                       </div>
                     ))}
                   </div>

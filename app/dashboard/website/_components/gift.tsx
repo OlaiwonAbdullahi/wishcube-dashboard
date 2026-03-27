@@ -1,6 +1,5 @@
-import React from "react";
-import { GiftItem } from "../page";
 import { cn } from "@/lib/utils";
+import { GiftItem } from "./website-form";
 
 interface GiftProps {
   gifts: GiftItem[];
