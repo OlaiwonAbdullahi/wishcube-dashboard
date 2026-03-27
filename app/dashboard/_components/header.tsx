@@ -8,6 +8,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { getAuth, clearAuth, User } from "@/lib/auth";
+import { getWalletBalance } from "@/lib/wallet";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -21,14 +22,24 @@ import { Button } from "@/components/ui/button";
 
 export function DashboardHeader() {
   const [user, setUser] = useState<User | null>(null);
+  const [balance, setBalance] = useState<number | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const auth = getAuth();
     if (auth) {
       queueMicrotask(() => setUser(auth.user));
+      // eslint-disable-next-line react-hooks/immutability
+      fetchBalance();
     }
   }, []);
+
+  const fetchBalance = async () => {
+    const res = await getWalletBalance();
+    if (res.success && res.data) {
+      setBalance(res.data.walletBalance);
+    }
+  };
 
   const handleLogout = () => {
     clearAuth();
@@ -50,6 +61,16 @@ export function DashboardHeader() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        {balance !== null && (
+          <div className="hidden sm:flex items-center gap-1 px-3 py-1 bg-[#F3F3F3] border-2 border-[#191A23] rounded-sm shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+            <span className="text-[10px] font-black uppercase text-[#191A23]">
+              Wallet:
+            </span>
+            <span className="text-xs font-bold text-[#191A23]">
+              ₦{balance.toLocaleString()}
+            </span>
+          </div>
+        )}
         <div className="">
           <HugeiconsIcon
             icon={ShoppingBasket03Icon}

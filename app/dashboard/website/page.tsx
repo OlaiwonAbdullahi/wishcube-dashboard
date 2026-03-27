@@ -1,213 +1,160 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React, { useState, useRef } from "react";
-import Image from "next/image";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Share01Icon,
-  CloudUploadIcon,
-  Copy01Icon,
-  Settings01Icon,
-  SparklesIcon,
-  FlowerIcon,
-  ClipboardIcon,
-  IceCreamIcon,
-  MoreVerticalCircle01Icon,
-  BookOpenIcon,
-  Edit01Icon,
-  RocketIcon,
-  Share08Icon,
-  Agreement01Icon,
-  ArrowUpRight01Icon,
-  Award01Icon,
   ArrowLeft01Icon,
-  ViewIcon,
-  MagicWand01Icon,
-  AiImageIcon,
-  MusicNote01Icon,
+  Edit01Icon,
   GiftIcon,
 } from "@hugeicons/core-free-icons";
-import Gift from "./_components/gift";
-import Music from "./_components/music";
-import VoiceMessage from "./_components/voiceMessage";
-import { callAI } from "@/lib/ai";
 import {
   useGoogleFontsList,
   useLoadSelectedFont,
-  useLoadFontPreview,
-  FALLBACK_FONTS,
 } from "@/lib/use-google-fonts";
-import { Search } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  createWebsite,
+  publishWebsite,
+  getWebsites,
+  uploadWebsiteImages,
+} from "@/lib/websites";
+import { attachGift, verifyGiftPayment } from "@/lib/gifts";
+import { useRouter, useSearchParams } from "next/navigation";
+import { callAI } from "@/lib/ai";
+import WebsiteForm, {
+  THEMES,
+  Theme,
+  GiftItem,
+} from "./_components/website-form";
+import WebsitePreview from "./_components/website-preview";
 
-// Define theme type
-interface Theme {
-  name: string;
-  primary: string;
-  secondary: string;
-  textPrimary: string;
-  textSecondary: string;
-  bgNeutral: string;
-  textNeutral: string;
-  bgAccent?: string;
-  hoverAccent?: string;
-}
+export default function WebsitePage() {
+  const [websites, setWebsites] = useState<any[]>([]);
+  const [view, setView] = useState<"list" | "create">("list");
+  const [loading, setLoading] = useState(true);
 
-// Define occasion type
-interface Occasion {
-  value: string;
-  label: string;
-}
+  useEffect(() => {
+    fetchWebsites();
+  }, []);
 
-// Define gift type
-export interface GiftItem {
-  id: string;
-  name: string;
-  price: number;
-  icon: React.ReactNode;
-  bgColor: string;
-}
+  const fetchWebsites = async () => {
+    setLoading(true);
+    try {
+      const res = await getWebsites();
+      if (res.success && res.data) {
+        setWebsites(res.data.websites || []);
+      }
+    } catch (error) {
+      console.error("Fetch websites error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// Theme configurations with professional color schemes
-const THEMES: Theme[] = [
-  {
-    name: "corporate-blue",
-    primary: "bg-blue-600",
-    secondary: "bg-blue-800",
-    textPrimary: "text-blue-600",
-    textSecondary: "text-blue-800",
-    bgNeutral: "bg-gray-50",
-    textNeutral: "text-gray-50",
-    bgAccent: "bg-blue-100",
-    hoverAccent: "hover:bg-blue-100",
-  },
-  {
-    name: "elegant-charcoal",
-    primary: "bg-gray-700",
-    secondary: "bg-gray-900",
-    textPrimary: "text-gray-700",
-    textSecondary: "text-gray-900",
-    bgNeutral: "bg-gray-100",
-    textNeutral: "text-gray-100",
-    bgAccent: "bg-gray-200",
-    hoverAccent: "hover:bg-gray-200",
-  },
-  {
-    name: "emerald-success",
-    primary: "bg-emerald-600",
-    secondary: "bg-emerald-800",
-    textPrimary: "text-emerald-600",
-    textSecondary: "text-emerald-800",
-    bgNeutral: "bg-white",
-    textNeutral: "text-white",
-    bgAccent: "bg-emerald-100",
-    hoverAccent: "hover:bg-emerald-100",
-  },
-  {
-    name: "royal-purple",
-    primary: "bg-purple-600",
-    secondary: "bg-purple-900",
-    textPrimary: "text-purple-600",
-    textSecondary: "text-purple-900",
-    bgNeutral: "bg-gray-50",
-    textNeutral: "text-gray-50",
-    bgAccent: "bg-purple-100",
-    hoverAccent: "hover:bg-purple-100",
-  },
-  {
-    name: "classic-maroon",
-    primary: "bg-red-800",
-    secondary: "bg-red-900",
-    textPrimary: "text-red-800",
-    textSecondary: "text-red-900",
-    bgNeutral: "bg-gray-100",
-    textNeutral: "text-gray-100",
-    bgAccent: "bg-red-100",
-    hoverAccent: "hover:bg-red-100",
-  },
-  {
-    name: "teal-professional",
-    primary: "bg-teal-600",
-    secondary: "bg-teal-800",
-    textPrimary: "text-teal-600",
-    textSecondary: "text-teal-800",
-    bgNeutral: "bg-white",
-    textNeutral: "text-white",
-    bgAccent: "bg-teal-100",
-    hoverAccent: "hover:bg-teal-100",
-  },
-  {
-    name: "amber-accent",
-    primary: "bg-amber-600",
-    secondary: "bg-amber-800",
-    textPrimary: "text-amber-600",
-    textSecondary: "text-amber-800",
-    bgNeutral: "bg-gray-50",
-    textNeutral: "text-gray-50",
-    bgAccent: "bg-amber-100",
-    hoverAccent: "hover:bg-amber-100",
-  },
-  {
-    name: "indigo-modern",
-    primary: "bg-indigo-600",
-    secondary: "bg-indigo-900",
-    textPrimary: "text-indigo-600",
-    textSecondary: "text-indigo-900",
-    bgNeutral: "bg-white",
-    textNeutral: "text-white",
-    bgAccent: "bg-indigo-100",
-    hoverAccent: "hover:bg-indigo-100",
-  },
-];
+  if (view === "list") {
+    return (
+      <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
+        <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
+              My Websites
+            </h1>
+            <p className="text-sm text-neutral-600">
+              Manage your personalized gift websites.
+            </p>
+          </div>
+          <button
+            onClick={() => setView("create")}
+            className="px-6 py-2 bg-[#191A23] text-white text-xs font-black uppercase rounded-sm border-b-4 border-black hover:-translate-y-1 active:border-b-0 active:translate-y-0 transition-all"
+          >
+            Create New Website
+          </button>
+        </div>
 
-const OCCASIONS: Occasion[] = [
-  { value: "", label: "Select an Occasion" },
-  { value: "birthday", label: "Birthday" },
-  { value: "anniversary", label: "Anniversary" },
-  { value: "congratulations", label: "Congratulations" },
-  { value: "appreciation", label: "Appreciation" },
-  { value: "wedding", label: "Wedding" },
-  { value: "getwell", label: "Get Well" },
-  { value: "professional", label: "Professional Greeting" },
-  { value: "holiday", label: "Holiday" },
-  { value: "other", label: "Other" },
-];
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-48 bg-neutral-100 animate-pulse rounded-sm border-2 border-[#191A23]/10"
+              />
+            ))}
+          </div>
+        ) : websites.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 bg-white border-2 border-dashed border-[#191A23]/20 rounded-sm">
+            <p className="text-sm font-bold uppercase text-neutral-400 mb-4">
+              No websites yet
+            </p>
+            <button
+              onClick={() => setView("create")}
+              className="text-xs font-black uppercase underline"
+            >
+              Create your first website
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {websites.map((ws) => (
+              <div
+                key={ws._id}
+                className="bg-white border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] rounded-sm p-6 space-y-4 hover:-translate-y-1 transition-all group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#B4F8C8] border border-[#191A23] rounded-full">
+                    <span className="text-[8px] font-black uppercase">
+                      {ws.status}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-bold text-neutral-400">
+                    {new Date(ws.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black uppercase truncate">
+                    {ws.recipientName}
+                  </h3>
+                  <p className="text-xs font-bold text-neutral-500 uppercase">
+                    {ws.occasion}
+                  </p>
+                </div>
+                <div className="pt-4 flex items-center gap-2">
+                  <button
+                    onClick={() => window.open(`/w/${ws.slug}`, "_blank")}
+                    className="flex-1 py-2 bg-[#F3F3F3] border border-[#191A23] text-[10px] font-black uppercase hover:bg-[#191A23] hover:text-white transition-all"
+                  >
+                    View
+                  </button>
+                  <button className="p-2 border border-[#191A23] hover:bg-red-50 transition-colors">
+                    <HugeiconsIcon icon={Edit01Icon} size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
-// Font option component
-const FontOption = ({
-  font,
-  isSelected,
-  onSelect,
-}: {
-  font: any;
-  isSelected: boolean;
-  onSelect: (f: string) => void;
-}) => {
-  useLoadFontPreview(font.family);
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(font.family)}
-      className={cn(
-        "w-full text-left px-3 py-2.5 border-2 border-[#191A23] rounded-sm transition-all hover:bg-[#191A23]/5 flex items-center justify-between group",
-        isSelected
-          ? "bg-[#191A23] text-white hover:bg-[#191A23] shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-          : "bg-white text-[#191A23]"
-      )}
-    >
-      <span
-        style={{ fontFamily: font.family, fontStyle: "normal" }}
-        className="text-sm font-medium"
-      >
-        {font.family}
-      </span>
-      {isSelected && (
-        <div className="size-2 bg-[#B4F8C8] border border-[#191A23] rounded-full" />
-      )}
-    </button>
+    <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => setView("list")}
+          className="p-2 hover:bg-neutral-100 rounded-full transition-colors"
+        >
+          <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
+        </button>
+        <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
+          Create Website
+        </h1>
+      </div>
+      <Suspense fallback={<div>Loading generator...</div>}>
+        <Generator />
+      </Suspense>
+    </div>
   );
-};
+}
 
 const Generator: React.FC = () => {
   // Form state
@@ -217,8 +164,15 @@ const Generator: React.FC = () => {
   const [message, setMessage] = useState<string>("");
   const [customMessage, setCustomMessage] = useState<string>("");
   const [generatedMessage, setGeneratedMessage] = useState<string>("");
-  const [imageName, setImageName] = useState<string>("");
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [images, setImages] = useState<{ url: string; publicId: string }[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [password, setPassword] = useState<string>("");
+  const [customSlug, setCustomSlug] = useState<string>("");
+  const [expiresAt, setExpiresAt] = useState<string>(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+  );
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [selectedGift, setSelectedGift] = useState<string | null>(null);
@@ -229,27 +183,41 @@ const Generator: React.FC = () => {
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
   const [isSuggestingTheme, setIsSuggestingTheme] = useState(false);
   const [isSuggestingGifts, setIsSuggestingGifts] = useState(false);
+  const [isSuggestingFont, setIsSuggestingFont] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [giftSuggestions, setGiftSuggestions] = useState<string[]>([]);
   const [selectedFont, setSelectedFont] = useState<string>("Space Grotesk");
   const [fontSearch, setFontSearch] = useState("");
-  const [isSuggestingFont, setIsSuggestingFont] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const { fonts, loading: fontsLoading } = useGoogleFontsList();
+  useEffect(() => {
+    const reference = searchParams.get("reference");
+    if (reference) {
+      handleVerifyPayment(reference);
+    }
+  }, [searchParams]);
+
+  const handleVerifyPayment = async (reference: string) => {
+    try {
+      const res = await verifyGiftPayment(reference);
+      if (res.success) {
+        toast.success("Payment verified and gift attached!");
+        router.replace("/dashboard/website");
+      } else {
+        toast.error(res.message || "Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Verification error:", error);
+    }
+  };
+
+  const { fonts } = useGoogleFontsList();
   useLoadSelectedFont(selectedFont);
 
   const messageRef = useRef<HTMLTextAreaElement>(null);
-
-  // Check if window is defined (client-side only)
-  const isBrowser = typeof window !== "undefined";
-
-  // Generate a unique ID for the greeting
-  const generateGreetingId = (): string => {
-    return (
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15)
-    );
-  };
 
   const generateMessage = async (): Promise<void> => {
     if (!recipientName || !occasion) {
@@ -269,7 +237,6 @@ Do not include a signature or sender name. Use emojis.
     try {
       const response = await callAI(prompt, "google/gemini-2.5-flash");
       setGeneratedMessage(response);
-      console.log(response);
       setMessage(response);
     } catch (error) {
       console.error("Failed to generate message:", error);
@@ -342,24 +309,19 @@ The image should be high-quality, festive, and warm.
 Return ONLY a URL to the generated image.
 `;
     try {
-      // In a real scenario, this would return an image URL
       const imageUrl = await callAI(
         prompt,
-        "google/gemini-3.1-flash-image-preview"
+        "google/gemini-3.1-flash-image-preview",
       );
 
-      console.log(imageUrl);
       if (imageUrl && imageUrl.startsWith("http")) {
-        setImagePreview(imageUrl);
-        setImageName("AI Generated Image");
+        setImages([
+          ...images,
+          { url: imageUrl, publicId: "ai_generated_" + Date.now() },
+        ]);
+        toast.success("AI Image generated!");
       } else {
-        // Fallback or handle if the proxy returns text instead of image
-        console.warn("AI didn't return a valid URL:", imageUrl);
-        // Simulate a generated image for now since we don't have a real image gen endpoint
-        setImagePreview(
-          "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800&q=80"
-        );
-        setImageName("AI Generated Celebration");
+        toast.error("Failed to generate AI image");
       }
     } catch (error) {
       console.error("Failed to generate image:", error);
@@ -375,7 +337,7 @@ Return ONLY a URL to the generated image.
     }
 
     setIsSuggestingFont(true);
-    const fontListNames = (fonts.length > 0 ? fonts : FALLBACK_FONTS)
+    const fontListNames = fonts
       .map((f) => f.family)
       .slice(0, 30)
       .join(", ");
@@ -388,9 +350,9 @@ Return ONLY the font name.
     try {
       const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
       const font =
-        (fonts.length > 0 ? fonts : FALLBACK_FONTS).find(
-          (f) => f.family.toLowerCase() === suggestedName.trim().toLowerCase()
-        ) || FALLBACK_FONTS[0];
+        fonts.find(
+          (f) => f.family.toLowerCase() === suggestedName.trim().toLowerCase(),
+        ) || fonts[0];
       setSelectedFont(font.family);
     } catch (error) {
       console.error("Failed to suggest font:", error);
@@ -399,65 +361,6 @@ Return ONLY the font name.
     }
   };
 
-  // Handle image upload with preview capability
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setImageName(file.name);
-
-      // Create an image preview
-      const reader = new FileReader();
-      reader.onload = (event: ProgressEvent<FileReader>) => {
-        if (event.target?.result) {
-          setImagePreview(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const copyGreetingLink = async (): Promise<void> => {
-    try {
-      // Generate a new ID if one doesn't exist
-      if (!greetingId) {
-        setGreetingId(generateGreetingId());
-      }
-
-      // Create the greeting data object
-      const greetingData = {
-        id: greetingId,
-        recipientName,
-        occasion,
-        message: message || customMessage,
-        theme: selectedTheme.name,
-        image: imagePreview,
-        gift: selectedGift,
-      };
-
-      // Create the URL with the greeting data
-      const baseUrl = window.location.origin;
-      const greetingUrl = `${baseUrl}/greeting/${greetingId}`;
-
-      // Store the greeting data in localStorage (temporary solution)
-      localStorage.setItem(
-        `greeting_${greetingId}`,
-        JSON.stringify(greetingData)
-      );
-
-      // Copy the URL to clipboard
-      await navigator.clipboard.writeText(greetingUrl);
-
-      // Show success message
-      toast.success(
-        "Greeting link copied to clipboard! Share this link with your recipient."
-      );
-    } catch (err) {
-      console.error("Failed to copy greeting link:", err);
-      toast.error("Failed to copy the greeting link. Please try again.");
-    }
-  };
-
-  // Paste message functionality
   const handlePasteMessage = async (): Promise<void> => {
     try {
       const clipboardText = await navigator.clipboard.readText();
@@ -470,42 +373,51 @@ Return ONLY the font name.
     } catch (err) {
       console.error("Failed to read clipboard:", err);
       toast.error(
-        "Unable to access clipboard. Please check your browser permissions."
+        "Unable to access clipboard. Please check your browser permissions.",
       );
     }
   };
 
-  const toggleMenu = (): void => {
-    setIsMenuOpen(!isMenuOpen);
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (images.length >= 5) {
+      toast.error("You can only upload up to 5 images.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const response = await uploadWebsiteImages([file]);
+      if (response.success && response.data?.images) {
+        setImages([...images, ...response.data.images]);
+        toast.success("Image uploaded successfully");
+      } else {
+        toast.error(response.message || "Failed to upload image");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("An unexpected error occurred during upload");
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
-  // Handle using the generated message as the custom message
-  const useGeneratedMessage = (): void => {
-    setCustomMessage(generatedMessage);
-    setGeneratedMessage("");
+  const removeImage = (index: number) => {
+    setImages(images.filter((_, i) => i !== index));
   };
 
-  const handleToggle = () => {
-    setIsOn(!isOn);
-  };
-
-  const handleMusicToggle = () => {
-    setAddMusic(!addMusic);
-  };
-
-  // Gift data
   const gifts: GiftItem[] = [
     {
       id: "flower",
       name: "Flower",
       price: 500,
       icon: (
-        <HugeiconsIcon
-          icon={FlowerIcon}
-          size={24}
-          className="text-pink-600"
-          color="currentColor"
-        />
+        <HugeiconsIcon icon={GiftIcon} size={24} className="text-pink-600" />
       ),
       bgColor: "bg-pink-100",
     },
@@ -514,12 +426,7 @@ Return ONLY the font name.
       name: "Ice Cream",
       price: 500,
       icon: (
-        <HugeiconsIcon
-          icon={IceCreamIcon}
-          size={24}
-          className="text-teal-600"
-          color="currentColor"
-        />
+        <HugeiconsIcon icon={GiftIcon} size={24} className="text-teal-600" />
       ),
       bgColor: "bg-teal-100",
     },
@@ -528,12 +435,7 @@ Return ONLY the font name.
       name: "Cupcake",
       price: 750,
       icon: (
-        <HugeiconsIcon
-          icon={Award01Icon}
-          size={24}
-          className="text-purple-600"
-          color="currentColor"
-        />
+        <HugeiconsIcon icon={GiftIcon} size={24} className="text-purple-600" />
       ),
       bgColor: "bg-purple-100",
     },
@@ -542,709 +444,224 @@ Return ONLY the font name.
       name: "Frozen Yogurt",
       price: 650,
       icon: (
-        <HugeiconsIcon
-          icon={IceCreamIcon}
-          size={24}
-          className="text-blue-600"
-          color="currentColor"
-        />
+        <HugeiconsIcon icon={GiftIcon} size={24} className="text-blue-600" />
       ),
       bgColor: "bg-blue-100",
     },
   ];
 
-  // Simple form validation
-  const isFormValid = recipientName.trim() !== "";
+  const copyGreetingLink = async (): Promise<void> => {
+    if (!recipientName) {
+      toast.error("Please enter a recipient name.");
+      return;
+    }
 
-  // Render form section
-  const renderForm = () => (
-    <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-      {/* Recipient Name */}
-      <div className="flex flex-col space-y-1.5">
-        <label
-          htmlFor="recipientName"
-          className="text-[10px] font-bold uppercase text-[#191A23]"
-        >
-          Recipient&apos;s Name <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          id="recipientName"
-          value={recipientName}
-          onChange={(e) => setRecipientName(e.target.value)}
-          placeholder="Enter recipient's name"
-          required
-          className="rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
-        />
-      </div>
+    setIsCreating(true);
+    try {
+      const websiteData = {
+        recipientName,
+        occasion: occasion || "Other",
+        relationship: "Friend",
+        language: "English",
+        message: customMessage || message,
+        isAiGenerated: !!message,
+        aiTone: "Heartfelt",
+        images: images.map((img, i) => ({ ...img, order: i + 1 })),
+        theme: selectedTheme.name,
+        font: selectedFont,
+        primaryColor: "#6366f1",
+        countdownDate: new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        isPasswordProtected,
+        password: isPasswordProtected ? password : null,
+        customSlug: customSlug || undefined,
+        expiresAt: new Date(expiresAt).toISOString(),
+      };
 
-      {/* Occasion */}
-      <div className="flex flex-col space-y-1.5">
-        <label
-          htmlFor="occasion"
-          className="text-[10px] font-bold uppercase text-[#191A23]"
-        >
-          Occasion
-        </label>
-        <select
-          id="occasion"
-          value={occasion}
-          onChange={(e) => setOccasion(e.target.value)}
-          className="rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium appearance-none cursor-pointer"
-          style={{
-            backgroundImage:
-              'url(\'data:image/svg+xml;charset=US-ASCII,<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7.5L10 12.5L15 7.5" stroke="%23191A23" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>\')',
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "right 1rem center",
-          }}
-        >
-          {OCCASIONS.map((opt) => (
-            <option
-              key={opt.value}
-              value={opt.value}
-              className="font-space font-medium"
-            >
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      const res = await createWebsite(websiteData);
 
-      {/* Message */}
-      <div className="flex flex-col space-y-1.5 mb-4">
-        <label
-          htmlFor="message"
-          className="text-[10px] font-bold uppercase text-[#191A23] flex items-center justify-between"
-        >
-          <span>Custom Message (Optional)</span>
-          {isGeneratingMessage && (
-            <span className="animate-pulse text-purple-600 normal-case font-black">
-              AI is writing...
-            </span>
-          )}
-        </label>
-        <textarea
-          id="message"
-          value={customMessage}
-          onChange={(e) => setCustomMessage(e.target.value)}
-          ref={messageRef}
-          cols={20}
-          rows={5}
-          placeholder="Write your message here..."
-          className="rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium resize-none shadow-sm"
-        ></textarea>
-        <div className="mt-2.5 flex items-center justify-between border border-[#191A23] bg-[#F3F3F3] p-2 rounded-sm shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
-          <button
-            type="button"
-            onClick={generateMessage}
-            disabled={isGeneratingMessage}
-            className="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold uppercase text-[#191A23] hover:translate-y-px transition-all disabled:opacity-50"
-          >
-            <HugeiconsIcon
-              icon={SparklesIcon}
-              size={12}
-              color={isGeneratingMessage ? "#6366f1" : "currentColor"}
-              className={isGeneratingMessage ? "animate-spin" : ""}
-            />
-            {isGeneratingMessage ? "Generating..." : "Generate AI Message"}
-          </button>
-          <div className="w-px h-4 bg-[#191A23]/20"></div>
-          <button
-            type="button"
-            onClick={handlePasteMessage}
-            className="flex items-center gap-1.5 cursor-pointer text-[10px] font-bold uppercase text-[#191A23] hover:translate-y-px transition-all"
-          >
-            <HugeiconsIcon
-              icon={ClipboardIcon}
-              size={12}
-              color="currentColor"
-            />
-            Paste Message
-          </button>
-        </div>
-        {generatedMessage && !isGeneratingMessage && (
-          <div className="text-[#191A23] mt-4 bg-[#B4F8C8] p-4 rounded-sm border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-            <p className="text-sm font-medium">{generatedMessage}</p>
-            <button
-              type="button"
-              onClick={useGeneratedMessage}
-              className="mt-3 w-full py-2 bg-white border border-[#191A23] text-[10px] font-bold uppercase hover:-translate-y-px shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all"
-            >
-              Use this message
-            </button>
-          </div>
-        )}
-      </div>
+      if (res.success && res.data) {
+        const websiteId = res.data.website._id;
+        setGreetingId(websiteId);
 
-      {/* Image Upload */}
-      <div className="flex flex-col space-y-1.5">
-        <label
-          htmlFor="image"
-          className="text-[10px] font-bold uppercase text-[#191A23] flex items-center justify-between"
-        >
-          <span>Upload Image</span>
-          <button
-            type="button"
-            onClick={generateAIImage}
-            disabled={isGeneratingImage}
-            className="flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded-sm text-[8px] font-black text-purple-700 hover:bg-purple-200 transition-all disabled:opacity-50"
-          >
-            <HugeiconsIcon
-              icon={AiImageIcon}
-              size={10}
-              className={isGeneratingImage ? "animate-bounce" : ""}
-            />
-            {isGeneratingImage ? "GENERATING..." : "MAGIC GENERATE"}
-          </button>
-        </label>
-        <div className="flex flex-col">
-          <label
-            htmlFor="image"
-            className="cursor-pointer flex flex-col items-center justify-center border-2 border-dashed border-[#191A23] rounded-sm py-8 hover:bg-[#F3F3F3] transition-all group bg-white"
-          >
-            {imagePreview ? (
-              <div className="flex flex-col items-center">
-                <div className="h-24 w-48 relative mb-3 rounded-sm overflow-hidden border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                  <img src={imagePreview} alt="Preview" />
-                </div>
-                <span className="text-[10px] font-bold text-[#191A23] uppercase">
-                  {imageName}
-                </span>
-                <span className="text-[10px] text-neutral-500 font-bold uppercase mt-1 group-hover:text-[#191A23] transition-colors">
-                  Click to change
-                </span>
-              </div>
-            ) : (
-              <>
-                <div className="size-12 rounded-full border-2 border-[#191A23] bg-[#E5F5FF] flex items-center justify-center mb-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] group-hover:-translate-y-1 transition-all">
-                  <HugeiconsIcon
-                    icon={CloudUploadIcon}
-                    size={20}
-                    color="#191A23"
-                  />
-                </div>
-                <span className="text-sm font-bold text-[#191A23] uppercase">
-                  Upload an image
-                </span>
-                <span className="text-[10px] font-bold text-neutral-500 uppercase mt-1">
-                  PNG, JPG, GIF up to 5MB
-                </span>
-              </>
-            )}
-          </label>
-          <input
-            type="file"
-            id="image"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
-        </div>
-      </div>
+        if (selectedGift) {
+          const giftInfo = gifts.find((g) => g.id === selectedGift);
+          if (giftInfo) {
+            const giftRes = await attachGift({
+              websiteId,
+              type: "digital",
+              amount: giftInfo.price,
+              currency: "NGN",
+              productId: null,
+              paymentMethod: "paystack",
+              giftMessage: customMessage || message || "Enjoy your gift!",
+            });
 
-      {/* Theme Picker */}
-      <div className="flex flex-col">
-        <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
-          <span>Select Theme</span>
-          <button
-            type="button"
-            onClick={suggestTheme}
-            disabled={isSuggestingTheme}
-            className="flex items-center gap-1 px-2 py-1 bg-indigo-100 border border-indigo-300 rounded-sm text-[8px] font-black text-indigo-700 hover:bg-indigo-200 transition-all disabled:opacity-50"
-          >
-            <HugeiconsIcon
-              icon={MagicWand01Icon}
-              size={10}
-              className={isSuggestingTheme ? "animate-pulse" : ""}
-            />
-            {isSuggestingTheme ? "SUGGESTING..." : "MAGIC SUGGEST"}
-          </button>
-        </label>
-        <div className="grid grid-cols-4 gap-3">
-          {THEMES.map((theme) => (
-            <div
-              key={theme.name}
-              onClick={() => setSelectedTheme(theme)}
-              className={`rounded-lg cursor-pointer transition-all duration-200 ${
-                selectedTheme.name === theme.name
-                  ? "ring-2 ring-blue-500 ring-offset-2"
-                  : "hover:ring-1 hover:ring-gray-300"
-              }`}
-            >
-              <div className="flex flex-col h-16 w-full rounded-lg overflow-hidden">
-                <div className={`flex flex-row flex-1`}>
-                  <div className={`flex-1 ${theme.primary}`} />
-                  <div className={`flex-1 ${theme.bgNeutral}`} />
-                </div>
-                <div className={`flex-1 ${theme.secondary}`} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            if (giftRes.success && giftRes.data) {
+              toast.success(
+                "Website created and gift attached! Redirecting to payment...",
+              );
+              window.location.href = giftRes.data.paymentUrl;
+              return;
+            } else {
+              toast.error(
+                giftRes.message ||
+                  "Failed to attach gift, but website was created.",
+              );
+            }
+          }
+        }
 
-      {/* Font Picker */}
-      <div className="flex flex-col">
-        <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
-          <span>Select Font</span>
-          <button
-            type="button"
-            onClick={suggestFont}
-            disabled={isSuggestingFont}
-            className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-300 rounded-sm text-[8px] font-black text-green-700 hover:bg-green-200 transition-all disabled:opacity-50"
-          >
-            <HugeiconsIcon
-              icon={MagicWand01Icon}
-              size={10}
-              className={isSuggestingFont ? "animate-spin" : ""}
-            />
-            {isSuggestingFont ? "SUGGESTING..." : "MAGIC SUGGEST"}
-          </button>
-        </label>
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-[#191A23]/40" />
-            <input
-              type="text"
-              placeholder="Search fonts..."
-              value={fontSearch}
-              onChange={(e) => setFontSearch(e.target.value)}
-              className="w-full pl-8 pr-4 py-2 border-2 border-[#191A23] rounded-sm text-xs font-bold focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all bg-white"
-            />
-          </div>
-          <div className="">Popular Fonts</div>
+        const baseUrl = window.location.origin;
+        const previewUrl = `${baseUrl}/preview/${websiteId}`;
+        await navigator.clipboard.writeText(previewUrl);
+        toast.success("Draft link copied! You can now publish it.");
+      } else {
+        toast.error(res.message || "Failed to create website draft");
+      }
+    } catch (err) {
+      console.error("Failed to create website:", err);
+      toast.error("Failed to create website. Please try again.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-            {(fonts.length > 0 ? fonts : FALLBACK_FONTS)
-              .filter((f) =>
-                f.family.toLowerCase().includes(fontSearch.toLowerCase())
-              )
-              .slice(0, 50)
-              .map((font) => (
-                <FontOption
-                  key={font.family}
-                  font={font}
-                  isSelected={selectedFont === font.family}
-                  onSelect={setSelectedFont}
-                />
-              ))}
-          </div>
-        </div>
-      </div>
+  const handlePublish = async (): Promise<void> => {
+    if (!greetingId) {
+      toast.error(
+        "Please create a draft first by clicking 'Copy Link' or 'Preview'.",
+      );
+      return;
+    }
 
-      {/* Additional Features */}
-      <div className=" space-y-4">
-        <div className="border-t border-gray-200 pt-4 mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">
-            Additional Features
-          </h3>
-          <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3">
-            <div className="flex flex-col gap-2 w-full">
-              <div className="flex items-center gap-2">
-                <h2 className=" text-xl font-medium">Add Gift</h2>
-                {isOn && (
-                  <button
-                    type="button"
-                    onClick={suggestGifts}
-                    disabled={isSuggestingGifts}
-                    className="p-1.5 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 hover:bg-yellow-200 transition-all disabled:opacity-50"
-                    title="Magic Gift Suggest"
-                  >
-                    <HugeiconsIcon
-                      icon={GiftIcon}
-                      size={14}
-                      className={isSuggestingGifts ? "animate-bounce" : ""}
-                    />
-                  </button>
-                )}
-              </div>
-              {isOn && giftSuggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {giftSuggestions.map((gift, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 text-[8px] font-bold text-yellow-800 rounded-full uppercase"
-                    >
-                      {gift}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button
-              type="button"
-              className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
-                isOn ? "bg-gray-200" : "bg-gray-200"
-              }`}
-              onClick={handleToggle}
-            >
-              <div
-                className={`bg-gray-800 h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${
-                  isOn
-                    ? "transform translate-x-5 "
-                    : "transform translate-x-0.5 bg-gray-700"
-                }`}
-              />
-            </button>
-          </div>
-          <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3 mt-4">
-            <div className="">
-              <h2 className=" text-xl font-medium">Add Music</h2>
-            </div>
-            <button
-              type="button"
-              className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
-                addMusic ? "bg-gray-200" : "bg-gray-200"
-              }`}
-              onClick={handleMusicToggle}
-            >
-              <div
-                className={`bg-gray-800 h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${
-                  addMusic
-                    ? "transform translate-x-5 "
-                    : "transform translate-x-0.5 bg-gray-700"
-                }`}
-              />
-            </button>
-          </div>
-        </div>
+    setIsPublishing(true);
+    try {
+      const publishData = {
+        customSlug:
+          customSlug ||
+          `${recipientName.toLowerCase().replace(/\s+/g, "-")}-${Date.now()
+            .toString()
+            .slice(-4)}`,
+        expiresAt: new Date(expiresAt).toISOString(),
+      };
 
-        <div className="space-y-3">
-          {isOn && (
-            <div className="">
-              <Gift gifts={gifts} onSelectGift={setSelectedGift} />
-            </div>
-          )}
-          {addMusic && (
-            <div className="">
-              <Music
-                onSelectMusic={setSelectedMusic}
-                selectedMusic={selectedMusic}
-              />
-            </div>
-          )}
-          <VoiceMessage />
-        </div>
-      </div>
+      const res = await publishWebsite(greetingId, publishData);
 
-      {/* Action Buttons */}
-      <div className="pt-4 mt-8 border-t-2 border-[#191A23]/10">
-        <button
-          type="button"
-          onClick={() => setIsPreviewMode(true)}
-          disabled={!isFormValid}
-          className={`w-full py-4 px-4 rounded-sm text-[#191A23] font-black uppercase tracking-widest border-2 transition-all flex items-center justify-center gap-2 ${
-            isFormValid
-              ? "bg-[#B4F8C8] border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-1 cursor-pointer"
-              : "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          <HugeiconsIcon icon={ViewIcon} size={20} />
-          Preview Website
-        </button>
-        {!isFormValid && (
-          <p className="text-[10px] font-bold uppercase text-red-500 mt-2 text-center tracking-wider">
-            Please enter recipient&apos;s name to continue
-          </p>
-        )}
-      </div>
-    </form>
-  );
-
-  // Render preview section
-  const renderPreview = () => (
-    <div className="sticky top-6">
-      <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm overflow-hidden flex flex-col h-full relative">
-        {/* Preview Header */}
-        <div className="bg-[#191A23] p-4 flex items-center justify-between border-b-2 border-[#191A23] z-10">
-          <h3 className="font-bold text-white uppercase text-sm tracking-widest">
-            Live Preview
-          </h3>
-          <div className="flex items-center space-x-2">
-            <button className="p-1.5 rounded-sm bg-white border border-transparent hover:border-[#191A23] text-[#191A23] transition-all">
-              <HugeiconsIcon icon={Settings01Icon} size={18} color="#191A23" />
-            </button>
-            <button className="p-1.5 rounded-sm bg-white border border-transparent hover:border-[#191A23] text-[#191A23] transition-all">
-              <HugeiconsIcon
-                icon={ArrowUpRight01Icon}
-                size={18}
-                color="#191A23"
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* Greeting Preview */}
-        <div
-          className={`${selectedTheme.bgNeutral} p-8 min-h-[500px] max-h-[600px] overflow-y-auto`}
-          style={{ fontFamily: selectedFont }}
-        >
-          <div className="relative">
-            {/* Header Section */}
-            <div className="flex items-center justify-between mb-6 border-b pb-4 border-gray-200">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-full ${selectedTheme.bgAccent} flex items-center`}
-                >
-                  <HugeiconsIcon
-                    icon={Agreement01Icon}
-                    size={25}
-                    color="currentColor"
-                    className={selectedTheme.textPrimary}
-                  />
-                </div>
-              </div>
-              <div className="">
-                <h2
-                  className={`text-xl font-semibold capitalize ${selectedTheme.textSecondary}`}
-                >
-                  {occasion ? `${occasion} Greeting` : "Greeting"}
-                </h2>
-              </div>
-
-              <button
-                onClick={toggleMenu}
-                className={`p-2 rounded-full transition-colors ${selectedTheme.hoverAccent}`}
-                aria-label="Menu"
-              >
-                <HugeiconsIcon
-                  icon={MoreVerticalCircle01Icon}
-                  size={18}
-                  color="currentColor"
-                  className={selectedTheme.textPrimary}
-                />
-              </button>
-            </div>
-
-            {isMenuOpen && (
-              <div className="absolute right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-10">
-                <ul>
-                  <li className="px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={Edit01Icon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>Create Your Own</span>
-                    </button>
-                  </li>
-                  <li className="px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={BookOpenIcon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>View Templates</span>
-                    </button>
-                  </li>
-                  <li className="px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={Share08Icon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>Share</span>
-                    </button>
-                  </li>
-                  <li className="border-t border-gray-100 mt-1 pt-1 px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={Settings01Icon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>Settings</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-6 text-center">
-            <div className="flex md:flex-row flex-col space-y-6 items-center justify-between">
-              <div className="space-y-3.5 text-left">
-                {recipientName && (
-                  <h1
-                    className={`text-3xl font-bold ${selectedTheme.textPrimary}`}
-                    style={{ fontFamily: selectedFont }}
-                  >
-                    Hey, {recipientName}
-                  </h1>
-                )}
-
-                {occasion && (
-                  <div
-                    className={`inline-block px-4 py-1 rounded-full text-sm ${selectedTheme.primary} text-white`}
-                  >
-                    <div className="flex gap-2 items-center">
-                      <HugeiconsIcon
-                        icon={SparklesIcon}
-                        size={16}
-                        color="currentColor"
-                      />
-                      <span style={{ fontFamily: selectedFont }}>
-                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Image (if uploaded) */}
-              {imagePreview && (
-                <div className="py-4">
-                  <div className="relative w-64 h-64 mx-auto rounded-full overflow-hidden shadow-md bg-white">
-                    <Image
-                      src={imagePreview}
-                      alt="Greeting"
-                      layout="fill"
-                      objectFit="cover"
-                      className="rounded-full"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Message */}
-            {(message || customMessage) && (
-              <div
-                className={`mx-auto max-w-md p-6 rounded-xl shadow-sm ${
-                  selectedTheme.bgNeutral === "bg-white"
-                    ? "bg-gray-50"
-                    : "bg-white"
-                }`}
-              >
-                <p
-                  className="text-gray-700 leading-relaxed"
-                  style={{ fontFamily: selectedFont }}
-                >
-                  {message || customMessage}
-                </p>
-              </div>
-            )}
-
-            {/* Selected Music Preview */}
-            {selectedMusic && (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <div className="flex items-center gap-3 bg-white border-2 border-[#191A23] rounded-sm p-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] w-full max-w-sm">
-                  <img
-                    src={selectedMusic.cover}
-                    alt={selectedMusic.title}
-                    className="size-10 rounded-sm border border-[#191A23]/10 object-cover"
-                  />
-                  <div className="text-left flex-1 min-w-0">
-                    <p className="text-[10px] font-black uppercase text-[#191A23] truncate">
-                      {selectedMusic.title}
-                    </p>
-                    <p className="text-[8px] font-bold text-neutral-500 uppercase truncate">
-                      {selectedMusic.artist}
-                    </p>
-                  </div>
-                  <div className="w-px h-6 bg-[#191A23]/10"></div>
-                  <HugeiconsIcon
-                    icon={MusicNote01Icon}
-                    size={16}
-                    className="text-[#191A23] animate-bounce"
-                  />
-                </div>
-
-                {selectedMusic.type === "spotify" && (
-                  <div className="w-full max-w-sm rounded-sm overflow-hidden border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                    <iframe
-                      src={`https://open.spotify.com/embed/track/${selectedMusic.id}?utm_source=generator&theme=0`}
-                      width="100%"
-                      height="80"
-                      frameBorder="0"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                    ></iframe>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div>
-              <button
-                className={`text-lg ${selectedTheme.secondary} ${selectedTheme.textNeutral} p-1 rounded-full px-2.5`}
-              >
-                Redeem Gift
-              </button>
-            </div>
-
-            <div className="flex justify-center items-center gap-1 pt-6 text-sm text-gray-500">
-              <HugeiconsIcon icon={RocketIcon} size={14} color="currentColor" />
-              <span>Made With 💜 with WishCube</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="p-6 border-t-2 border-[#191A23] bg-white mt-auto z-10">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={copyGreetingLink}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#191A23] text-white py-3.5 px-4 rounded-sm hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,0.4)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,0.4)] transition-all font-bold uppercase tracking-wide border-2 border-[#191A23]"
-            >
-              <HugeiconsIcon icon={Copy01Icon} size={18} color="currentColor" />
-              <span>Copy Link</span>
-            </button>
-            <button className="flex-1 flex items-center justify-center gap-2 bg-[#FFF3B0] text-[#191A23] py-3.5 px-4 rounded-sm hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] transition-all font-black uppercase tracking-wide border-2 border-[#191A23]">
-              <HugeiconsIcon
-                icon={Share01Icon}
-                size={18}
-                color="currentColor"
-              />
-              <span>Share</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+      if (res.success && res.data) {
+        toast.success("Website published successfully!");
+        window.open(res.data.shareUrl, "_blank");
+      } else {
+        toast.error(res.message || "Failed to publish website");
+      }
+    } catch (err) {
+      console.error("Failed to publish website:", err);
+      toast.error("Failed to publish website. Please try again.");
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
   return (
-    <div className="w-full bg-[#F3F3F3] font-space min-h-screen ">
-      <div className="">
-        {!isPreviewMode ? (
-          /* Form View */
-          <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm w-full p-8 space-y-6 relative">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-[#191A23]/10">
-              <h2 className="text-2xl font-black text-[#191A23] uppercase tracking-tight">
-                Create Website
-              </h2>
-            </div>
-            {renderForm()}
+    <div className="w-full bg-[#F3F3F3] font-space min-h-screen">
+      {!isPreviewMode ? (
+        <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm w-full p-8 space-y-6 relative">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-[#191A23]/10">
+            <h2 className="text-2xl font-black text-[#191A23] uppercase tracking-tight">
+              Create Website
+            </h2>
           </div>
-        ) : (
-          /* Preview View */
-          <div className="w-full space-y-6">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => setIsPreviewMode(false)}
-                className="flex items-center gap-2 px-6 py-3 border-2 border-[#191A23] bg-white rounded-sm text-sm font-black text-[#191A23] hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] transition-all uppercase"
-              >
-                <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
-                Back to Edit
-              </button>
-              <h2 className="text-2xl font-black text-[#191A23] uppercase tracking-tight">
-                Review Website
-              </h2>
-            </div>
-            <div className="max-w-3xl mx-auto">{renderPreview()}</div>
+          <WebsiteForm
+            recipientName={recipientName}
+            setRecipientName={setRecipientName}
+            occasion={occasion}
+            setOccasion={setOccasion}
+            customMessage={customMessage}
+            setCustomMessage={setCustomMessage}
+            generatedMessage={generatedMessage}
+            isGeneratingMessage={isGeneratingMessage}
+            generateMessage={generateMessage}
+            handlePasteMessage={handlePasteMessage}
+            useGeneratedMessage={() => {
+              setCustomMessage(generatedMessage);
+              setGeneratedMessage("");
+            }}
+            messageRef={messageRef}
+            images={images}
+            isUploading={isUploading}
+            handleImageUpload={handleImageUpload}
+            removeImage={removeImage}
+            fileInputRef={fileInputRef}
+            generateAIImage={generateAIImage}
+            isGeneratingImage={isGeneratingImage}
+            selectedTheme={selectedTheme}
+            setSelectedTheme={setSelectedTheme}
+            suggestTheme={suggestTheme}
+            isSuggestingTheme={isSuggestingTheme}
+            selectedFont={selectedFont}
+            setSelectedFont={setSelectedFont}
+            fontSearch={fontSearch}
+            setFontSearch={setFontSearch}
+            suggestFont={suggestFont}
+            isSuggestingFont={isSuggestingFont}
+            fonts={fonts}
+            isOn={isOn}
+            setIsOn={setIsOn}
+            addMusic={addMusic}
+            setAddMusic={setAddMusic}
+            suggestGifts={suggestGifts}
+            isSuggestingGifts={isSuggestingGifts}
+            giftSuggestions={giftSuggestions}
+            gifts={gifts}
+            selectedGift={selectedGift}
+            setSelectedGift={setSelectedGift}
+            selectedMusic={selectedMusic}
+            setSelectedMusic={setSelectedMusic}
+            setIsPreviewMode={setIsPreviewMode}
+            password={password}
+            setPassword={setPassword}
+            customSlug={customSlug}
+            setCustomSlug={setCustomSlug}
+            expiresAt={expiresAt}
+            setExpiresAt={setExpiresAt}
+            isPasswordProtected={isPasswordProtected}
+            setIsPasswordProtected={setIsPasswordProtected}
+          />
+        </div>
+      ) : (
+        <div className="w-full space-y-6">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setIsPreviewMode(false)}
+              className="flex items-center gap-2 px-6 py-3 border-2 border-[#191A23] bg-white rounded-sm text-sm font-black text-[#191A23] hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] transition-all uppercase"
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
+              Back to Edit
+            </button>
+            <h2 className="text-2xl font-black text-[#191A23] uppercase tracking-tight">
+              Review Website
+            </h2>
           </div>
-        )}
-      </div>
+          <div className="max-w-3xl mx-auto">
+            <WebsitePreview
+              selectedTheme={selectedTheme}
+              selectedFont={selectedFont}
+              occasion={occasion}
+              recipientName={recipientName}
+              images={images}
+              message={message}
+              customMessage={customMessage}
+              selectedMusic={selectedMusic}
+              toggleMenu={() => setIsMenuOpen(!isMenuOpen)}
+              isMenuOpen={isMenuOpen}
+              copyGreetingLink={copyGreetingLink}
+              handlePublish={handlePublish}
+              isPublishing={isPublishing}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
-export default Generator;

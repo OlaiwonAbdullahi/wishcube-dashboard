@@ -2,12 +2,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Product } from "@/lib/products";
+import { Product, getProducts, getDigitalGifts } from "@/lib/products";
 import { toast } from "sonner";
 import { PackageSearch, Store, MapPin, Calendar, Sparkles } from "lucide-react";
 import EmptyState from "./_components/empty-state";
 import { getAuth } from "@/lib/auth";
-import { Vendor } from "@/lib/vendor";
+import { Vendor, getAllVendors } from "@/lib/vendor";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -248,66 +248,52 @@ const MarketplacePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const auth = getAuth();
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${auth?.token || ""}`,
-      };
 
       try {
-        const queryParams = new URLSearchParams();
-        if (search) queryParams.append("search", search);
-        if (category !== "All") queryParams.append("category", category);
-        if (occasion !== "All") queryParams.append("occasion", occasion);
-        if (state !== "All") queryParams.append("state", state);
-        if (minPrice) queryParams.append("minPrice", minPrice);
-        if (maxPrice) queryParams.append("maxPrice", maxPrice);
-        if (featured) queryParams.append("featured", "true");
+        const params: Record<string, string> = {};
+        if (search) params.search = search;
+        if (category !== "All") params.category = category;
+        if (occasion !== "All") params.occasion = occasion;
+        if (state !== "All") params.state = state;
+        if (minPrice) params.minPrice = minPrice;
+        if (maxPrice) params.maxPrice = maxPrice;
+        if (featured) params.featured = "true";
 
         const [productsRes, digitalGiftsRes, vendorsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/products?${queryParams.toString()}`, {
-            headers,
-          }),
-          fetch(`${API_BASE_URL}/products/digital-gifts`, { headers }),
-          fetch(`${API_BASE_URL}/vendors?${queryParams.toString()}`, {
-            headers,
-          }),
+          getProducts(params),
+          getDigitalGifts(),
+          getAllVendors(params),
         ]);
 
-        const productsData = await productsRes.json();
-        const digitalGiftsData = await digitalGiftsRes.json();
-        const vendorsData = await vendorsRes.json();
-
-        if (!productsData.success) {
-          toast.error(productsData.message || "Failed to load products");
+        if (!productsRes.success) {
+          toast.error(productsRes.message || "Failed to load products");
         }
-        if (!digitalGiftsData.success) {
+        if (!digitalGiftsRes.success) {
           toast.error(
-            digitalGiftsData.message || "Failed to load digital gifts",
+            digitalGiftsRes.message || "Failed to load digital gifts",
           );
         }
-        if (!vendorsData.success) {
-          toast.error(vendorsData.message || "Failed to load vendors");
+        if (!vendorsRes.success) {
+          toast.error(vendorsRes.message || "Failed to load vendors");
         }
 
         // Handle products
-        if (productsData.success && productsData.data?.products) {
-          console.log(productsData.data.products);
-          setProducts(productsData.data.products);
+        if (productsRes.success && productsRes.data?.products) {
+          setProducts(productsRes.data.products);
         } else {
           setProducts([]);
         }
 
         // Handle digital gifts
-        if (digitalGiftsData.success && digitalGiftsData.data?.products) {
-          setDigitalGifts(digitalGiftsData.data.products);
+        if (digitalGiftsRes.success && digitalGiftsRes.data?.products) {
+          setDigitalGifts(digitalGiftsRes.data.products);
         } else {
           setDigitalGifts([]);
         }
 
         // Handle vendors
-        if (vendorsData.success && vendorsData.data?.vendors) {
-          setVendors(vendorsData.data.vendors);
+        if (vendorsRes.success && vendorsRes.data?.vendors) {
+          setVendors(vendorsRes.data.vendors);
         } else {
           setVendors([]);
         }

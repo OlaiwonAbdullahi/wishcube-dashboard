@@ -1,3 +1,5 @@
+"use client";
+import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Video02Icon,
@@ -5,14 +7,18 @@ import {
   Cards02Icon,
   WebDesign02Icon,
   GiftCardIcon,
-  WalletAdd01Icon,
   AiMagicIcon,
+  WalletAdd01Icon,
   Layout01Icon,
   GridIcon,
   MoreHorizontalIcon,
 } from "@hugeicons/core-free-icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { getCards } from "@/lib/cards";
+import { getWalletBalance } from "@/lib/wallet";
+import { getWebsites } from "@/lib/websites";
 import {
   Card,
   CardContent,
@@ -20,10 +26,34 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 
 export const Overview = () => {
+  const [stats, setStats] = useState({
+    cards: 0,
+    websites: 0,
+    wallet: 0,
+    gifts: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [cardsRes, walletRes, websitesRes] = await Promise.all([
+        getCards(),
+        getWalletBalance(),
+        getWebsites(),
+      ]);
+
+      setStats({
+        cards: cardsRes.success ? cardsRes.data?.total || 0 : 0,
+        websites: websitesRes.success ? websitesRes.data?.total || 0 : 0,
+        wallet: walletRes.success ? walletRes.data?.walletBalance || 0 : 0,
+        gifts: 0,
+      });
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
       <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
@@ -41,7 +71,7 @@ export const Overview = () => {
             asChild
             className="rounded-sm bg-[#191A23] text-white border border-[#191A23] border-b-4 hover:bg-[#191A23]/90 hover:scale-[1.02] transition-transform flex items-center"
           >
-            <Link href="#" className="gap-2 flex items-center">
+            <Link href="/dashboard/wallet" className="gap-2 flex items-center">
               <HugeiconsIcon
                 icon={WalletAdd02Icon}
                 size={24}
@@ -55,10 +85,26 @@ export const Overview = () => {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <KpiCard title="Cards created" value="0" hint="Drafts + sent" />
-        <KpiCard title="Website created" value="0" hint="Drafts + sent" />
-        <KpiCard title="Wallet" value="0" hint="Total Funds" />
-        <KpiCard title="Gifts attached" value="0" hint="Cards with value" />
+        <KpiCard
+          title="Cards created"
+          value={stats.cards.toString()}
+          hint="Drafts + sent"
+        />
+        <KpiCard
+          title="Website created"
+          value={stats.websites.toString()}
+          hint="Drafts + sent"
+        />
+        <KpiCard
+          title="Wallet"
+          value={`₦${stats.wallet.toLocaleString()}`}
+          hint="Total Funds"
+        />
+        <KpiCard
+          title="Gifts attached"
+          value={stats.gifts.toString()}
+          hint="Cards with value"
+        />
       </div>
 
       <div className="space-y-4">

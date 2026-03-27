@@ -10,31 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { getAuth } from "@/lib/auth";
-
-export interface Card {
-  _id: string;
-  userId: string;
-  senderName: string;
-  recipientName: string;
-  relationship?: string;
-  occasion: string;
-  language?: string;
-  message: string;
-  isAiGenerated?: boolean;
-  aiTone?: string;
-  theme?: string;
-  orientation?: "portrait" | "landscape" | "square";
-  backgroundImageUrl?: string;
-  backgroundImagePublicId?: string;
-  font: string;
-  textColor: string;
-  textSize: "small" | "medium" | "large";
-  backgroundColor: string;
-  status: "draft" | "completed";
-  downloadCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
+import {
+  Card,
+  getCards,
+  createCard,
+  updateCard,
+  deleteCard,
+} from "@/lib/cards";
 
 export type CardState = Partial<Card>;
 
@@ -50,16 +32,10 @@ export default function CardsPage() {
 
   const fetchCards = async () => {
     setLoading(true);
-    const auth = getAuth();
     try {
-      const res = await fetch("https://api.usewishcube.com/api/cards", {
-        headers: {
-          Authorization: `Bearer ${auth?.token}`,
-        },
-      });
-      const data = await res.json();
-      if (data.success) {
-        setCards(data.data.cards || []);
+      const res = await getCards();
+      if (res.success && res.data) {
+        setCards(res.data.cards || []);
       }
     } catch (error) {
       console.error("Fetch cards error:", error);

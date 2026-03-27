@@ -34,6 +34,39 @@ const getHeaders = () => {
   };
 };
 
+// Get all products with filters
+export const getProducts = async (
+  params?: Record<string, string>
+): Promise<ProductResponse<{ total: number; products: Product[] }>> => {
+  try {
+    const queryParams = new URLSearchParams(params);
+    const response = await fetch(`${API_BASE_URL}?${queryParams.toString()}`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch products error:", error);
+    return { success: false, message: "Network error fetching products" };
+  }
+};
+
+// Get digital gifts
+export const getDigitalGifts = async (): Promise<
+  ProductResponse<{ products: Product[] }>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/digital-gifts`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch digital gifts error:", error);
+    return { success: false, message: "Network error fetching digital gifts" };
+  }
+};
+
 // Get products by vendor ID
 export const getProductsByVendorId = async (
   vendorId: string,

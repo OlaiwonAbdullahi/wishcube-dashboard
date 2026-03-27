@@ -92,6 +92,7 @@ export const login = async (
       body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
+    console.log("Login response:", data);
     if (data.success && data.data) {
       setAuth(data.data);
     }
