@@ -69,130 +69,241 @@ export default function CardsPage() {
 
   if (view === "list") {
     return (
-      <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
-        <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
-              Greeting Cards
-            </h1>
-            <p className="text-sm text-neutral-600">
-              Manage and create beautiful personalized greeting cards.
-            </p>
-          </div>
-          <Button
-            onClick={handleCreateNew}
-            className="bg-[#191A23] text-white hover:bg-[#191A23]/90 rounded-sm border-b-4 border-[#000000] active:border-b-0 active:translate-y-1 transition-all"
-          >
-            Create New Card
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-64 bg-neutral-100 animate-pulse rounded-sm border border-[#191A23]"
-              />
-            ))}
-          </div>
-        ) : cards.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-[#F3F3F3] border border-dashed border-[#191A23] rounded-sm">
-            <p className="text-neutral-500 font-bold uppercase text-xs mb-4">
-              No cards found
-            </p>
-            <Button onClick={handleCreateNew} variant="outline">
-              Create your first card
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {cards.map((card) => (
-              <div
-                key={card._id}
-                onClick={() => handleEditCard(card)}
-                className="group cursor-pointer bg-white border border-[#191A23] border-b-4 hover:border-b-8 transition-all p-4 rounded-sm space-y-3"
-              >
-                <div
-                  className="aspect-[4/5] w-full rounded-sm overflow-hidden border border-[#191A23]/10 relative"
-                  style={{
-                    backgroundColor: card.backgroundColor,
-                    color: card.textColor,
-                    fontFamily: card.font,
-                  }}
-                >
-                  {card.backgroundImageUrl ? (
-                    <img
-                      src={card.backgroundImageUrl}
-                      alt="Card preview"
-                      className="w-full h-full object-cover opacity-50"
+      <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F5F5F5]">
+        <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-space">
+          {/* Header Section */}
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#191A23] to-[#2D2E38] rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 .267M7 21H5a2 2 0 01-2-2v-4a2 2 0 012-2h2.5"
                     />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-[10px] opacity-20 uppercase font-black">
-                      {card.occasion}
-                    </div>
-                  )}
-                  <div className="absolute inset-0 p-4 flex flex-col justify-center text-center">
-                    <p className="text-[10px] font-black uppercase truncate mb-1">
-                      {card.recipientName}
-                    </p>
-                    <p className="text-[8px] line-clamp-3 leading-tight opacity-80">
-                      {card.message}
-                    </p>
-                  </div>
+                  </svg>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-xs font-black uppercase truncate text-[#191A23]">
-                    {card.occasion}
-                  </h3>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold text-neutral-400">
-                      {new Date(card.createdAt).toLocaleDateString()}
-                    </p>
-                    <Badge
-                      className={cn(
-                        "text-[8px] font-black uppercase px-1.5 py-0.5 border border-[#191A23]",
-                        card.status === "completed"
-                          ? "bg-[#B4F8C8] text-[#191A23]"
-                          : "bg-[#FFE5E5] text-[#191A23]",
-                      )}
-                    >
-                      {card.status}
-                    </Badge>
-                  </div>
+                <div>
+                  <h1 className="text-3xl font-black tracking-tight text-[#191A23]">
+                    Greeting Cards
+                  </h1>
+                  <p className="text-sm font-medium text-[#191A23]/60">
+                    Create and manage beautiful personalized cards
+                  </p>
                 </div>
               </div>
-            ))}
+            </div>
+            <Button
+              onClick={handleCreateNew}
+              className="bg-gradient-to-r from-[#191A23] to-[#2D2E38] text-white hover:shadow-lg hover:shadow-[#191A23]/20 rounded-lg border-0 border-b-4 border-b-[#000000] active:border-b-2 active:translate-y-1 transition-all font-bold py-3 px-6"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Create New Card
+            </Button>
           </div>
-        )}
+
+          {/* Content Section */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="h-72 bg-white rounded-lg border border-[#191A23]/10 animate-pulse shadow-sm"
+                />
+              ))}
+            </div>
+          ) : cards.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-24">
+              <div className="bg-white rounded-2xl border-2 border-dashed border-[#191A23]/20 p-12 text-center max-w-md w-full">
+                <div className="w-16 h-16 bg-[#F3F3F3] rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="w-8 h-8 text-[#191A23]/40"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 .267M7 21H5a2 2 0 01-2-2v-4a2 2 0 012-2h2.5"
+                    />
+                  </svg>
+                </div>
+                <p className="text-[#191A23] font-bold text-lg mb-1">
+                  No Cards Yet
+                </p>
+                <p className="text-[#191A23]/60 text-sm mb-6 leading-relaxed">
+                  Start creating beautiful personalized greeting cards to send
+                  to your loved ones.
+                </p>
+                <Button
+                  onClick={handleCreateNew}
+                  className="bg-[#191A23] text-white hover:bg-[#2D2E38] rounded-lg font-bold w-full py-3"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2 inline"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Create Your First Card
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm font-bold text-[#191A23]/60">
+                  {cards.length} card{cards.length !== 1 ? "s" : ""} in total
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {cards.map((card) => (
+                  <div
+                    key={card._id}
+                    onClick={() => handleEditCard(card)}
+                    className="group cursor-pointer bg-white rounded-lg overflow-hidden border border-[#191A23]/10 hover:border-[#191A23]/40 shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-105"
+                  >
+                    <div
+                      className="aspect-[4/5] w-full relative overflow-hidden bg-gradient-to-br"
+                      style={{
+                        backgroundColor: card.backgroundColor,
+                        color: card.textColor,
+                        fontFamily: card.font,
+                      }}
+                    >
+                      {card.backgroundImageUrl ? (
+                        <img
+                          src={card.backgroundImageUrl}
+                          alt="Card preview"
+                          className="w-full h-full object-cover opacity-60 group-hover:opacity-75 transition-opacity"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-[10px] opacity-15 uppercase font-black">
+                          {card.occasion}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 p-4 flex flex-col justify-center text-center">
+                        <p className="text-xs font-black uppercase truncate mb-2 tracking-wide">
+                          {card.recipientName}
+                        </p>
+                        <p className="text-[8px] line-clamp-3 leading-relaxed opacity-80 font-medium">
+                          {card.message || "Click to add message..."}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <h3 className="text-xs font-black uppercase truncate text-[#191A23] tracking-wider">
+                        {card.occasion}
+                      </h3>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[10px] font-bold text-[#191A23]/50">
+                          {new Date(card.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )}
+                        </p>
+                        <Badge
+                          className={cn(
+                            "text-[8px] font-black uppercase px-2 py-1 rounded-md border-0",
+                            card.status === "completed"
+                              ? "bg-[#D1FAE5] text-[#065F46]"
+                              : "bg-[#FEE2E2] text-[#991B1B]",
+                          )}
+                        >
+                          {card.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
+  // Edit View
   return (
-    <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            setView("list");
-            fetchCards();
-          }}
-          className="hover:bg-[#191A23]/5 text-[#191A23] font-bold"
-        >
-          ← Back to cards
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <CardCustomizer
-            cardState={activeCard as any}
-            setCardState={setActiveCard as any}
-          />
+    <div className="min-h-screen bg-gradient-to-br from-[#FAFAFA] to-[#F5F5F5]">
+      <div className="px-4 sm:px-6 lg:px-8 py-6">
+        {/* Back Button */}
+        <div className="mb-6">
+          <button
+            onClick={() => {
+              setView("list");
+              fetchCards();
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-bold text-[#191A23] hover:bg-[#191A23]/5 rounded-lg transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+            Back to Cards
+          </button>
         </div>
-        <div className="lg:col-span-2">
-          <CardPreview cardState={activeCard as any} />
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Customizer Panel */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-6">
+              <CardCustomizer
+                cardState={activeCard as any}
+                setCardState={setActiveCard as any}
+              />
+            </div>
+          </div>
+
+          {/* Preview Panel */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-[#191A23]/10">
+              <CardPreview cardState={activeCard as any} />
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -9,20 +9,36 @@ export interface Card {
   userId: string;
   senderName: string;
   recipientName: string;
+  recipientPhotoUrl?: string;
+  recipientPhotoPublicId?: string;
   relationship?: string;
   occasion: string;
   language?: string;
+  volumeNumber?: number;
+  cardYear?: string;
+  cardSubtitle?: string;
   message: string;
+  closingLine?: string;
+  brandingText?: string;
   isAiGenerated?: boolean;
   aiTone?: string;
   theme?: string;
   orientation?: "portrait" | "landscape" | "square";
   backgroundImageUrl?: string;
   backgroundImagePublicId?: string;
+  backgroundColor: string;
   font: string;
+  accentColor?: string;
   textColor: string;
   textSize: "small" | "medium" | "large";
-  backgroundColor: string;
+  textBold?: boolean;
+  textItalic?: boolean;
+  textAlign?: "left" | "center" | "right";
+  headlineColor?: string;
+  headlineSizeOverride?: "small" | "medium" | "large" | null;
+  headlineBold?: boolean;
+  recipientNameColor?: string;
+  recipientNameItalic?: boolean;
   status: "draft" | "completed";
   downloadCount: number;
   createdAt: string;
@@ -61,7 +77,7 @@ export const getCards = async (): Promise<
 
 // Get a single card by ID
 export const getCardById = async (
-  id: string
+  id: string,
 ): Promise<CardResponse<{ card: Card }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
@@ -77,7 +93,7 @@ export const getCardById = async (
 
 // Create a new card
 export const createCard = async (
-  cardData: Partial<Card>
+  cardData: Partial<Card>,
 ): Promise<CardResponse<{ card: Card }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}`, {
@@ -95,7 +111,7 @@ export const createCard = async (
 // Update an existing card
 export const updateCard = async (
   id: string,
-  cardData: Partial<Card>
+  cardData: Partial<Card>,
 ): Promise<CardResponse<{ card: Card }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
