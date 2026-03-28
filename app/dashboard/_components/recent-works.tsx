@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Cards02Icon,
@@ -17,46 +18,78 @@ import { cn } from "@/lib/utils";
 import React from "react";
 import Link from "next/link";
 
-const recentWorks = [
-  {
-    id: 1,
-    title: "Birthday Surprise",
-    type: "Website",
-    status: "Live",
-    date: "March 10, 2026",
-    accent: "bg-[#B9FF66]",
-    icon: WebDesign02Icon,
-  },
-  {
-    id: 2,
-    title: "Wedding Anniversary",
-    type: "Card",
-    status: "Sent",
-    date: "March 8, 2026",
-    accent: "bg-[#FFDAAD]",
-    icon: Cards02Icon,
-  },
-  {
-    id: 3,
-    title: "New Job Celebration",
-    type: "Card",
-    status: "Draft",
-    date: "March 5, 2026",
-    accent: "bg-[#D1E9FF]",
-    icon: Cards02Icon,
-  },
-  {
-    id: 4,
-    title: "Graduation Party",
-    type: "Website",
-    status: "Draft",
-    date: "March 2, 2026",
-    accent: "bg-[#E6D1FF]",
-    icon: WebDesign02Icon,
-  },
-];
+interface RecentWorkWebsite {
+  _id: string;
+  recipientName: string;
+  occasion: string;
+  status: string;
+  createdAt: string;
+  theme: string;
+}
 
-const RecentWorks = () => {
+interface RecentWorkCard {
+  _id: string;
+  recipientName: string;
+  occasion: string;
+  status: string;
+  createdAt: string;
+  backgroundColor: string;
+}
+
+interface RecentWorksProps {
+  websites: RecentWorkWebsite[];
+  cards: RecentWorkCard[];
+}
+
+interface WorkItem {
+  id: string;
+  title: string;
+  occasion: string;
+  type: "Website" | "Card";
+  status: string;
+  date: string;
+  accent: string;
+  icon: any;
+  rawDate: string;
+}
+
+const RecentWorks = ({ websites, cards }: RecentWorksProps) => {
+  const recentItems = [
+    ...websites.map((w) => ({
+      id: w._id,
+      title: w.recipientName,
+      occasion: w.occasion,
+      type: "Website" as const,
+      status: w.status,
+      date: new Date(w.createdAt).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }),
+      accent: "bg-[#E6D1FF]",
+      icon: WebDesign02Icon,
+      rawDate: w.createdAt,
+    })),
+    ...cards.map((c) => ({
+      id: c._id,
+      title: c.recipientName,
+      occasion: c.occasion,
+      type: "Card" as const,
+      status: c.status,
+      date: new Date(c.createdAt).toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      }),
+      accent: "bg-[#FFDAAD]",
+      icon: Cards02Icon,
+      rawDate: c.createdAt,
+    })),
+  ]
+    .sort(
+      (a, b) => new Date(b.rawDate).getTime() - new Date(a.rawDate).getTime(),
+    )
+    .slice(0, 4);
   return (
     <div className="px-4 sm:px-6 pb-12">
       <Card className="shadow-none border border-[#191A23] border-b-4 bg-[#F3F3F3]">
@@ -77,18 +110,29 @@ const RecentWorks = () => {
           </Link>
         </CardHeader>
         <CardContent className="pt-2">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {recentWorks.map((work) => (
-              <WorkCard key={work.id} work={work} />
-            ))}
-          </div>
+          {recentItems.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {recentItems.map((work) => (
+                <WorkCard key={work.id} work={work} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <p className="text-sm text-neutral-500 font-bold uppercase tracking-widest">
+                No recent activity yet
+              </p>
+              <p className="text-xs text-neutral-400 mt-1">
+                Start by creating your first card or website.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   );
 };
 
-function WorkCard({ work }: { work: (typeof recentWorks)[0] }) {
+function WorkCard({ work }: { work: WorkItem }) {
   return (
     <div className="group relative flex flex-col gap-3 rounded-sm border border-[#191A23] bg-white p-4 transition-all hover:scale-[1.02] hover:-translate-y-1 border-b-4">
       <div
@@ -133,6 +177,9 @@ function WorkCard({ work }: { work: (typeof recentWorks)[0] }) {
         <div className="min-w-0">
           <p className="font-bold text-[#191A23] truncate leading-tight">
             {work.title}
+            <span className="text-neutral-500 font-normal ml-1">
+              ({work.occasion})
+            </span>
           </p>
           <div className="mt-1 flex items-center gap-1 text-neutral-500">
             <HugeiconsIcon

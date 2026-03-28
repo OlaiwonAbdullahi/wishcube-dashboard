@@ -46,7 +46,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="lg:border lg:border-[#191A23] lg:rounded-sm lg:border-b-8 overflow-hidden flex flex-col h-full w-full bg-white">
           <DashboardHeader />
           <main className="w-full flex-1 overflow-auto bg-white">
-            <div className="px-4 sm:px-6 py-8 space-y-8">{children}</div>
+            <div className=" space-y-8">{children}</div>
           </main>
         </div>
       </div>

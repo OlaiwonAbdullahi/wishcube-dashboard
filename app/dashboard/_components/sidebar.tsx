@@ -10,6 +10,7 @@ import {
   GiftCardIcon,
   Video02Icon,
   Settings01Icon,
+  WalletAdd02Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Sidebar,
@@ -57,6 +58,12 @@ const navItems: NavItem[] = [
     href: "/dashboard/marketplace",
   },
   {
+    title: "Wallet",
+    icon: WalletAdd02Icon,
+    iconColor: "text-emerald-500",
+    href: "/dashboard/wallet",
+  },
+  {
     title: "Party Rooms",
     icon: Video02Icon,
     iconColor: "text-cyan-500",
@@ -74,7 +81,7 @@ export function DashboardSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="offcanvas" className="!border-r-0" {...props}>
+    <Sidebar collapsible="offcanvas" className="border-r-0!" {...props}>
       <SidebarHeader className="px-4 py-5 border-b border-neutral-300">
         <div className="flex items-end gap-1  w-full">
           <img

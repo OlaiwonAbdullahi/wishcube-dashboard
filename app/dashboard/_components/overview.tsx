@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Video02Icon,
@@ -16,9 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { getCards } from "@/lib/cards";
-import { getWalletBalance } from "@/lib/wallet";
-import { getWebsites } from "@/lib/websites";
 import {
   Card,
   CardContent,
@@ -28,31 +24,22 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-export const Overview = () => {
-  const [stats, setStats] = useState({
-    cards: 0,
-    websites: 0,
-    wallet: 0,
-    gifts: 0,
-  });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      const [cardsRes, walletRes, websitesRes] = await Promise.all([
-        getCards(),
-        getWalletBalance(),
-        getWebsites(),
-      ]);
-
-      setStats({
-        cards: cardsRes.success ? cardsRes.data?.total || 0 : 0,
-        websites: websitesRes.success ? websitesRes.data?.total || 0 : 0,
-        wallet: walletRes.success ? walletRes.data?.walletBalance || 0 : 0,
-        gifts: 0,
-      });
-    };
-    fetchStats();
-  }, []);
+export const Overview = ({
+  initialStats,
+}: {
+  initialStats?: {
+    cardsCount: number;
+    websitesCount: number;
+    giftsCount: number;
+    walletBalance: number;
+  };
+}) => {
+  const stats = {
+    cards: initialStats?.cardsCount || 0,
+    websites: initialStats?.websitesCount || 0,
+    wallet: initialStats?.walletBalance || 0,
+    gifts: initialStats?.giftsCount || 0,
+  };
 
   return (
     <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
@@ -89,21 +76,25 @@ export const Overview = () => {
           title="Cards created"
           value={stats.cards.toString()}
           hint="Drafts + sent"
+          isLoading={!initialStats}
         />
         <KpiCard
           title="Website created"
           value={stats.websites.toString()}
           hint="Drafts + sent"
+          isLoading={!initialStats}
         />
         <KpiCard
           title="Wallet"
           value={`₦${stats.wallet.toLocaleString()}`}
           hint="Total Funds"
+          isLoading={!initialStats}
         />
         <KpiCard
           title="Gifts attached"
           value={stats.gifts.toString()}
           hint="Cards with value"
+          isLoading={!initialStats}
         />
       </div>
 
@@ -151,7 +142,7 @@ export const Overview = () => {
             title="Fund Wallet"
             icon={WalletAdd01Icon}
             color="bg-[#E0D1FF]"
-            href="#"
+            href="/dashboard/wallet"
           />
           <QuickAction
             title="Explore Templates"
@@ -182,10 +173,12 @@ function KpiCard({
   title,
   value,
   hint,
+  isLoading,
 }: {
   title: string;
   value: string;
   hint: string;
+  isLoading?: boolean;
 }) {
   return (
     <Card className="shadow-none border border-[#191A23] border-b-4 bg-[#F3F3F3]">
@@ -194,7 +187,11 @@ function KpiCard({
           {title}
         </CardDescription>
         <CardTitle className="text-3xl font-bold text-[#191A23]">
-          {value}
+          {isLoading ? (
+            <div className="h-10 w-36 bg-[#191A23]/10 rounded animate-pulse" />
+          ) : (
+            value
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
