@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { getAuth } from "./auth";
@@ -63,7 +64,7 @@ export const getWalletBalance = async (): Promise<
 // Fund wallet
 export const fundWallet = async (
   amount: number,
-  callbackUrl?: string
+  callbackUrl?: string,
 ): Promise<WalletResponse<{ paymentUrl: string; reference: string }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/fund`, {
@@ -80,7 +81,7 @@ export const fundWallet = async (
 
 // Verify wallet funding
 export const verifyWalletFunding = async (
-  reference: string
+  reference: string,
 ): Promise<WalletResponse<{ newBalance: number }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/verify`, {
@@ -91,14 +92,17 @@ export const verifyWalletFunding = async (
     return await response.json();
   } catch (error) {
     console.error("Verify wallet funding error:", error);
-    return { success: false, message: "Network error verifying wallet funding" };
+    return {
+      success: false,
+      message: "Network error verifying wallet funding",
+    };
   }
 };
 
 // Get wallet transactions
 export const getWalletTransactions = async (
   page = 1,
-  limit = 10
+  limit = 10,
 ): Promise<WalletResponse<TransactionsResponse>> => {
   try {
     const response = await fetch(
@@ -106,7 +110,7 @@ export const getWalletTransactions = async (
       {
         method: "GET",
         headers: getHeaders(),
-      }
+      },
     );
     return await response.json();
   } catch (error) {
