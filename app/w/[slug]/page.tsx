@@ -6,32 +6,46 @@ import { useParams } from "next/navigation";
 import { getLiveWebsite, submitReaction, submitReply } from "@/lib/websites";
 import { redeemGift } from "@/lib/gifts";
 import { toast } from "sonner";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  RocketIcon,
-  SentIcon,
-  GiftIcon,
-  Cancel01Icon,
-  MusicNote01Icon,
-  SparklesIcon,
-  FavouriteIcon,
-  LockPasswordIcon,
-  Tick01Icon,
-  Time01Icon,
-} from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Mic01Icon,
+  MusicNote01Icon,
+  GiftIcon,
+  Time01Icon,
+  Cancel01Icon,
+  Tick01Icon,
+  SentIcon,
+  FavouriteIcon,
+  CameraIcon,
+  ArrowRight01Icon,
+  ArrowLeft01Icon,
+  Loading03Icon,
+  RocketIcon,
+  SparklesIcon,
+  StopIcon,
+} from "@hugeicons/core-free-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+interface ProductSnapshot {
+  name: string;
+  price: number;
+  imageUrl?: string;
+  storeName?: string;
+}
+
 interface GiftInfo {
   _id: string;
   type: string;
   amountPaid: number;
   currency: string;
-  giftMessage?: string;
+  giftMessage?: string | null;
   status: string;
   escrowStatus?: string;
   expiresAt?: string;
+  productSnapshot?: ProductSnapshot | null;
+  productId?: any;
 }
 
 interface WebsiteData {
@@ -43,8 +57,8 @@ interface WebsiteData {
   images?: { url: string; publicId: string; order: number }[];
   videoUrl?: string | null;
   voiceMessageUrl?: string | null;
-  musicTrack?: string;
-  musicUrl?: string;
+  musicTrack?: string | null;
+  musicUrl?: string | null;
   theme?: string;
   font?: string;
   primaryColor?: string;
@@ -55,12 +69,26 @@ interface WebsiteData {
   slug?: string;
   publicUrl?: string;
   views?: number;
-  reaction?: { emoji?: string | null; reactedAt?: string | null };
-  recipientReply?: { message?: string | null; repliedAt?: string | null };
+  reaction?: { emoji?: string | null };
+  recipientReply?: { message?: string | null };
   expiresAt?: string;
 }
 
-// ─── Countdown helper ─────────────────────────────────────────────────────────
+// ─── Font loader ──────────────────────────────────────────────────────────────
+function useDynamicFont(font: string | undefined) {
+  useEffect(() => {
+    if (!font || font === "Inter") return;
+    const id = `gfont-${font.replace(/\s/g, "-")}`;
+    if (document.getElementById(id)) return;
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(font)}:wght@400;500;600;700;800&display=swap`;
+    document.head.appendChild(link);
+  }, [font]);
+}
+
+// ─── Countdown ────────────────────────────────────────────────────────────────
 function useCountdown(target?: string | null) {
   const [diff, setDiff] = useState<number | null>(null);
   useEffect(() => {
@@ -72,57 +100,109 @@ function useCountdown(target?: string | null) {
   }, [target]);
   if (diff === null || diff <= 0) return null;
   const s = Math.floor(diff / 1000);
-  const d = Math.floor(s / 86400);
-  const h = Math.floor((s % 86400) / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  return { d, h, m, s: sec };
+  return {
+    d: Math.floor(s / 86400),
+    h: Math.floor((s % 86400) / 3600),
+    m: Math.floor((s % 3600) / 60),
+    s: s % 60,
+  };
+}
+
+// ─── Markdown renderer ────────────────────────────────────────────────────────
+function renderMessage(text: string) {
+  return text.split("\n").map((line, li, arr) => {
+    const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+    return (
+      <React.Fragment key={li}>
+        {parts.map((part, pi) => {
+          if (part.startsWith("**") && part.endsWith("**"))
+            return <strong key={pi}>{part.slice(2, -2)}</strong>;
+          if (part.startsWith("*") && part.endsWith("*"))
+            return <em key={pi}>{part.slice(1, -1)}</em>;
+          return <span key={pi}>{part}</span>;
+        })}
+        {li < arr.length - 1 && <br />}
+      </React.Fragment>
+    );
+  });
+}
+
+function OCCASION_EMOJI(o: string) {
+  const map: Record<string, string> = {
+    birthday: "🎂",
+    anniversary: "💍",
+    wedding: "💒",
+    graduation: "🎓",
+    christmas: "🎄",
+    valentine: "💝",
+    eid: "🌙",
+    new_year: "🎆",
+    other: "✨",
+  };
+  return map[o?.toLowerCase()] ?? "✨";
 }
 
 // ─── Loading ──────────────────────────────────────────────────────────────────
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F3F3F3] gap-6">
-      <div className="relative size-20">
-        <div className="absolute inset-0 rounded-full border-4 border-[#191A23]/10 animate-ping" />
-        <div className="absolute inset-2 size-16 rounded-full bg-[#FFF3B0] border-2 border-[#191A23] flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-          <HugeiconsIcon icon={RocketIcon} size={28} className="text-[#191A23]" />
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 gap-5">
+      <div className="relative size-16">
+        <div className="absolute inset-0 rounded-full border-4 border-violet-200 border-t-violet-500 animate-spin" />
+        <div className="absolute inset-3 rounded-full bg-white flex items-center justify-center">
+          <HugeiconsIcon icon={RocketIcon} size={18} color="#6366f1" />
         </div>
       </div>
-      <p className="text-xs font-black uppercase tracking-widest text-neutral-400 animate-pulse">
-        Loading your WishCube…
+      <p className="text-sm text-slate-400 font-medium animate-pulse">
+        Opening your gift…
       </p>
     </div>
   );
 }
 
-// ─── Not Found ────────────────────────────────────────────────────────────────
-function NotFoundScreen({ expired = false }: { expired?: boolean }) {
+// ─── Error screens ────────────────────────────────────────────────────────────
+function ErrorScreen({ expired = false }: { expired?: boolean }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F3F3F3] p-4">
-      <div className="text-center space-y-4 p-8 bg-white border-2 border-[#191A23] shadow-[12px_12px_0px_0px_rgba(25,26,35,1)] rounded-sm max-w-sm w-full">
-        <div className="text-5xl">{expired ? "⏳" : "🔍"}</div>
-        <h1 className="text-xl font-black uppercase text-[#191A23]">
-          {expired ? "This page has expired" : "Page Not Found"}
-        </h1>
-        <p className="text-xs text-neutral-500 font-medium">
-          {expired
-            ? "The creator's link is no longer active."
-            : "This link might be incorrect or has been removed."}
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
+      <div className="text-center space-y-5 p-10 bg-white rounded-3xl shadow-xl max-w-sm w-full">
+        <div className="size-16 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center">
+          <HugeiconsIcon
+            icon={expired ? Time01Icon : SparklesIcon}
+            size={28}
+            color="#94a3b8"
+          />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-slate-800">
+            {expired ? "This page has expired" : "Page not found"}
+          </h1>
+          <p className="text-sm text-slate-400 mt-2">
+            {expired
+              ? "The link is no longer active."
+              : "This link is incorrect or has been removed."}
+          </p>
+        </div>
         <Link
           href="/"
-          className="inline-block px-8 py-3 bg-[#191A23] text-white text-xs font-black uppercase rounded-sm border-b-4 border-black active:border-b-0 active:translate-y-1 transition-all shadow-sm"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors"
         >
-          Create your own →
+          Create your own
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="white" />
         </Link>
       </div>
     </div>
   );
 }
 
-// ─── Countdown Card ───────────────────────────────────────────────────────────
-function CountdownCard({ target }: { target: string }) {
+// ─── Countdown card ───────────────────────────────────────────────────────────
+function CountdownCard({
+  target,
+  accent,
+  font,
+}: {
+  target: string;
+  accent: string;
+  font: string;
+}) {
   const cd = useCountdown(target);
   if (!cd) return null;
   const units = [
@@ -132,20 +212,40 @@ function CountdownCard({ target }: { target: string }) {
     { label: "Sec", val: cd.s },
   ];
   return (
-    <div className="flex justify-center gap-3">
-      {units.map(({ label, val }) => (
-        <div
-          key={label}
-          className="flex flex-col items-center bg-white border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] rounded-sm px-3 py-2 min-w-[56px]"
+    <div
+      className="rounded-2xl p-5 text-center space-y-4"
+      style={{ background: accent + "10", border: `1px solid ${accent}30` }}
+    >
+      <div className="flex items-center justify-center gap-2">
+        <HugeiconsIcon icon={Time01Icon} size={14} color={accent} />
+        <p
+          className="text-xs font-semibold text-slate-500 uppercase tracking-widest"
+          style={{ fontFamily: font }}
         >
-          <span className="text-2xl font-black tabular-nums text-[#191A23]">
-            {String(val).padStart(2, "0")}
-          </span>
-          <span className="text-[8px] font-black uppercase text-neutral-400 tracking-widest">
-            {label}
-          </span>
-        </div>
-      ))}
+          Counting down
+        </p>
+      </div>
+      <div className="flex justify-center gap-3">
+        {units.map(({ label, val }) => (
+          <div
+            key={label}
+            className="flex flex-col items-center bg-white rounded-xl px-3 py-2.5 min-w-[60px] shadow-sm"
+          >
+            <span
+              className="text-2xl font-bold tabular-nums"
+              style={{ color: accent, fontFamily: font }}
+            >
+              {String(val).padStart(2, "0")}
+            </span>
+            <span
+              className="text-[9px] font-semibold uppercase text-slate-400 tracking-wider mt-0.5"
+              style={{ fontFamily: font }}
+            >
+              {label}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -153,35 +253,69 @@ function CountdownCard({ target }: { target: string }) {
 // ─── Image Carousel ───────────────────────────────────────────────────────────
 function ImageCarousel({
   images,
+  accent,
 }: {
   images: { url: string; publicId: string; order: number }[];
+  accent: string;
 }) {
   const [idx, setIdx] = useState(0);
   const sorted = [...images].sort((a, b) => a.order - b.order);
+
   return (
-    <div className="relative w-full">
-      <div className="aspect-[4/3] rounded-2xl overflow-hidden border-2 border-[#191A23]/10 shadow-lg bg-neutral-100">
+    <div className="space-y-3">
+      <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-100">
         <img
           src={sorted[idx]?.url}
-          alt={`Image ${idx + 1}`}
+          alt={`Memory ${idx + 1}`}
           className="w-full h-full object-cover transition-all duration-500"
         />
       </div>
+
       {sorted.length > 1 && (
-        <div className="flex justify-center gap-2 mt-3">
-          {sorted.map((_, i) => (
+        <>
+          <div className="flex justify-center gap-1.5">
+            {sorted.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setIdx(i)}
+                className="h-1.5 rounded-full transition-all duration-300"
+                style={{
+                  width: i === idx ? "24px" : "6px",
+                  background: i === idx ? accent : "#CBD5E1",
+                }}
+              />
+            ))}
+          </div>
+          <div className="flex items-center justify-between">
             <button
-              key={i}
-              onClick={() => setIdx(i)}
-              className={cn(
-                "size-2 rounded-full transition-all",
-                i === idx
-                  ? "bg-[#191A23] w-4"
-                  : "bg-[#191A23]/20 hover:bg-[#191A23]/50",
-              )}
-            />
-          ))}
-        </div>
+              onClick={() =>
+                setIdx((i) => (i - 1 + sorted.length) % sorted.length)
+              }
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all"
+            >
+              <HugeiconsIcon
+                icon={ArrowLeft01Icon}
+                size={13}
+                color="currentColor"
+              />
+              Prev
+            </button>
+            <span className="text-xs text-slate-400">
+              {idx + 1} / {sorted.length}
+            </span>
+            <button
+              onClick={() => setIdx((i) => (i + 1) % sorted.length)}
+              className="flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-600 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-all"
+            >
+              Next
+              <HugeiconsIcon
+                icon={ArrowRight01Icon}
+                size={13}
+                color="currentColor"
+              />
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
@@ -190,55 +324,157 @@ function ImageCarousel({
 // ─── Gift Card ────────────────────────────────────────────────────────────────
 function GiftCard({
   gift,
+  accent,
+  font,
   onRedeem,
 }: {
   gift: GiftInfo;
+  accent: string;
+  font: string;
   onRedeem: () => void;
 }) {
+  const img = gift.productSnapshot?.imageUrl;
+  const name =
+    gift.productSnapshot?.name ||
+    (gift.type === "digital" ? "Digital Gift" : "Physical Gift");
+  const storeName = gift.productSnapshot?.storeName || "WishCube Marketplace";
+  const isRedeemed = gift.status === "redeemed";
+
   return (
-    <div className="p-5 bg-[#FFF3B0] border-2 border-[#191A23] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] rounded-sm">
-      <div className="flex items-start gap-4">
-        <div className="size-12 bg-[#191A23] rounded-sm flex items-center justify-center shrink-0">
-          <HugeiconsIcon icon={GiftIcon} size={22} color="white" />
+    <div
+      className="rounded-2xl overflow-hidden shadow-sm"
+      style={{ border: `1px solid ${accent}30` }}
+    >
+      {img ? (
+        <div className="h-44 overflow-hidden">
+          <img src={img} alt={name} className="w-full h-full object-cover" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">
-            Special Gift
-          </p>
-          <p className="text-2xl font-black text-[#191A23] mt-0.5">
-            ₦{gift.amountPaid?.toLocaleString()}
-          </p>
-          {gift.giftMessage && (
-            <p className="text-xs text-neutral-500 mt-1 italic">
-              &ldquo;{gift.giftMessage}&rdquo;
-            </p>
-          )}
+      ) : (
+        <div
+          className="h-28 flex items-center justify-center"
+          style={{ background: accent + "15" }}
+        >
+          <HugeiconsIcon
+            icon={GiftIcon}
+            size={40}
+            color={accent}
+            strokeWidth={1.5}
+          />
         </div>
+      )}
+
+      <div
+        className="p-5"
+        style={{
+          background: `linear-gradient(135deg, ${accent}06, ${accent}14)`,
+        }}
+      >
+        <span
+          className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full mb-3"
+          style={{ background: accent + "20", color: accent, fontFamily: font }}
+        >
+          <HugeiconsIcon icon={GiftIcon} size={10} color={accent} />A gift for
+          you
+        </span>
+
+        <p
+          className="text-lg font-bold text-slate-800 leading-tight"
+          style={{ fontFamily: font }}
+        >
+          {name}
+        </p>
+        <p
+          className="text-sm text-slate-500 mt-0.5"
+          style={{ fontFamily: font }}
+        >
+          from {storeName}
+        </p>
+        <p
+          className="text-2xl font-bold mt-3"
+          style={{ color: accent, fontFamily: font }}
+        >
+          ₦{gift.amountPaid?.toLocaleString()}
+        </p>
+
+        {gift.giftMessage && (
+          <p
+            className="text-sm text-slate-500 mt-2 italic leading-relaxed"
+            style={{ fontFamily: font }}
+          >
+            &ldquo;{gift.giftMessage}&rdquo;
+          </p>
+        )}
+
         <button
           onClick={onRedeem}
-          disabled={gift.status === "redeemed"}
+          disabled={isRedeemed}
           className={cn(
-            "px-4 py-2 text-[10px] font-black uppercase rounded-sm border-2 border-[#191A23] transition-all shrink-0",
-            gift.status === "redeemed"
-              ? "bg-neutral-200 text-neutral-400 border-neutral-300 cursor-not-allowed"
-              : "bg-[#191A23] text-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none",
+            "mt-4 w-full py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2",
+            isRedeemed
+              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+              : "text-white hover:opacity-90 active:scale-[0.98]",
           )}
+          style={isRedeemed ? {} : { background: accent, fontFamily: font }}
         >
-          {gift.status === "redeemed" ? "Redeemed ✓" : "Redeem"}
+          {isRedeemed ? (
+            <>
+              <HugeiconsIcon icon={Tick01Icon} size={14} color="#94a3b8" />
+              Already Redeemed
+            </>
+          ) : (
+            <>
+              Redeem My Gift
+              <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="white" />
+            </>
+          )}
         </button>
+
+        {gift.expiresAt && !isRedeemed && (
+          <p
+            className="text-center text-[11px] text-slate-400 mt-2"
+            style={{ fontFamily: font }}
+          >
+            Expires{" "}
+            {new Date(gift.expiresAt).toLocaleDateString("en-NG", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
 // ─── Redeem Modal ─────────────────────────────────────────────────────────────
+const BANKS = [
+  { name: "GTBank", code: "058" },
+  { name: "First Bank", code: "011" },
+  { name: "Zenith Bank", code: "057" },
+  { name: "Access Bank", code: "044" },
+  { name: "UBA", code: "033" },
+  { name: "Fidelity Bank", code: "070" },
+  { name: "Sterling Bank", code: "232" },
+  { name: "Polaris Bank", code: "076" },
+  { name: "Wema Bank", code: "035" },
+  { name: "Kuda Bank", code: "090267" },
+  { name: "OPay", code: "999992" },
+  { name: "PalmPay", code: "999991" },
+  { name: "Moniepoint", code: "50515" },
+];
+
 function RedeemModal({
+  accent,
+  font,
   onClose,
   onSubmit,
   isLoading,
 }: {
+  accent: string;
+  font: string;
   onClose: () => void;
-  onSubmit: (details: {
+  onSubmit: (d: {
     accountName: string;
     accountNumber: string;
     bankCode: string;
@@ -253,35 +489,34 @@ function RedeemModal({
     bankName: "GTBank",
   });
 
-  const BANKS = [
-    { name: "GTBank", code: "058" },
-    { name: "First Bank", code: "011" },
-    { name: "Zenith Bank", code: "057" },
-    { name: "Access Bank", code: "044" },
-    { name: "UBA", code: "033" },
-    { name: "Fidelity Bank", code: "070" },
-    { name: "Sterling Bank", code: "232" },
-    { name: "Polaris Bank", code: "076" },
-    { name: "Wema Bank", code: "035" },
-  ];
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-[#191A23]/70 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white border-2 border-[#191A23] shadow-[12px_12px_0px_0px_rgba(25,26,35,1)] rounded-sm overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b-2 border-[#191A23]/10">
-          <div>
-            <h3 className="text-sm font-black uppercase text-[#191A23]">
-              Redeem Your Gift
-            </h3>
-            <p className="text-[10px] text-neutral-400 font-medium mt-0.5">
-              Enter your bank details to receive funds
-            </p>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div
+        className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+        style={{ fontFamily: font }}
+      >
+        <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100">
+          <div className="flex items-center gap-3">
+            <div
+              className="size-9 rounded-xl flex items-center justify-center"
+              style={{ background: accent + "15" }}
+            >
+              <HugeiconsIcon icon={GiftIcon} size={18} color={accent} />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">
+                Redeem Your Gift
+              </h3>
+              <p className="text-xs text-slate-400">
+                Enter your bank details to receive funds
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="size-8 flex items-center justify-center rounded-sm border border-[#191A23]/10 hover:bg-neutral-50 transition-colors"
+            className="size-8 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 transition-colors"
           >
-            <HugeiconsIcon icon={Cancel01Icon} size={14} />
+            <HugeiconsIcon icon={Cancel01Icon} size={14} color="#64748b" />
           </button>
         </div>
 
@@ -290,25 +525,25 @@ function RedeemModal({
             e.preventDefault();
             onSubmit(form);
           }}
-          className="p-5 space-y-4"
+          className="p-6 space-y-4"
         >
           {[
             {
               id: "accountName",
               label: "Account Name",
               type: "text",
-              placeholder: "Full name on account",
+              placeholder: "Full name as on account",
             },
             {
               id: "accountNumber",
               label: "Account Number",
               type: "text",
-              placeholder: "10-digit account number",
+              placeholder: "10-digit number",
               maxLength: 10,
             },
           ].map(({ id, label, type, placeholder, maxLength }) => (
             <div key={id} className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest">
+              <label className="text-xs font-semibold text-slate-600">
                 {label}
               </label>
               <input
@@ -318,15 +553,14 @@ function RedeemModal({
                 value={(form as any)[id]}
                 onChange={(e) => setForm({ ...form, [id]: e.target.value })}
                 placeholder={placeholder}
-                className="w-full p-3 border-2 border-[#191A23] rounded-sm focus:outline-none text-sm font-medium shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 text-sm transition-all"
+                style={{ fontFamily: font }}
               />
             </div>
           ))}
 
           <div className="space-y-1.5">
-            <label className="text-[9px] font-black uppercase text-neutral-400 tracking-widest">
-              Bank
-            </label>
+            <label className="text-xs font-semibold text-slate-600">Bank</label>
             <select
               value={form.bankName}
               onChange={(e) => {
@@ -337,11 +571,12 @@ function RedeemModal({
                   bankCode: bank?.code ?? "058",
                 });
               }}
-              className="w-full p-3 border-2 border-[#191A23] rounded-sm focus:outline-none text-sm font-medium bg-white appearance-none shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none text-sm bg-white appearance-none cursor-pointer"
+              style={{ fontFamily: font }}
             >
               {BANKS.map((b) => (
                 <option key={b.code} value={b.name}>
-                  {b.name} ({b.code})
+                  {b.name}
                 </option>
               ))}
             </select>
@@ -350,12 +585,62 @@ function RedeemModal({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full py-4 bg-[#191A23] text-white text-xs font-black uppercase tracking-widest rounded-sm border-b-4 border-black hover:-translate-y-1 active:border-b-0 active:translate-y-0 transition-all disabled:opacity-50 mt-2"
+            className="w-full py-3.5 rounded-xl text-white text-sm font-semibold hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            style={{ background: accent, fontFamily: font }}
           >
-            {isLoading ? "Processing…" : "Confirm Redemption"}
+            {isLoading ? (
+              <>
+                <HugeiconsIcon
+                  icon={Loading03Icon}
+                  size={16}
+                  color="white"
+                  className="animate-spin"
+                />
+                Processing…
+              </>
+            ) : (
+              <>
+                Confirm Redemption
+                <HugeiconsIcon
+                  icon={ArrowRight01Icon}
+                  size={14}
+                  color="white"
+                />
+              </>
+            )}
           </button>
         </form>
       </div>
+    </div>
+  );
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+function SectionLabel({
+  icon,
+  label,
+  accent,
+  font,
+}: {
+  icon: any;
+  label: string;
+  accent: string;
+  font: string;
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div
+        className="size-6 rounded-lg flex items-center justify-center"
+        style={{ background: accent + "15" }}
+      >
+        <HugeiconsIcon icon={icon} size={12} color={accent} />
+      </div>
+      <p
+        className="text-xs font-semibold uppercase tracking-wider text-slate-400"
+        style={{ fontFamily: font }}
+      >
+        {label}
+      </p>
     </div>
   );
 }
@@ -375,10 +660,8 @@ export default function PublicWebsitePage() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  useEffect(() => {
-    if (slug) fetchWebsite();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slug]);
+  const font = website?.font || "Inter";
+  useDynamicFont(website?.font);
 
   const fetchWebsite = async () => {
     setLoading(true);
@@ -386,7 +669,6 @@ export default function PublicWebsitePage() {
       const res = await getLiveWebsite(slug as string);
       if (res.success && res.data) {
         setWebsite(res.data.website);
-        // Preload reaction from existing data
         if (res.data.website.reaction?.emoji) {
           setReaction(res.data.website.reaction.emoji);
         }
@@ -395,21 +677,25 @@ export default function PublicWebsitePage() {
       } else {
         toast.error(res.message || "Website not found");
       }
-    } catch (error) {
-      console.error("Fetch website error:", error);
+    } catch {
       toast.error("Failed to load website");
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (slug) fetchWebsite();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug]);
+
   const handleReaction = async (emoji: string) => {
     if (reaction === emoji) return;
     setReaction(emoji);
     try {
       await submitReaction(slug as string, emoji);
-    } catch (error) {
-      console.error("Reaction error:", error);
+    } catch {
+      /* noop */
     }
   };
 
@@ -420,12 +706,10 @@ export default function PublicWebsitePage() {
     try {
       const res = await submitReply(slug as string, reply);
       if (res.success) {
-        toast.success("Reply sent! 💌");
+        toast.success("Reply sent!");
         setReply("");
         setReplySent(true);
       }
-    } catch (error) {
-      console.error("Reply error:", error);
     } finally {
       setIsSubmittingReply(false);
     }
@@ -443,15 +727,14 @@ export default function PublicWebsitePage() {
     try {
       const res = await redeemGift(giftId, { bankDetails: details });
       if (res.success) {
-        toast.success("Gift redeemed successfully! 🎉");
+        toast.success("Gift redeemed! 🎉");
         setShowRedeemModal(false);
         fetchWebsite();
       } else {
         toast.error(res.message || "Redemption failed");
       }
-    } catch (error) {
-      console.error("Redemption error:", error);
-      toast.error("An error occurred during redemption");
+    } catch {
+      toast.error("An error occurred");
     } finally {
       setIsRedeeming(false);
     }
@@ -469,138 +752,191 @@ export default function PublicWebsitePage() {
   };
 
   if (loading) return <LoadingScreen />;
-  if (expired) return <NotFoundScreen expired />;
-  if (!website) return <NotFoundScreen />;
+  if (expired) return <ErrorScreen expired />;
+  if (!website) return <ErrorScreen />;
 
-  // Theme
-  const primaryColor = website.primaryColor ?? "#191A23";
-  const font = website.font ?? "Inter";
-
-  // Accent bg (light version of primary, just use opacity)
-  const accentBg = primaryColor + "18";
-
-  const activeGift = website.giftIds?.find(
-    (g) => g.status !== "redeemed",
-  ) ?? website.giftIds?.[0];
+  const accent = website.primaryColor || "#6366f1";
+  const occasionEmoji = OCCASION_EMOJI(website.occasion);
+  const activeGift =
+    website.giftIds?.find((g) => g.status !== "redeemed") ??
+    website.giftIds?.[0];
 
   return (
     <div
-      className="min-h-screen bg-[#F3F3F3] py-8 px-4 font-space"
-      style={{ fontFamily: font }}
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50"
+      style={{ fontFamily: `'${font}', 'Inter', sans-serif` }}
     >
-      {/* Background music */}
-      {website.musicUrl && (
-        <audio ref={audioRef} src={website.musicUrl} loop />
-      )}
+      {website.musicUrl && <audio ref={audioRef} src={website.musicUrl} loop />}
 
-      <div className="max-w-2xl mx-auto space-y-4">
-        {/* ── Hero card ── */}
-        <div
-          className="rounded-sm border-2 border-[#191A23] shadow-[12px_12px_0px_0px_rgba(25,26,35,1)] overflow-hidden"
-          style={{ background: primaryColor }}
-        >
-          {/* Occasion badge */}
-          <div className="px-6 pt-6 pb-2 flex items-center justify-between">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">
-              <HugeiconsIcon icon={SparklesIcon} size={12} color="white" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-white">
-                {website.occasion}
-              </span>
-            </div>
+      {/* ── Hero ───────────────────────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${accent}ee 0%, ${accent}bb 100%)`,
+          minHeight: "280px",
+        }}
+      >
+        {/* Decorative backdrop circles */}
+        <div className="absolute -top-16 -right-16 size-64 rounded-full bg-white/10" />
+        <div className="absolute -bottom-10 -left-10 size-48 rounded-full bg-white/10" />
 
-            {/* Music toggle */}
+        <div className="relative max-w-xl mx-auto px-6 pt-10 pb-16">
+          {/* Top row */}
+          <div className="flex items-center justify-between mb-8">
+            <span
+              className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-1.5 rounded-full"
+              style={{ fontFamily: font }}
+            >
+              <HugeiconsIcon icon={SparklesIcon} size={11} color="white" />
+              {website.occasion}
+            </span>
+
             {website.musicUrl && (
               <button
                 onClick={toggleMusic}
-                className="size-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-all"
+                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-all"
+                style={{ fontFamily: font }}
               >
                 <HugeiconsIcon
-                  icon={MusicNote01Icon}
-                  size={16}
+                  icon={isPlaying ? StopIcon : MusicNote01Icon}
+                  size={12}
                   color="white"
-                  className={isPlaying ? "animate-bounce" : ""}
                 />
+                {isPlaying ? "Pause music" : "Play music"}
               </button>
             )}
           </div>
 
-          {/* Recipient name */}
-          <div className="px-6 pb-8 pt-3">
-            <h1
-              className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tighter"
+          {/* Name */}
+          <div>
+            <p
+              className="text-white/70 text-sm font-medium mb-1"
               style={{ fontFamily: font }}
             >
-              Hey, {website.recipientName}! 🎉
+              A special message for
+            </p>
+            <h1
+              className="text-4xl sm:text-5xl font-bold text-white leading-tight"
+              style={{ fontFamily: font }}
+            >
+              {website.recipientName}
             </h1>
-            <div className="mt-2 flex items-center gap-2 text-white/60">
+            <div
+              className="flex items-center gap-1.5 mt-3 text-white/60"
+              style={{ fontFamily: font }}
+            >
               <HugeiconsIcon icon={FavouriteIcon} size={12} color="white" />
-              <span className="text-[10px] font-medium">
-                Someone special made this for you
-              </span>
-            </div>
-          </div>
-
-          {/* Curved white bottom */}
-          <div className="h-6 bg-white rounded-t-[3rem]" />
-        </div>
-
-        {/* ── Images carousel ── */}
-        {website.images && website.images.length > 0 && (
-          <div className="bg-white border-2 border-[#191A23] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] rounded-sm p-5">
-            <ImageCarousel images={website.images} />
-          </div>
-        )}
-
-        {/* ── Countdown ── */}
-        {website.countdownDate && (
-          <div className="bg-white border-2 border-[#191A23] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] rounded-sm p-5 text-center space-y-3">
-            <div className="flex items-center justify-center gap-2 text-neutral-400">
-              <HugeiconsIcon icon={Time01Icon} size={14} />
-              <p className="text-[10px] font-black uppercase tracking-widest">
-                Countdown
+              <p className="text-sm">
+                Someone who cares deeply made this just for you
               </p>
             </div>
-            <CountdownCard target={website.countdownDate} />
+          </div>
+        </div>
+
+        {/* Wave */}
+        <div className="absolute bottom-0 left-0 right-0">
+          <svg
+            viewBox="0 0 1440 60"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            preserveAspectRatio="none"
+            className="w-full"
+          >
+            <path
+              d="M0,60 C360,0 1080,0 1440,60 L1440,60 L0,60 Z"
+              fill="white"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* ── Content ────────────────────────────────────────────────── */}
+      <div className="max-w-xl mx-auto px-4 pb-16 -mt-2 space-y-5">
+        {/* Images */}
+        {website.images && website.images.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-sm p-5 border border-slate-100">
+            <SectionLabel
+              icon={CameraIcon}
+              label="Memories"
+              accent={accent}
+              font={font}
+            />
+            <ImageCarousel images={website.images} accent={accent} />
           </div>
         )}
 
-        {/* ── Message ── */}
+        {/* Voice message */}
+        {website.voiceMessageUrl && (
+          <div className="bg-white rounded-2xl shadow-sm p-5 border border-slate-100">
+            <SectionLabel
+              icon={Mic01Icon}
+              label="Voice Message"
+              accent={accent}
+              font={font}
+            />
+            <audio
+              src={website.voiceMessageUrl}
+              controls
+              className="w-full"
+              style={{ accentColor: accent }}
+            />
+          </div>
+        )}
+
+        {/* Countdown */}
+        {website.countdownDate && (
+          <CountdownCard
+            target={website.countdownDate}
+            accent={accent}
+            font={font}
+          />
+        )}
+
+        {/* Message */}
         {website.message && (
-          <div className="bg-white border-2 border-[#191A23] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] rounded-sm p-6 md:p-8 relative overflow-hidden">
-            {/* Decorative quote mark */}
+          <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 relative overflow-hidden">
             <div
-              className="absolute -top-4 -left-2 text-[120px] font-black leading-none select-none pointer-events-none opacity-5"
-              style={{ color: primaryColor }}
+              className="absolute -top-2 -left-1 text-[100px] font-serif leading-none opacity-[0.04] select-none pointer-events-none"
+              style={{ color: accent }}
             >
               &ldquo;
             </div>
-            <p
-              className="text-lg md:text-xl font-medium leading-relaxed text-[#191A23] relative z-10"
+            <SectionLabel
+              icon={SparklesIcon}
+              label="A message for you"
+              accent={accent}
+              font={font}
+            />
+            <div
+              className="text-[15px] leading-relaxed text-slate-700 relative z-10"
               style={{ fontFamily: font }}
             >
-              {website.message}
-            </p>
+              {renderMessage(website.message)}
+            </div>
           </div>
         )}
 
-        {/* ── Music track info ── */}
+        {/* Music track */}
         {website.musicTrack && (
           <div
-            className="border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] rounded-sm p-4 flex items-center gap-4"
-            style={{ background: accentBg }}
+            className="flex items-center gap-4 p-4 rounded-2xl border"
+            style={{ background: accent + "08", borderColor: accent + "25" }}
           >
             <div
-              className="size-12 rounded-sm flex items-center justify-center shrink-0 border-2 border-[#191A23]"
-              style={{ background: primaryColor }}
+              className="size-12 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: accent }}
             >
               <HugeiconsIcon icon={MusicNote01Icon} size={20} color="white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[9px] font-black uppercase text-neutral-500 tracking-widest">
+              <p
+                className="text-[10px] font-semibold uppercase tracking-widest text-slate-400"
+                style={{ fontFamily: font }}
+              >
                 Background Track
               </p>
               <p
-                className="text-sm font-black text-[#191A23] truncate"
+                className="text-sm font-semibold text-slate-800 truncate"
                 style={{ fontFamily: font }}
               >
                 {website.musicTrack}
@@ -609,103 +945,173 @@ export default function PublicWebsitePage() {
             {website.musicUrl && (
               <button
                 onClick={toggleMusic}
-                className="px-3 py-1.5 border-2 border-[#191A23] rounded-sm text-[9px] font-black uppercase bg-white hover:bg-neutral-50 transition-colors shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: accent, fontFamily: font }}
               >
+                <HugeiconsIcon
+                  icon={isPlaying ? StopIcon : MusicNote01Icon}
+                  size={12}
+                  color="white"
+                />
                 {isPlaying ? "Pause" : "Play"}
               </button>
             )}
           </div>
         )}
 
-        {/* ── Gift ── */}
+        {/* Gift */}
         {activeGift && (
-          <GiftCard gift={activeGift} onRedeem={() => setShowRedeemModal(true)} />
+          <GiftCard
+            gift={activeGift}
+            accent={accent}
+            font={font}
+            onRedeem={() => setShowRedeemModal(true)}
+          />
         )}
 
-        {/* ── Reactions ── */}
-        <div className="bg-white border-2 border-[#191A23] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] rounded-sm p-6 text-center space-y-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-            How does this make you feel?
-          </p>
-          <div className="flex justify-center gap-3 flex-wrap">
+        {/* Reactions */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 text-center space-y-4">
+          <div>
+            <p
+              className="text-base font-semibold text-slate-800"
+              style={{ fontFamily: font }}
+            >
+              How does this make you feel?
+            </p>
+            <p
+              className="text-xs text-slate-400 mt-0.5"
+              style={{ fontFamily: font }}
+            >
+              Tap an emoji to react
+            </p>
+          </div>
+          <div className="flex justify-center gap-2 flex-wrap">
             {["❤️", "🎉", "🔥", "🥹", "🙌", "😍", "🫶"].map((emoji) => (
               <button
                 key={emoji}
                 onClick={() => handleReaction(emoji)}
                 className={cn(
-                  "size-14 text-2xl flex items-center justify-center rounded-sm border-2 transition-all",
+                  "size-12 text-xl flex items-center justify-center rounded-2xl transition-all duration-200",
                   reaction === emoji
-                    ? "border-[#191A23] bg-[#191A23] scale-110 shadow-[4px_4px_0px_0px_rgba(0,0,0,0.6)] -translate-y-1"
-                    : "border-[#191A23]/20 bg-white hover:border-[#191A23] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-1",
+                    ? "scale-110 -translate-y-1 shadow-lg"
+                    : "bg-slate-50 hover:bg-slate-100 hover:-translate-y-0.5 hover:scale-105",
                 )}
+                style={
+                  reaction === emoji
+                    ? {
+                        background: accent + "20",
+                        outline: `2px solid ${accent}60`,
+                      }
+                    : {}
+                }
               >
                 {emoji}
               </button>
             ))}
           </div>
           {reaction && (
-            <p className="text-[10px] font-black uppercase text-neutral-400 animate-in fade-in">
+            <p
+              className="text-sm text-slate-500 animate-in fade-in"
+              style={{ fontFamily: font }}
+            >
               You reacted with {reaction}
             </p>
           )}
         </div>
 
-        {/* ── Reply ── */}
-        <div className="bg-white border-2 border-[#191A23] shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] rounded-sm p-6 space-y-4">
-          <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
-            Leave a Reply
-          </p>
+        {/* Reply */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 space-y-4">
+          <SectionLabel
+            icon={SentIcon}
+            label="Send a Reply"
+            accent={accent}
+            font={font}
+          />
           {replySent ? (
-            <div className="flex items-center gap-3 p-4 bg-[#B4F8C8] border-2 border-[#191A23] rounded-sm shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
-              <HugeiconsIcon icon={Tick01Icon} size={20} />
-              <p className="text-sm font-black text-[#191A23]">
-                Your reply was sent! 💌
+            <div
+              className="flex items-center gap-3 p-4 rounded-xl"
+              style={{
+                background: accent + "12",
+                border: `1px solid ${accent}30`,
+              }}
+            >
+              <HugeiconsIcon icon={Tick01Icon} size={18} color={accent} />
+              <p
+                className="text-sm font-medium text-slate-700"
+                style={{ fontFamily: font }}
+              >
+                Your reply was sent successfully!
               </p>
             </div>
           ) : (
-            <form onSubmit={handleReply} className="relative">
+            <form onSubmit={handleReply} className="space-y-3">
               <textarea
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
                 placeholder="Write a heartfelt thank you…"
-                className="w-full p-4 pb-14 border-2 border-[#191A23] rounded-sm focus:outline-none shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] min-h-[120px] text-sm font-medium resize-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 min-h-[100px] text-sm text-slate-700 resize-none transition-all"
                 style={{ fontFamily: font }}
               />
               <button
                 type="submit"
                 disabled={isSubmittingReply || !reply.trim()}
-                className="absolute bottom-4 right-4 flex items-center gap-2 px-4 py-2 bg-[#191A23] text-white rounded-sm text-[10px] font-black uppercase border-2 border-black hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-40"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 ml-auto"
+                style={{ background: accent, fontFamily: font }}
               >
-                <HugeiconsIcon icon={SentIcon} size={14} />
-                Send
+                {isSubmittingReply ? (
+                  <>
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      size={14}
+                      color="white"
+                      className="animate-spin"
+                    />
+                    Sending…
+                  </>
+                ) : (
+                  <>
+                    <HugeiconsIcon icon={SentIcon} size={14} color="white" />
+                    Send Reply
+                  </>
+                )}
               </button>
             </form>
           )}
         </div>
 
-        {/* ── Password protected notice ── */}
-        {website.isPasswordProtected && (
-          <div className="flex items-center gap-3 p-4 bg-amber-50 border-2 border-amber-300 rounded-sm">
-            <HugeiconsIcon icon={LockPasswordIcon} size={16} className="text-amber-600" />
-            <p className="text-xs font-bold text-amber-700">
-              This website is password-protected.
-            </p>
-          </div>
-        )}
-
-        {/* ── Footer ── */}
-        <div className="text-center py-4 space-y-1">
-          <div className="flex items-center justify-center gap-2 opacity-50">
-            <HugeiconsIcon icon={RocketIcon} size={12} className="text-[#191A23]" />
-            <p className="text-[9px] font-black uppercase tracking-widest text-[#191A23]">
-              Made with love via WishCube
+        {/* Footer */}
+        <div className="text-center py-6 space-y-2">
+          <div className="flex items-center justify-center gap-1.5 text-slate-300">
+            <HugeiconsIcon icon={RocketIcon} size={12} color="currentColor" />
+            <p className="text-xs" style={{ fontFamily: font }}>
+              Made with{" "}
+              <HugeiconsIcon
+                icon={FavouriteIcon}
+                size={10}
+                color={accent}
+                className="inline-block relative -top-px"
+              />{" "}
+              via{" "}
+              <Link
+                href="/"
+                className="font-semibold hover:opacity-80 transition-opacity"
+                style={{ color: accent }}
+              >
+                WishCube
+              </Link>
             </p>
           </div>
           <Link
             href="/"
-            className="text-[9px] text-neutral-400 font-medium underline hover:text-[#191A23] transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors"
+            style={{ fontFamily: font }}
           >
-            Create your own →
+            Create your own celebration page
+            <HugeiconsIcon
+              icon={ArrowRight01Icon}
+              size={11}
+              color="currentColor"
+            />
           </Link>
         </div>
       </div>
@@ -713,6 +1119,8 @@ export default function PublicWebsitePage() {
       {/* Redeem Modal */}
       {showRedeemModal && (
         <RedeemModal
+          accent={accent}
+          font={font}
           onClose={() => setShowRedeemModal(false)}
           onSubmit={handleRedeem}
           isLoading={isRedeeming}

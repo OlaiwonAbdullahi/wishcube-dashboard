@@ -265,6 +265,8 @@ const Generator: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
   const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
+  const [voiceMessageUrl, setVoiceMessageUrl] = useState<string | null>(null);
+  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<string | null>(null);
   const [greetingId, setGreetingId] = useState<string>("");
   const [isOn, setIsOn] = useState(false);
   const [addMusic, setAddMusic] = useState(false);
@@ -516,6 +518,8 @@ Return ONLY the font name.
         customSlug: customSlug || undefined,
         expiresAt: new Date(expiresAt).toISOString(),
         giftIds: selectedGiftId ? [selectedGiftId] : [],
+        voiceMessageUrl: voiceMessageUrl ?? null,
+        voiceMessagePublicId: voiceMessagePublicId ?? null,
       };
 
       const res = await createWebsite(websiteData);
@@ -645,6 +649,10 @@ Return ONLY the font name.
           setExpiresAt={setExpiresAt}
           isPasswordProtected={isPasswordProtected}
           setIsPasswordProtected={setIsPasswordProtected}
+          voiceMessageUrl={voiceMessageUrl}
+          voiceMessagePublicId={voiceMessagePublicId}
+          setVoiceMessageUrl={setVoiceMessageUrl}
+          setVoiceMessagePublicId={setVoiceMessagePublicId}
         />
       </div>
 

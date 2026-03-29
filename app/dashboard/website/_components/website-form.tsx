@@ -231,6 +231,10 @@ interface WebsiteFormProps {
   setExpiresAt: (val: string) => void;
   isPasswordProtected: boolean;
   setIsPasswordProtected: (val: boolean) => void;
+  voiceMessageUrl: string | null;
+  voiceMessagePublicId: string | null;
+  setVoiceMessageUrl: (url: string | null) => void;
+  setVoiceMessagePublicId: (id: string | null) => void;
 }
 
 export default function WebsiteForm({
@@ -284,6 +288,10 @@ export default function WebsiteForm({
   setExpiresAt,
   isPasswordProtected,
   setIsPasswordProtected,
+  voiceMessageUrl,
+  voiceMessagePublicId,
+  setVoiceMessageUrl,
+  setVoiceMessagePublicId,
 }: WebsiteFormProps) {
   const isFormValid = recipientName.trim() !== "";
 
@@ -753,7 +761,18 @@ export default function WebsiteForm({
               />
             </div>
           )}
-          <VoiceMessage />
+          <VoiceMessage
+            voiceMessageUrl={voiceMessageUrl}
+            voiceMessagePublicId={voiceMessagePublicId}
+            onUpload={(url, publicId) => {
+              setVoiceMessageUrl(url);
+              setVoiceMessagePublicId(publicId);
+            }}
+            onRemove={() => {
+              setVoiceMessageUrl(null);
+              setVoiceMessagePublicId(null);
+            }}
+          />
         </div>
       </div>
 
