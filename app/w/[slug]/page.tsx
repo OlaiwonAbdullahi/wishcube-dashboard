@@ -25,6 +25,7 @@ import {
   RocketIcon,
   SparklesIcon,
   StopIcon,
+  LockPasswordIcon,
 } from "@hugeicons/core-free-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -64,6 +65,7 @@ interface WebsiteData {
   primaryColor?: string;
   countdownDate?: string | null;
   isPasswordProtected?: boolean;
+  password?: string | null; // only present in API response when protected
   giftIds?: GiftInfo[];
   status: string;
   slug?: string;
@@ -74,7 +76,132 @@ interface WebsiteData {
   expiresAt?: string;
 }
 
-// ─── Font loader ──────────────────────────────────────────────────────────────
+// ─── Password Gate ────────────────────────────────────────────────────────────
+function PasswordGate({
+  accent,
+  font,
+  recipientName,
+  hasError,
+  onUnlock,
+}: {
+  accent: string;
+  font: string;
+  recipientName: string;
+  hasError: boolean;
+  onUnlock: (input: string) => void;
+}) {
+  const [input, setInput] = useState("");
+
+  const attempt = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    onUnlock(input.trim());
+  };
+
+  return (
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        background: `linear-gradient(135deg, ${accent}18 0%, white 60%)`,
+        fontFamily: `'${font}', 'Inter', sans-serif`,
+      }}
+    >
+      <div className="w-full max-w-sm space-y-6">
+        {/* Lock icon */}
+        <div className="text-center space-y-3">
+          <div
+            className="size-16 mx-auto rounded-2xl flex items-center justify-center shadow-lg"
+            style={{ background: accent }}
+          >
+            <HugeiconsIcon icon={LockPasswordIcon} size={28} color="white" />
+          </div>
+          <div>
+            <h1
+              className="text-2xl font-bold text-slate-800"
+              style={{ fontFamily: font }}
+            >
+              Private Page
+            </h1>
+            <p
+              className="text-sm text-slate-500 mt-1"
+              style={{ fontFamily: font }}
+            >
+              {recipientName}&apos;s WishCube is password-protected.
+              <br />
+              Enter the password to continue.
+            </p>
+          </div>
+        </div>
+
+        {/* Form */}
+        <form
+          onSubmit={attempt}
+          className={cn(
+            "bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4 transition-all",
+            hasError && "animate-bounce",
+          )}
+        >
+          <div className="space-y-1.5">
+            <label
+              className="text-xs font-semibold text-slate-600"
+              style={{ fontFamily: font }}
+            >
+              Password
+            </label>
+            <input
+              type="password"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Enter password…"
+              autoFocus
+              className={cn(
+                "w-full px-4 py-3 rounded-xl border text-sm transition-all focus:outline-none focus:ring-2",
+                hasError
+                  ? "border-red-300 bg-red-50 focus:ring-red-200"
+                  : "border-slate-200 focus:ring-opacity-30",
+              )}
+              style={
+                {
+                  fontFamily: font,
+                  "--tw-ring-color": accent + "50",
+                } as React.CSSProperties
+              }
+            />
+            {hasError && (
+              <p
+                className="text-xs text-red-500 font-medium"
+                style={{ fontFamily: font }}
+              >
+                Incorrect password. Please try again.
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={!input.trim()}
+            className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
+            style={{ background: accent, fontFamily: font }}
+          >
+            <HugeiconsIcon icon={LockPasswordIcon} size={14} color="white" />
+            Unlock
+          </button>
+        </form>
+
+        <p
+          className="text-center text-xs text-slate-400"
+          style={{ fontFamily: font }}
+        >
+          Made with ♥ via{" "}
+          <Link href="/" className="font-semibold" style={{ color: accent }}>
+            WishCube
+          </Link>
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function useDynamicFont(font: string | undefined) {
   useEffect(() => {
     if (!font || font === "Inter") return;
@@ -344,8 +471,13 @@ function VoiceMessagePlayer({
   const toggle = () => {
     const el = audioRef.current;
     if (!el) return;
-    if (playing) { el.pause(); setPlaying(false); }
-    else { el.play(); setPlaying(true); }
+    if (playing) {
+      el.pause();
+      setPlaying(false);
+    } else {
+      el.play();
+      setPlaying(true);
+    }
   };
 
   const seek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -407,17 +539,17 @@ function VoiceMessagePlayer({
           {/* Waveform bars (animated while playing) */}
           <div className="flex items-center gap-[3px] flex-1 h-8">
             {Array.from({ length: 28 }).map((_, i) => {
-              const h = [60, 40, 80, 50, 90, 35, 70, 55, 85, 45, 75, 50, 65,
-                         80, 40, 95, 55, 70, 45, 85, 50, 60, 75, 40, 90, 55, 65, 45][i];
+              const h = [
+                60, 40, 80, 50, 90, 35, 70, 55, 85, 45, 75, 50, 65, 80, 40, 95,
+                55, 70, 45, 85, 50, 60, 75, 40, 90, 55, 65, 45,
+              ][i];
               const filled = progress * 28 > i;
               return (
                 <div
                   key={i}
                   className={cn(
                     "rounded-full transition-all",
-                    playing && filled
-                      ? "animate-pulse"
-                      : "",
+                    playing && filled ? "animate-pulse" : "",
                   )}
                   style={{
                     width: "3px",
@@ -800,6 +932,8 @@ export default function PublicWebsitePage() {
   const [isRedeeming, setIsRedeeming] = useState(false);
   const [showRedeemModal, setShowRedeemModal] = useState(false);
   const [replySent, setReplySent] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [pwError, setPwError] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
@@ -900,6 +1034,29 @@ export default function PublicWebsitePage() {
   if (!website) return <ErrorScreen />;
 
   const accent = website.primaryColor || "#6366f1";
+
+  // Password gate: only block if protected AND a password value exists
+  const needsPassword = website.isPasswordProtected && !!website.password;
+  if (needsPassword && !unlocked) {
+    return (
+      <PasswordGate
+        accent={accent}
+        font={font}
+        recipientName={website.recipientName}
+        hasError={pwError}
+        onUnlock={(input) => {
+          if (input === website.password) {
+            setUnlocked(true);
+            setPwError(false);
+          } else {
+            setPwError(true);
+            setTimeout(() => setPwError(false), 700);
+          }
+        }}
+      />
+    );
+  }
+
   const activeGift =
     website.giftIds?.find((g) => g.status !== "redeemed") ??
     website.giftIds?.[0];
