@@ -26,6 +26,7 @@ import {
   SparklesIcon,
   StopIcon,
   LockPasswordIcon,
+  PlayCircleIcon,
 } from "@hugeicons/core-free-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -530,7 +531,7 @@ function VoiceMessagePlayer({
             style={{ background: accent }}
           >
             <HugeiconsIcon
-              icon={playing ? StopIcon : Mic01Icon}
+              icon={playing ? StopIcon : PlayCircleIcon}
               size={20}
               color="white"
             />
