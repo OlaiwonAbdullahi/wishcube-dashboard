@@ -129,12 +129,12 @@ export default function PricingPage() {
   /* Handle subscribe click */
   const handleSubscribe = async (planType: PlanType) => {
     setSubscribing(planType);
-    const callbackUrl = `${window.location.origin}/dashboard/pricing/verify`;
-    const res = await initializeSubscription(planType);
+    const callbackUrl = `https://app.usewishcube.com/dashboard/pricing/verify`;
+    const res = await initializeSubscription(planType, callbackUrl);
 
     if (res.success && res.data) {
-      // Redirect to Paystack checkout — it returns to /dashboard/pricing/verify
-      window.location.href = `${res.data.authorization_url}&callback=${encodeURIComponent(callbackUrl)}`;
+      // Redirect to Paystack checkout — backend has already set the callback
+      window.location.href = res.data.authorization_url;
     } else {
       toast.error(res.message || "Failed to initialize subscription");
       setSubscribing(null);

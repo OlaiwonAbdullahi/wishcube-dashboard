@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { getAuth } from "./auth";
@@ -48,13 +47,17 @@ const getHeaders = () => {
 
 /** POST /api/subscriptions/initialize */
 export const initializeSubscription = async (
-  planType: PlanType
+  planType: PlanType,
+  callbackUrl?: string
 ): Promise<SubscriptionResponse<InitializeResponse>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/initialize`, {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({ planType }),
+      body: JSON.stringify({
+        planType,
+        ...(callbackUrl ? { callbackUrl } : {}),
+      }),
     });
     return await response.json();
   } catch (error) {
