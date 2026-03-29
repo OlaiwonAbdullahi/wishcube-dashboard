@@ -5,7 +5,12 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   Edit01Icon,
-  GiftIcon,
+  Delete01Icon,
+  ArrowUpRight01Icon,
+  RocketIcon,
+  Add01Icon,
+  Calendar01Icon,
+  EyeIcon,
 } from "@hugeicons/core-free-icons";
 import {
   useGoogleFontsList,
@@ -17,6 +22,7 @@ import {
   publishWebsite,
   getWebsites,
   uploadWebsiteImages,
+  deleteWebsite,
 } from "@/lib/websites";
 import { verifyGiftPayment, purchaseGift } from "@/lib/gifts";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -27,11 +33,20 @@ import WebsiteForm, {
   GiftItem,
 } from "./_components/website-form";
 import WebsitePreview from "./_components/website-preview";
+import { cn } from "@/lib/utils";
+
+const STATUS_COLOR: Record<string, string> = {
+  draft: "bg-neutral-100 text-neutral-500 border-neutral-300",
+  live: "bg-[#B4F8C8] text-[#191A23] border-[#191A23]",
+  archived: "bg-amber-100 text-amber-700 border-amber-300",
+  expired: "bg-red-100 text-red-700 border-red-300",
+};
 
 export default function WebsitePage() {
   const [websites, setWebsites] = useState<any[]>([]);
   const [view, setView] = useState<"list" | "create">("list");
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchWebsites();
@@ -51,82 +66,152 @@ export default function WebsitePage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this website? This cannot be undone.")) return;
+    setDeletingId(id);
+    try {
+      const res = await deleteWebsite(id);
+      if (res.success) {
+        toast.success("Website deleted");
+        setWebsites((prev) => prev.filter((w) => w._id !== id));
+      } else {
+        toast.error(res.message || "Failed to delete");
+      }
+    } catch {
+      toast.error("Failed to delete website");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   if (view === "list") {
     return (
       <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
+        {/* Header */}
         <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
+            <h1 className="text-2xl font-black tracking-tight text-[#191A23]">
               My Websites
             </h1>
-            <p className="text-sm text-neutral-600">
-              Manage your personalized gift websites.
+            <p className="text-sm text-neutral-500 font-medium">
+              Personalized gift pages for your loved ones.
             </p>
           </div>
           <button
             onClick={() => setView("create")}
-            className="px-6 py-2 bg-[#191A23] text-white text-xs font-black uppercase rounded-sm border-b-4 border-black hover:-translate-y-1 active:border-b-0 active:translate-y-0 transition-all"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-[#191A23] text-white text-xs font-black uppercase rounded-sm border-b-4 border-black hover:-translate-y-1 active:border-b-0 active:translate-y-0 transition-all shadow-sm"
           >
-            Create New Website
+            <HugeiconsIcon icon={Add01Icon} size={14} />
+            New Website
           </button>
         </div>
 
+        {/* List */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
-                className="h-48 bg-neutral-100 animate-pulse rounded-sm border-2 border-[#191A23]/10"
+                className="h-52 bg-neutral-100 animate-pulse rounded-sm border-2 border-[#191A23]/10"
               />
             ))}
           </div>
         ) : websites.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 bg-white border-2 border-dashed border-[#191A23]/20 rounded-sm">
-            <p className="text-sm font-bold uppercase text-neutral-400 mb-4">
+          <div className="flex flex-col items-center justify-center py-24 bg-white border-2 border-dashed border-[#191A23]/20 rounded-sm gap-4">
+            <div className="size-16 bg-[#FFF3B0] border-2 border-[#191A23] rounded-sm flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
+              <HugeiconsIcon icon={RocketIcon} size={28} />
+            </div>
+            <p className="text-sm font-black uppercase text-neutral-400">
               No websites yet
             </p>
             <button
               onClick={() => setView("create")}
-              className="text-xs font-black uppercase underline"
+              className="px-6 py-2 bg-[#191A23] text-white text-xs font-black uppercase rounded-sm border-b-4 border-black hover:-translate-y-1 active:border-b-0 active:translate-y-0 transition-all"
             >
               Create your first website
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {websites.map((ws) => (
               <div
                 key={ws._id}
-                className="bg-white border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] rounded-sm p-6 space-y-4 hover:-translate-y-1 transition-all group"
+                className="bg-white border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] rounded-sm overflow-hidden flex flex-col hover:-translate-y-1 transition-all group"
               >
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-[#B4F8C8] border border-[#191A23] rounded-full">
-                    <span className="text-[8px] font-black uppercase">
+                {/* Color band */}
+                <div className="h-2 bg-[#191A23]" />
+
+                <div className="p-5 space-y-4 flex-1 flex flex-col">
+                  {/* Status + date */}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-black uppercase border",
+                        STATUS_COLOR[ws.status] || STATUS_COLOR.draft,
+                      )}
+                    >
                       {ws.status}
                     </span>
+                    <span className="text-[10px] text-neutral-400 font-bold flex items-center gap-1">
+                      <HugeiconsIcon icon={Calendar01Icon} size={10} />
+                      {new Date(ws.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
-                  <p className="text-[10px] font-bold text-neutral-400">
-                    {new Date(ws.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-black uppercase truncate">
-                    {ws.recipientName}
-                  </h3>
-                  <p className="text-xs font-bold text-neutral-500 uppercase">
-                    {ws.occasion}
-                  </p>
-                </div>
-                <div className="pt-4 flex items-center gap-2">
-                  <button
-                    onClick={() => window.open(`/w/${ws.slug}`, "_blank")}
-                    className="flex-1 py-2 bg-[#F3F3F3] border border-[#191A23] text-[10px] font-black uppercase hover:bg-[#191A23] hover:text-white transition-all"
-                  >
-                    View
-                  </button>
-                  <button className="p-2 border border-[#191A23] hover:bg-red-50 transition-colors">
-                    <HugeiconsIcon icon={Edit01Icon} size={14} />
-                  </button>
+
+                  {/* Name & occasion */}
+                  <div className="flex-1">
+                    <h3 className="text-base font-black uppercase truncate text-[#191A23]">
+                      {ws.recipientName}
+                    </h3>
+                    <p className="text-[10px] font-bold text-neutral-400 uppercase mt-0.5">
+                      {ws.occasion}
+                    </p>
+                    {ws.publicUrl && (
+                      <p className="text-[9px] font-medium text-neutral-300 mt-1 truncate">
+                        {ws.publicUrl}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2 border-t border-[#191A23]/10">
+                    {ws.status === "live" && ws.slug && (
+                      <button
+                        onClick={() =>
+                          window.open(`/w/${ws.slug}`, "_blank")
+                        }
+                        className="flex-1 flex items-center justify-center gap-1 py-2 bg-[#B4F8C8] border border-[#191A23] text-[10px] font-black uppercase hover:bg-[#191A23] hover:text-white transition-all rounded-sm"
+                      >
+                        <HugeiconsIcon icon={EyeIcon} size={12} />
+                        View
+                      </button>
+                    )}
+                    <button
+                      title="Edit (coming soon)"
+                      className="p-2 border border-[#191A23] rounded-sm hover:bg-neutral-50 transition-colors"
+                    >
+                      <HugeiconsIcon icon={Edit01Icon} size={14} />
+                    </button>
+                    {ws.status !== "live" && (
+                      <button
+                        title="Share / Open"
+                        onClick={() =>
+                          ws.slug && window.open(`/w/${ws.slug}`, "_blank")
+                        }
+                        className="p-2 border border-[#191A23] rounded-sm hover:bg-neutral-50 transition-colors"
+                      >
+                        <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDelete(ws._id)}
+                      disabled={deletingId === ws._id}
+                      title="Delete"
+                      className="p-2 border border-red-200 rounded-sm hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                    >
+                      <HugeiconsIcon icon={Delete01Icon} size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -138,16 +223,21 @@ export default function WebsitePage() {
 
   return (
     <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <button
           onClick={() => setView("list")}
           className="p-2 hover:bg-neutral-100 rounded-full transition-colors"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
         </button>
-        <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
-          Create Website
-        </h1>
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-[#191A23]">
+            Create Website
+          </h1>
+          <p className="text-xs text-neutral-400 font-medium">
+            Fill in the left panel — see the preview update live on the right.
+          </p>
+        </div>
       </div>
       <Suspense fallback={<div>Loading generator...</div>}>
         <Generator />
@@ -173,7 +263,6 @@ const Generator: React.FC = () => {
     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
   );
   const [isPasswordProtected, setIsPasswordProtected] = useState(false);
-  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [selectedGift, setSelectedGift] = useState<string | null>(null);
   const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
@@ -224,7 +313,6 @@ const Generator: React.FC = () => {
       toast.error("Please provide recipient name and occasion first.");
       return;
     }
-
     setIsGeneratingMessage(true);
     const prompt = `
 You are a professional greeting card writer. 
@@ -250,7 +338,6 @@ Do not include a signature or sender name. Use emojis.
       toast.error("Please select an occasion first.");
       return;
     }
-
     setIsSuggestingTheme(true);
     const prompt = `
 Based on the occasion "${occasion}", suggest the most appropriate theme name from this list:
@@ -275,7 +362,6 @@ Return ONLY the theme name.
       toast.error("Please provide recipient name and occasion first.");
       return;
     }
-
     setIsSuggestingGifts(true);
     const prompt = `
 Suggest 3-4 gift ideas for a ${occasion} for ${recipientName}. 
@@ -301,7 +387,6 @@ Format as a simple comma-separated list of items without any other text.
       toast.error("Please provide recipient name and occasion first.");
       return;
     }
-
     setIsGeneratingImage(true);
     const prompt = `
 Generate a professional and beautiful illustration for a ${occasion} card for ${recipientName}.
@@ -313,7 +398,6 @@ Return ONLY a URL to the generated image.
         prompt,
         "google/gemini-3.1-flash-image-preview",
       );
-
       if (imageUrl && imageUrl.startsWith("http")) {
         setImages([
           ...images,
@@ -335,13 +419,11 @@ Return ONLY a URL to the generated image.
       toast.error("Please select an occasion first.");
       return;
     }
-
     setIsSuggestingFont(true);
     const fontListNames = fonts
       .map((f) => f.family)
       .slice(0, 30)
       .join(", ");
-
     const prompt = `
 Based on the occasion "${occasion}", suggest the most appropriate font name from this list:
 ${fontListNames}.
@@ -351,7 +433,8 @@ Return ONLY the font name.
       const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
       const font =
         fonts.find(
-          (f) => f.family.toLowerCase() === suggestedName.trim().toLowerCase(),
+          (f) =>
+            f.family.toLowerCase() === suggestedName.trim().toLowerCase(),
         ) || fonts[0];
       setSelectedFont(font.family);
     } catch (error) {
@@ -366,9 +449,7 @@ Return ONLY the font name.
       const clipboardText = await navigator.clipboard.readText();
       if (clipboardText) {
         setCustomMessage(clipboardText);
-        if (messageRef.current) {
-          messageRef.current.focus();
-        }
+        if (messageRef.current) messageRef.current.focus();
       }
     } catch (err) {
       console.error("Failed to read clipboard:", err);
@@ -383,12 +464,10 @@ Return ONLY the font name.
   ): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     if (images.length >= 5) {
       toast.error("You can only upload up to 5 images.");
       return;
     }
-
     setIsUploading(true);
     try {
       const response = await uploadWebsiteImages([file]);
@@ -416,36 +495,28 @@ Return ONLY the font name.
       id: "flower",
       name: "Flower",
       price: 500,
-      icon: (
-        <HugeiconsIcon icon={GiftIcon} size={24} className="text-pink-600" />
-      ),
+      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-pink-600" />,
       bgColor: "bg-pink-100",
     },
     {
       id: "ice-cream",
       name: "Ice Cream",
       price: 500,
-      icon: (
-        <HugeiconsIcon icon={GiftIcon} size={24} className="text-teal-600" />
-      ),
+      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-teal-600" />,
       bgColor: "bg-teal-100",
     },
     {
       id: "cupcake",
       name: "Cupcake",
       price: 750,
-      icon: (
-        <HugeiconsIcon icon={GiftIcon} size={24} className="text-purple-600" />
-      ),
+      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-purple-600" />,
       bgColor: "bg-purple-100",
     },
     {
       id: "frozen-yogurt",
       name: "Frozen Yogurt",
       price: 650,
-      icon: (
-        <HugeiconsIcon icon={GiftIcon} size={24} className="text-blue-600" />
-      ),
+      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-blue-600" />,
       bgColor: "bg-blue-100",
     },
   ];
@@ -455,7 +526,6 @@ Return ONLY the font name.
       toast.error("Please enter a recipient name.");
       return;
     }
-
     setIsCreating(true);
     try {
       const websiteData = {
@@ -495,7 +565,6 @@ Return ONLY the font name.
               paymentMethod: "paystack",
               giftMessage: customMessage || message || "Enjoy your gift!",
             });
-
             if (giftRes.success && giftRes.data) {
               toast.success(
                 "Website created and gift attached! Redirecting to payment...",
@@ -529,11 +598,10 @@ Return ONLY the font name.
   const handlePublish = async (): Promise<void> => {
     if (!greetingId) {
       toast.error(
-        "Please create a draft first by clicking 'Copy Link' or 'Preview'.",
+        "Please save a draft first by clicking 'Save & Copy Draft Link'.",
       );
       return;
     }
-
     setIsPublishing(true);
     try {
       const publishData = {
@@ -544,9 +612,7 @@ Return ONLY the font name.
             .slice(-4)}`,
         expiresAt: new Date(expiresAt).toISOString(),
       };
-
       const res = await publishWebsite(greetingId, publishData);
-
       if (res.success && res.data) {
         toast.success("Website published successfully!");
         window.open(res.data.shareUrl, "_blank");
@@ -562,104 +628,106 @@ Return ONLY the font name.
   };
 
   return (
-    <div className="w-full bg-[#F3F3F3] font-space min-h-screen">
-      {!isPreviewMode ? (
-        <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm w-full p-8 space-y-6 relative">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-[#191A23]/10">
-            <h2 className="text-2xl font-black text-[#191A23] uppercase tracking-tight">
-              Create Website
+    <div className="grid grid-cols-1 xl:grid-cols-[1fr_380px] gap-8 w-full">
+      {/* Left — Form */}
+      <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm p-6 space-y-6">
+        <div className="border-b-2 border-[#191A23]/10 pb-4">
+          <h2 className="text-lg font-black text-[#191A23] uppercase tracking-tight">
+            Website Details
+          </h2>
+          <p className="text-[10px] text-neutral-400 font-bold uppercase mt-0.5">
+            Changes reflect instantly in the preview →
+          </p>
+        </div>
+        <WebsiteForm
+          recipientName={recipientName}
+          setRecipientName={setRecipientName}
+          occasion={occasion}
+          setOccasion={setOccasion}
+          customMessage={customMessage}
+          setCustomMessage={setCustomMessage}
+          generatedMessage={generatedMessage}
+          isGeneratingMessage={isGeneratingMessage}
+          generateMessage={generateMessage}
+          handlePasteMessage={handlePasteMessage}
+          useGeneratedMessage={() => {
+            setCustomMessage(generatedMessage);
+            setGeneratedMessage("");
+          }}
+          messageRef={messageRef}
+          images={images}
+          isUploading={isUploading}
+          handleImageUpload={handleImageUpload}
+          removeImage={removeImage}
+          fileInputRef={fileInputRef}
+          generateAIImage={generateAIImage}
+          isGeneratingImage={isGeneratingImage}
+          selectedTheme={selectedTheme}
+          setSelectedTheme={setSelectedTheme}
+          suggestTheme={suggestTheme}
+          isSuggestingTheme={isSuggestingTheme}
+          selectedFont={selectedFont}
+          setSelectedFont={setSelectedFont}
+          fontSearch={fontSearch}
+          setFontSearch={setFontSearch}
+          suggestFont={suggestFont}
+          isSuggestingFont={isSuggestingFont}
+          fonts={fonts}
+          isOn={isOn}
+          setIsOn={setIsOn}
+          addMusic={addMusic}
+          setAddMusic={setAddMusic}
+          suggestGifts={suggestGifts}
+          isSuggestingGifts={isSuggestingGifts}
+          giftSuggestions={giftSuggestions}
+          gifts={gifts}
+          selectedGift={selectedGift}
+          setSelectedGift={setSelectedGift}
+          selectedMusic={selectedMusic}
+          setSelectedMusic={setSelectedMusic}
+          setIsPreviewMode={() => {}}
+          password={password}
+          setPassword={setPassword}
+          customSlug={customSlug}
+          setCustomSlug={setCustomSlug}
+          expiresAt={expiresAt}
+          setExpiresAt={setExpiresAt}
+          isPasswordProtected={isPasswordProtected}
+          setIsPasswordProtected={setIsPasswordProtected}
+        />
+      </div>
+
+      {/* Right — Live Preview (sticky) */}
+      <div className="xl:sticky xl:top-6 xl:self-start">
+        <div className="bg-[#F3F3F3] border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm p-5">
+          <div className="flex items-center justify-between mb-5 pb-4 border-b-2 border-[#191A23]/10">
+            <h2 className="text-sm font-black text-[#191A23] uppercase tracking-widest">
+              Live Preview
             </h2>
+            <div className="flex gap-1">
+              <div className="size-3 rounded-full bg-red-400 border border-red-500" />
+              <div className="size-3 rounded-full bg-yellow-400 border border-yellow-500" />
+              <div className="size-3 rounded-full bg-green-400 border border-green-500" />
+            </div>
           </div>
-          <WebsiteForm
-            recipientName={recipientName}
-            setRecipientName={setRecipientName}
-            occasion={occasion}
-            setOccasion={setOccasion}
-            customMessage={customMessage}
-            setCustomMessage={setCustomMessage}
-            generatedMessage={generatedMessage}
-            isGeneratingMessage={isGeneratingMessage}
-            generateMessage={generateMessage}
-            handlePasteMessage={handlePasteMessage}
-            useGeneratedMessage={() => {
-              setCustomMessage(generatedMessage);
-              setGeneratedMessage("");
-            }}
-            messageRef={messageRef}
-            images={images}
-            isUploading={isUploading}
-            handleImageUpload={handleImageUpload}
-            removeImage={removeImage}
-            fileInputRef={fileInputRef}
-            generateAIImage={generateAIImage}
-            isGeneratingImage={isGeneratingImage}
+          <WebsitePreview
             selectedTheme={selectedTheme}
-            setSelectedTheme={setSelectedTheme}
-            suggestTheme={suggestTheme}
-            isSuggestingTheme={isSuggestingTheme}
             selectedFont={selectedFont}
-            setSelectedFont={setSelectedFont}
-            fontSearch={fontSearch}
-            setFontSearch={setFontSearch}
-            suggestFont={suggestFont}
-            isSuggestingFont={isSuggestingFont}
-            fonts={fonts}
-            isOn={isOn}
-            setIsOn={setIsOn}
-            addMusic={addMusic}
-            setAddMusic={setAddMusic}
-            suggestGifts={suggestGifts}
-            isSuggestingGifts={isSuggestingGifts}
-            giftSuggestions={giftSuggestions}
-            gifts={gifts}
-            selectedGift={selectedGift}
-            setSelectedGift={setSelectedGift}
+            occasion={occasion}
+            recipientName={recipientName}
+            images={images}
+            message={message}
+            customMessage={customMessage}
             selectedMusic={selectedMusic}
-            setSelectedMusic={setSelectedMusic}
-            setIsPreviewMode={setIsPreviewMode}
-            password={password}
-            setPassword={setPassword}
-            customSlug={customSlug}
-            setCustomSlug={setCustomSlug}
-            expiresAt={expiresAt}
-            setExpiresAt={setExpiresAt}
-            isPasswordProtected={isPasswordProtected}
-            setIsPasswordProtected={setIsPasswordProtected}
+            toggleMenu={() => setIsMenuOpen(!isMenuOpen)}
+            isMenuOpen={isMenuOpen}
+            copyGreetingLink={copyGreetingLink}
+            handlePublish={handlePublish}
+            isPublishing={isPublishing}
+            isCreating={isCreating}
           />
         </div>
-      ) : (
-        <div className="w-full space-y-6">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setIsPreviewMode(false)}
-              className="flex items-center gap-2 px-6 py-3 border-2 border-[#191A23] bg-white rounded-sm text-sm font-black text-[#191A23] hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] transition-all uppercase"
-            >
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
-              Back to Edit
-            </button>
-            <h2 className="text-2xl font-black text-[#191A23] uppercase tracking-tight">
-              Review Website
-            </h2>
-          </div>
-          <div className="max-w-3xl mx-auto">
-            <WebsitePreview
-              selectedTheme={selectedTheme}
-              selectedFont={selectedFont}
-              occasion={occasion}
-              recipientName={recipientName}
-              images={images}
-              message={message}
-              customMessage={customMessage}
-              selectedMusic={selectedMusic}
-              toggleMenu={() => setIsMenuOpen(!isMenuOpen)}
-              isMenuOpen={isMenuOpen}
-              copyGreetingLink={copyGreetingLink}
-              handlePublish={handlePublish}
-              isPublishing={isPublishing}
-            />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

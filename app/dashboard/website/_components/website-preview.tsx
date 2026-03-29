@@ -1,20 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React from "react";
-import Image from "next/image";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  Settings01Icon,
-  ArrowUpRight01Icon,
-  Agreement01Icon,
-  MoreVerticalCircle01Icon,
-  Edit01Icon,
-  BookOpenIcon,
-  Share08Icon,
-  SparklesIcon,
-  MusicNote01Icon,
   RocketIcon,
   Copy01Icon,
+  MusicNote01Icon,
+  GiftIcon,
+  SparklesIcon,
 } from "@hugeicons/core-free-icons";
 import { Theme } from "./website-form";
 import { cn } from "@/lib/utils";
@@ -33,7 +26,26 @@ interface WebsitePreviewProps {
   copyGreetingLink: () => void;
   handlePublish: () => void;
   isPublishing: boolean;
+  isCreating?: boolean;
 }
+
+// Map theme primary class → actual hex for inline styles
+const THEME_HEX: Record<string, string> = {
+  "bg-blue-600": "#2563eb",
+  "bg-gray-700": "#374151",
+  "bg-emerald-600": "#059669",
+  "bg-purple-600": "#9333ea",
+  "bg-red-800": "#991b1b",
+  "bg-teal-600": "#0d9488",
+  "bg-amber-600": "#d97706",
+  "bg-indigo-600": "#4f46e5",
+};
+
+const THEME_NEUTRAL_HEX: Record<string, string> = {
+  "bg-gray-50": "#f9fafb",
+  "bg-gray-100": "#f3f4f6",
+  "bg-white": "#ffffff",
+};
 
 export default function WebsitePreview({
   selectedTheme,
@@ -44,273 +56,237 @@ export default function WebsitePreview({
   message,
   customMessage,
   selectedMusic,
-  toggleMenu,
-  isMenuOpen,
   copyGreetingLink,
   handlePublish,
   isPublishing,
+  isCreating,
 }: WebsitePreviewProps) {
+  const displayMessage = customMessage || message;
+  const primaryHex = THEME_HEX[selectedTheme.primary] ?? "#6366f1";
+  const bgHex = THEME_NEUTRAL_HEX[selectedTheme.bgNeutral] ?? "#f9fafb";
+
   return (
-    <div className="sticky top-6">
-      <div className="bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm overflow-hidden flex flex-col h-full relative">
-        {/* Preview Header */}
-        <div className="bg-[#191A23] p-4 flex items-center justify-between border-b-2 border-[#191A23] z-10">
-          <h3 className="font-bold text-white uppercase text-sm tracking-widest">
-            Live Preview
-          </h3>
-          <div className="flex items-center space-x-2">
-            <button className="p-1.5 rounded-sm bg-white border border-transparent hover:border-[#191A23] text-[#191A23] transition-all">
-              <HugeiconsIcon icon={Settings01Icon} size={18} color="#191A23" />
-            </button>
-            <button className="p-1.5 rounded-sm bg-white border border-transparent hover:border-[#191A23] text-[#191A23] transition-all">
-              <HugeiconsIcon
-                icon={ArrowUpRight01Icon}
-                size={18}
-                color="#191A23"
-              />
-            </button>
-          </div>
-        </div>
+    <div className="flex flex-col gap-6">
+      {/* Phone Frame */}
+      <div className="mx-auto w-full max-w-[320px]">
+        {/* Device chrome */}
+        <div className="relative bg-[#191A23] rounded-[2.5rem] p-3 shadow-[0_40px_80px_rgba(25,26,35,0.4)]">
+          {/* Top notch */}
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#191A23] rounded-full z-20" />
 
-        {/* Greeting Preview */}
-        <div
-          className={`${selectedTheme.bgNeutral} p-8 min-h-[500px] max-h-[600px] overflow-y-auto`}
-          style={{ fontFamily: selectedFont }}
-        >
-          <div className="relative">
-            {/* Header Section */}
-            <div className="flex items-center justify-between mb-6 border-b pb-4 border-gray-200">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`p-2 rounded-full ${selectedTheme.bgAccent} flex items-center`}
-                >
-                  <HugeiconsIcon
-                    icon={Agreement01Icon}
-                    size={25}
-                    color="currentColor"
-                    className={selectedTheme.textPrimary}
-                  />
-                </div>
-              </div>
-              <div className="">
-                <h2
-                  className={`text-xl font-semibold capitalize ${selectedTheme.textSecondary}`}
-                >
-                  {occasion ? `${occasion} Greeting` : "Greeting"}
-                </h2>
-              </div>
-
-              <button
-                onClick={toggleMenu}
-                className={`p-2 rounded-full transition-colors ${selectedTheme.hoverAccent}`}
-                aria-label="Menu"
+          {/* Screen */}
+          <div
+            className="relative rounded-[2rem] overflow-hidden"
+            style={{ height: 580, background: bgHex }}
+          >
+            {/* Scrollable content */}
+            <div
+              className="absolute inset-0 overflow-y-auto"
+              style={{ fontFamily: selectedFont }}
+            >
+              {/* Header bar with accent color */}
+              <div
+                className="relative px-5 pt-10 pb-5"
+                style={{ background: primaryHex }}
               >
-                <HugeiconsIcon
-                  icon={MoreVerticalCircle01Icon}
-                  size={18}
-                  color="currentColor"
-                  className={selectedTheme.textPrimary}
-                />
-              </button>
-            </div>
-
-            {isMenuOpen && (
-              <div className="absolute right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-100 py-2 z-10">
-                <ul>
-                  <li className="px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={Edit01Icon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>Create Your Own</span>
-                    </button>
-                  </li>
-                  <li className="px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={BookOpenIcon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>View Templates</span>
-                    </button>
-                  </li>
-                  <li className="px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={Share08Icon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>Share</span>
-                    </button>
-                  </li>
-                  <li className="border-t border-gray-100 mt-1 pt-1 px-2">
-                    <button className="flex items-center gap-3 w-full px-3 py-2 text-left text-gray-700 rounded-md hover:bg-gray-50">
-                      <HugeiconsIcon
-                        icon={Settings01Icon}
-                        size={16}
-                        color="currentColor"
-                        className={selectedTheme.textPrimary}
-                      />
-                      <span>Settings</span>
-                    </button>
-                  </li>
-                </ul>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-6 text-center">
-            <div className="flex md:flex-row flex-col space-y-6 items-center justify-between">
-              <div className="space-y-3.5 text-left">
-                {recipientName && (
-                  <h1
-                    className={`text-3xl font-bold ${selectedTheme.textPrimary}`}
-                    style={{ fontFamily: selectedFont }}
-                  >
-                    Hey, {recipientName}
-                  </h1>
-                )}
-
+                {/* Occasion badge */}
                 {occasion && (
-                  <div
-                    className={`inline-block px-4 py-1 rounded-full text-sm ${selectedTheme.primary} text-white`}
-                  >
-                    <div className="flex gap-2 items-center">
-                      <HugeiconsIcon
-                        icon={SparklesIcon}
-                        size={16}
-                        color="currentColor"
-                      />
-                      <span style={{ fontFamily: selectedFont }}>
-                        {occasion.charAt(0).toUpperCase() + occasion.slice(1)}
-                      </span>
-                    </div>
+                  <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 mb-3">
+                    <HugeiconsIcon
+                      icon={SparklesIcon}
+                      size={10}
+                      color="white"
+                    />
+                    <span
+                      className="text-[9px] font-black uppercase tracking-widest text-white"
+                    >
+                      {occasion}
+                    </span>
                   </div>
                 )}
+                {/* Recipient name */}
+                <h1
+                  className="text-2xl font-black text-white leading-tight"
+                  style={{ fontFamily: selectedFont }}
+                >
+                  {recipientName ? `Hey, ${recipientName}! 🎉` : "Hey there! 🎉"}
+                </h1>
+                <div className="mt-1 flex items-center gap-1 opacity-70">
+                  <HugeiconsIcon icon={RocketIcon} size={10} color="white" />
+                  <span className="text-[9px] text-white font-medium">WishCube</span>
+                </div>
+
+                {/* Curved bottom */}
+                <div
+                  className="absolute -bottom-3 left-0 right-0 h-6 rounded-t-[50%]"
+                  style={{ background: bgHex }}
+                />
               </div>
 
-              {/* Images (if uploaded) */}
-              {images.length > 0 && (
-                <div className="py-4 w-full">
-                  <div className="flex flex-wrap justify-center gap-4">
-                    {images.map((img, index) => (
-                      <div
-                        key={img.publicId}
-                        className={cn(
-                          "relative rounded-full overflow-hidden shadow-md bg-white border-2 border-[#191A23]",
-                          images.length === 1
-                            ? "w-64 h-64"
-                            : "w-32 h-32 sm:w-40 sm:h-40",
-                        )}
-                      >
-                        <img src={img.url} alt={`Greeting ${index + 1}`} />
+              {/* Hero image */}
+              {images.length > 0 ? (
+                <div className="px-5 mt-5">
+                  <div className="relative rounded-2xl overflow-hidden border-2 border-[#191A23]/10 shadow-md aspect-[4/3]">
+                    <img
+                      src={images[0].url}
+                      alt="Greeting"
+                      className="w-full h-full object-cover"
+                    />
+                    {images.length > 1 && (
+                      <div className="absolute top-2 right-2 bg-[#191A23]/70 text-white rounded-full px-2 py-0.5 text-[8px] font-black">
+                        +{images.length - 1}
                       </div>
-                    ))}
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="mx-5 mt-5 h-28 rounded-2xl border-2 border-dashed border-[#191A23]/10 flex items-center justify-center">
+                  <p className="text-[9px] text-[#191A23]/30 font-bold uppercase">
+                    No images added
+                  </p>
+                </div>
+              )}
+
+              {/* Message */}
+              {displayMessage ? (
+                <div className="mx-5 mt-4 p-4 bg-white rounded-2xl shadow-sm border border-[#191A23]/5">
+                  <p
+                    className="text-xs text-[#191A23] leading-relaxed"
+                    style={{ fontFamily: selectedFont }}
+                  >
+                    {displayMessage}
+                  </p>
+                </div>
+              ) : (
+                <div className="mx-5 mt-4 p-4 bg-white/60 rounded-2xl border border-dashed border-[#191A23]/10">
+                  <p className="text-[9px] text-[#191A23]/30 font-bold uppercase text-center">
+                    Message will appear here
+                  </p>
+                </div>
+              )}
+
+              {/* Music player */}
+              {selectedMusic && (
+                <div className="mx-5 mt-3">
+                  <div className="p-3 bg-white rounded-xl border border-[#191A23]/10 shadow-sm flex items-center gap-3">
+                    <img
+                      src={selectedMusic.cover}
+                      alt={selectedMusic.title}
+                      className="size-8 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[9px] font-black text-[#191A23] truncate">
+                        {selectedMusic.title}
+                      </p>
+                      <p className="text-[8px] text-neutral-400 truncate">
+                        {selectedMusic.artist}
+                      </p>
+                    </div>
+                    <div
+                      className="size-6 rounded-full flex items-center justify-center"
+                      style={{ background: primaryHex }}
+                    >
+                      <HugeiconsIcon
+                        icon={MusicNote01Icon}
+                        size={10}
+                        color="white"
+                      />
+                    </div>
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Message */}
-            {(message || customMessage) && (
-              <div
-                className={`mx-auto max-w-md p-6 rounded-xl shadow-sm ${
-                  selectedTheme.bgNeutral === "bg-white"
-                    ? "bg-gray-50"
-                    : "bg-white"
-                }`}
-              >
-                <p
-                  className="text-gray-700 leading-relaxed"
-                  style={{ fontFamily: selectedFont }}
+              {/* Gift placeholder */}
+              <div className="mx-5 mt-3 mb-3">
+                <div
+                  className="p-3 rounded-xl flex items-center gap-3"
+                  style={{ background: primaryHex + "18" }}
                 >
-                  {message || customMessage}
-                </p>
-              </div>
-            )}
-
-            {/* Selected Music Preview */}
-            {selectedMusic && (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <div className="flex items-center gap-3 bg-white border-2 border-[#191A23] rounded-sm p-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] w-full max-w-sm">
-                  <img
-                    src={selectedMusic.cover}
-                    alt={selectedMusic.title}
-                    className="size-10 rounded-sm border border-[#191A23]/10 object-cover"
-                  />
-                  <div className="text-left flex-1 min-w-0">
-                    <p className="text-[10px] font-black uppercase text-[#191A23] truncate">
-                      {selectedMusic.title}
+                  <div
+                    className="size-8 rounded-xl flex items-center justify-center"
+                    style={{ background: primaryHex }}
+                  >
+                    <HugeiconsIcon icon={GiftIcon} size={14} color="white" />
+                  </div>
+                  <div>
+                    <p
+                      className="text-[9px] font-black uppercase"
+                      style={{ color: primaryHex }}
+                    >
+                      Special Gift Attached
                     </p>
-                    <p className="text-[8px] font-bold text-neutral-500 uppercase truncate">
-                      {selectedMusic.artist}
+                    <p className="text-[8px] text-neutral-400">
+                      Tap to redeem
                     </p>
                   </div>
-                  <div className="w-px h-6 bg-[#191A23]/10"></div>
-                  <HugeiconsIcon
-                    icon={MusicNote01Icon}
-                    size={16}
-                    className="text-[#191A23] animate-bounce"
-                  />
                 </div>
-
-                {selectedMusic.type === "spotify" && (
-                  <div className="w-full max-w-sm rounded-sm overflow-hidden border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-                    <iframe
-                      src={`https://open.spotify.com/embed/track/${selectedMusic.id}?utm_source=generator&theme=0`}
-                      width="100%"
-                      height="80"
-                      frameBorder="0"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      loading="lazy"
-                    ></iframe>
-                  </div>
-                )}
               </div>
-            )}
 
-            <div>
-              <button
-                className={`text-lg ${selectedTheme.secondary} ${selectedTheme.textNeutral} p-1 rounded-full px-2.5`}
-              >
-                Redeem Gift
-              </button>
+              {/* Emoji reactions */}
+              <div className="mx-5 mt-3 flex justify-center gap-2 pb-6">
+                {["❤️", "🎉", "🔥", "🥹", "🙌"].map((e) => (
+                  <div
+                    key={e}
+                    className="size-8 bg-white rounded-xl flex items-center justify-center text-sm shadow-sm border border-[#191A23]/5"
+                  >
+                    {e}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="flex justify-center items-center gap-1 pt-6 text-sm text-gray-500">
-              <HugeiconsIcon icon={RocketIcon} size={14} color="currentColor" />
-              <span>Made With 💜 with WishCube</span>
-            </div>
+            {/* Status bar overlay */}
+            <div className="absolute top-0 left-0 right-0 h-8 pointer-events-none" />
+          </div>
+
+          {/* Home indicator */}
+          <div className="flex justify-center mt-2">
+            <div className="w-24 h-1 bg-white/30 rounded-full" />
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="p-6 border-t-2 border-[#191A23] bg-white mt-auto z-10">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <button
-              onClick={copyGreetingLink}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#191A23] text-white py-3.5 px-4 rounded-sm hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,0.4)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,0.4)] transition-all font-bold uppercase tracking-wide border-2 border-[#191A23]"
-            >
-              <HugeiconsIcon icon={Copy01Icon} size={18} color="currentColor" />
-              <span>Copy Link</span>
-            </button>
-            <button
-              onClick={handlePublish}
-              disabled={isPublishing}
-              className="flex-1 flex items-center justify-center gap-2 bg-[#FFF3B0] text-[#191A23] py-3.5 px-4 rounded-sm hover:-translate-y-1 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] transition-all font-black uppercase tracking-wide border-2 border-[#191A23]"
-            >
-              <HugeiconsIcon icon={RocketIcon} size={18} color="currentColor" />
-              <span>{isPublishing ? "Publishing..." : "Publish Website"}</span>
-            </button>
-          </div>
-        </div>
+        {/* Theme label */}
+        <p className="text-center text-[10px] font-bold uppercase text-neutral-400 mt-3 tracking-widest">
+          {selectedTheme.name} · {selectedFont}
+        </p>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={copyGreetingLink}
+          disabled={isCreating}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 py-3.5 text-sm font-black uppercase tracking-widest rounded-sm border-2 border-[#191A23] transition-all",
+            isCreating
+              ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+              : "bg-white text-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-1",
+          )}
+        >
+          <HugeiconsIcon icon={Copy01Icon} size={16} />
+          {isCreating ? "Saving Draft..." : "Save & Copy Draft Link"}
+        </button>
+        <button
+          onClick={handlePublish}
+          disabled={isPublishing}
+          className={cn(
+            "w-full flex items-center justify-center gap-2 py-3.5 text-sm font-black uppercase tracking-widest rounded-sm border-2 border-[#191A23] transition-all",
+            isPublishing
+              ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+              : "bg-[#FFF3B0] text-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-1",
+          )}
+        >
+          <HugeiconsIcon icon={RocketIcon} size={16} />
+          {isPublishing ? "Publishing..." : "Publish Live 🚀"}
+        </button>
+      </div>
+
+      {/* Watermark */}
+      <div className="flex items-center justify-center gap-1.5 opacity-40">
+        <HugeiconsIcon icon={RocketIcon} size={12} />
+        <span className="text-[9px] font-black uppercase tracking-widest text-[#191A23]">
+          Made with WishCube
+        </span>
       </div>
     </div>
   );

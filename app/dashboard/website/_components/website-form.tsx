@@ -9,7 +9,6 @@ import {
   AiImageIcon,
   MagicWand01Icon,
   GiftIcon,
-  ViewIcon,
 } from "@hugeicons/core-free-icons";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -750,27 +749,12 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="pt-4 mt-8 border-t-2 border-[#191A23]/10">
-        <button
-          type="button"
-          onClick={() => setIsPreviewMode(true)}
-          disabled={!isFormValid}
-          className={`w-full py-4 px-4 rounded-sm text-[#191A23] font-black uppercase tracking-widest border-2 transition-all flex items-center justify-center gap-2 ${
-            isFormValid
-              ? "bg-[#B4F8C8] border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-1 cursor-pointer"
-              : "bg-gray-200 border-gray-300 text-gray-400 cursor-not-allowed"
-          }`}
-        >
-          <HugeiconsIcon icon={ViewIcon} size={20} />
-          Preview Website
-        </button>
-        {!isFormValid && (
-          <p className="text-[10px] font-bold uppercase text-red-500 mt-2 text-center tracking-wider">
-            Please enter recipient&apos;s name to continue
-          </p>
-        )}
-      </div>
+      {/* Info strip — replaces old preview button */}
+      {!isFormValid && (
+        <p className="text-[10px] font-bold uppercase text-red-500 text-center tracking-wider">
+          Please enter recipient&apos;s name to enable publishing
+        </p>
+      )}
     </form>
   );
 }

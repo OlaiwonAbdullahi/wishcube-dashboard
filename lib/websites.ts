@@ -143,6 +143,56 @@ export const uploadWebsiteImages = async (
   }
 };
 
+// Get a single website by ID
+export const getWebsite = async (
+  id: string,
+): Promise<WebsiteResponse<{ website: any }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Get website error:", error);
+    return { success: false, message: "Network error fetching website" };
+  }
+};
+
+// Update a website
+export const updateWebsite = async (
+  id: string,
+  data: Partial<WebsiteData>,
+): Promise<WebsiteResponse<{ website: any }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Update website error:", error);
+    return { success: false, message: "Network error updating website" };
+  }
+};
+
+// Delete a website
+export const deleteWebsite = async (
+  id: string,
+): Promise<WebsiteResponse<null>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Delete website error:", error);
+    return { success: false, message: "Network error deleting website" };
+  }
+};
+
 // Get live website (Public)
 export const getLiveWebsite = async (
   slug: string,
