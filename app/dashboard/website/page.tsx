@@ -18,7 +18,7 @@ import {
   getWebsites,
   uploadWebsiteImages,
 } from "@/lib/websites";
-import { attachGift, verifyGiftPayment } from "@/lib/gifts";
+import { verifyGiftPayment, purchaseGift } from "@/lib/gifts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { callAI } from "@/lib/ai";
 import WebsiteForm, {
@@ -488,12 +488,10 @@ Return ONLY the font name.
         if (selectedGift) {
           const giftInfo = gifts.find((g) => g.id === selectedGift);
           if (giftInfo) {
-            const giftRes = await attachGift({
+            const giftRes = await purchaseGift({
               websiteId,
               type: "digital",
               amount: giftInfo.price,
-              currency: "NGN",
-              productId: null,
               paymentMethod: "paystack",
               giftMessage: customMessage || message || "Enjoy your gift!",
             });
@@ -502,7 +500,7 @@ Return ONLY the font name.
               toast.success(
                 "Website created and gift attached! Redirecting to payment...",
               );
-              window.location.href = giftRes.data.paymentUrl;
+              window.location.href = giftRes.data.paymentUrl ?? "";
               return;
             } else {
               toast.error(

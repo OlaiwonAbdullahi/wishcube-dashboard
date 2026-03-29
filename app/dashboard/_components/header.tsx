@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function DashboardHeader() {
   const [user, setUser] = useState<User | null>(null);
@@ -64,7 +65,7 @@ export function DashboardHeader() {
 
       <div className="flex items-center gap-2 sm:gap-3">
         {balance !== null && (
-          <div className="hidden sm:flex items-center gap-1 px-3 py-1 bg-[#F3F3F3] border-2 border-[#191A23] rounded-sm shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+          <div className="hidden sm:flex items-center gap-1 px-3 py-2 bg-[#F3F3F3] border-2 border-[#191A23] rounded-sm shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
             <span className="text-[10px] font-black uppercase text-[#191A23]">
               Wallet:
             </span>
@@ -73,14 +74,16 @@ export function DashboardHeader() {
             </span>
           </div>
         )}
-        <div className="">
-          <HugeiconsIcon
-            icon={ShoppingBasket03Icon}
-            size={20}
-            color="currentColor"
-            strokeWidth={1.5}
-          />
-        </div>
+        <Link href="/dashboard/marketplace/giftbox">
+          <div className="self-start rounded-sm border-2 border-[#191A23] border-b-4 bg-[#FFD700] hover:bg-[#e6c200] px-3 py-2 text-[#191A23] font-black uppercase text-xs  active:border-b-2 active:translate-y-0.5 transition-all shrink-0">
+            <HugeiconsIcon
+              icon={ShoppingBasket03Icon}
+              size={20}
+              color="currentColor"
+              strokeWidth={1.5}
+            />
+          </div>
+        </Link>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">

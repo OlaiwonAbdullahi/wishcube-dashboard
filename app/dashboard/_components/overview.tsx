@@ -118,25 +118,25 @@ export const Overview = ({
             title="Create Cards"
             icon={Cards02Icon}
             color="bg-[#FFD1D1]"
-            href="#"
+            href="/dashboard/cards"
           />
           <QuickAction
             title="Party Room"
             icon={Video02Icon}
             color="bg-[#F8D1FF]"
-            href="#"
+            href="/dashboard/party-room"
           />
           <QuickAction
             title="Send Gift"
             icon={GiftCardIcon}
             color="bg-[#D1F7FF]"
-            href="#"
+            href="/dashboard/marketplace"
           />
           <QuickAction
             title="Create Website"
             icon={WebDesign02Icon}
             color="bg-[#D1E9FF]"
-            href="#"
+            href="/dashboard/websites"
           />
           <QuickAction
             title="Fund Wallet"
@@ -148,20 +148,20 @@ export const Overview = ({
             title="Explore Templates"
             icon={GridIcon}
             color="bg-[#D1FFEB]"
-            href="#"
+            href="/dashboard/websites"
           />
           <QuickAction
             title="Custom Designs"
             icon={Layout01Icon}
             color="bg-white"
-            href="#"
+            href="/dashboard/cards"
           />
 
           <QuickAction
             title="More"
             icon={MoreHorizontalIcon}
             color="bg-white"
-            href="#"
+            href="/dashboard/settings"
           />
         </div>
       </div>

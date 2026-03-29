@@ -1,30 +1,45 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Product, getProductById } from "@/lib/products";
+import { purchaseGift } from "@/lib/gifts";
+import { getWalletBalance } from "@/lib/wallet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowLeft02Icon,
-  ShoppingBasketAdd03Icon,
-  Store01Icon,
+  ArrowLeft01Icon,
   PackageIcon,
+  Store01Icon,
   Share01Icon,
+  ShoppingBasketAdd03Icon,
+  Wallet01Icon,
+  Loading03Icon,
+  CheckmarkCircle02Icon,
+  InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-const ProductDetailPage = () => {
+type PaymentMethod = "paystack" | "wallet";
+
+export default function ProductDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+
+  // Purchase state
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const [giftMessage, setGiftMessage] = useState("");
+  const [purchasing, setPurchasing] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -37,35 +52,63 @@ const ProductDetailPage = () => {
         } else {
           toast.error(res.message || "Failed to load product");
         }
-      } catch (error) {
-        console.error("Error fetching product:", error);
+      } catch {
         toast.error("An error occurred while loading the product");
       } finally {
         setLoading(false);
       }
     };
 
+    const fetchBalance = async () => {
+      const res = await getWalletBalance();
+      if (res.success && res.data) setWalletBalance(res.data.walletBalance);
+    };
+
     fetchProduct();
+    fetchBalance();
   }, [id]);
 
+  const handleBuyAsGift = async () => {
+    if (!product) return;
+    setPurchasing(true);
+
+    const callbackUrl = `${window.location.origin}/dashboard/marketplace/giftbox/verify`;
+
+    const res = await purchaseGift({
+      type: "physical",
+      paymentMethod,
+      productId: product._id,
+      giftMessage: giftMessage || undefined,
+    });
+
+    if (res.success && res.data) {
+      if (paymentMethod === "paystack" && res.data.paymentUrl) {
+        // Append callback so Paystack redirects correctly
+        window.location.href = `${res.data.paymentUrl}?callback_url=${encodeURIComponent(callbackUrl)}`;
+      } else {
+        // Wallet payment — no redirect needed
+        toast.success("Gift purchased from wallet! View it in your Gift Box.");
+        router.push("/dashboard/marketplace/giftbox");
+      }
+    } else {
+      toast.error(res.message || "Failed to purchase gift");
+      setPurchasing(false);
+    }
+  };
+
+  /* ── Loading skeleton ───────────────────────────────────────── */
   if (loading) {
     return (
-      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="font-black uppercase text-xs gap-2 px-0 hover:bg-transparent"
-        >
-          <HugeiconsIcon icon={ArrowLeft02Icon} size={18} />
-          Back to Marketplace
-        </Button>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="aspect-square bg-neutral-50 border-2 border-[#191A23] rounded-sm animate-pulse shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]" />
-          <div className="space-y-6">
-            <div className="h-10 w-3/4 bg-neutral-50 border-2 border-[#191A23] rounded-sm animate-pulse" />
-            <div className="h-6 w-1/4 bg-neutral-50 border-2 border-[#191A23] rounded-sm animate-pulse" />
-            <div className="h-32 w-full bg-neutral-50 border-2 border-[#191A23] rounded-sm animate-pulse" />
-            <div className="h-12 w-full bg-neutral-50 border-2 border-[#191A23] rounded-sm animate-pulse" />
+      <div className="min-h-screen bg-[#FAFAFA] font-space">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+          <div className="h-8 w-48 bg-neutral-200 animate-pulse rounded-sm" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <div className="aspect-square bg-neutral-200 animate-pulse rounded-sm border-2 border-[#191A23]/10" />
+            <div className="space-y-5">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-10 bg-neutral-200 animate-pulse rounded-sm" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -74,207 +117,262 @@ const ProductDetailPage = () => {
 
   if (!product) {
     return (
-      <div className="p-4 md:p-8 max-w-7xl mx-auto text-center py-20">
-        <h2 className="text-2xl font-black uppercase mb-4">
-          Product Not Found
-        </h2>
-        <Button
-          asChild
-          className="border-2 border-[#191A23] font-black uppercase shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
-        >
-          <Link href="/dashboard/marketplace">Return to Marketplace</Link>
-        </Button>
+      <div className="min-h-screen bg-[#FAFAFA] font-space flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="text-5xl">📦</div>
+          <h2 className="text-2xl font-black uppercase text-[#191A23]">Product Not Found</h2>
+          <Button asChild className="rounded-sm border-2 border-[#191A23] border-b-4 bg-[#191A23] text-white font-black uppercase">
+            <Link href="/dashboard/marketplace">Back to Marketplace</Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   const vendor = product.vendorId as any;
+  const inStock = (product as any).category === "Vouchers" || product.stock > 0;
+  const canAffordWallet = walletBalance !== null && walletBalance >= product.price;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="font-black uppercase text-xs gap-2 px-0 hover:bg-transparent hover:text-[#191A23]"
-        >
-          <HugeiconsIcon icon={ArrowLeft02Icon} size={18} />
-          Back to Marketplace
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="border-2 border-[#191A23] font-black uppercase text-[10px] shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-          onClick={() => {
-            navigator.clipboard.writeText(window.location.href);
-            toast.success("Link copied to clipboard");
-          }}
-        >
-          <HugeiconsIcon icon={Share01Icon} size={14} className="mr-2" />
-          Share
-        </Button>
-      </div>
+    <div className="min-h-screen bg-[#FAFAFA] font-space">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-        {/* Product Images */}
-        <div className="space-y-4">
-          <div className="aspect-square bg-neutral-50 border-2 border-[#191A23] rounded-sm shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] overflow-hidden relative">
-            {product.images?.[activeImage]?.url ? (
-              <img
-                src={product.images[activeImage].url}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <HugeiconsIcon
-                  icon={PackageIcon}
-                  size={80}
-                  className="text-neutral-200"
-                />
-              </div>
-            )}
-            <Badge className="absolute top-4 right-4 border-2 border-[#191A23] bg-[#B4F8C8] text-[#191A23] font-black uppercase px-3 py-1">
-              {product.category}
-            </Badge>
-          </div>
-
-          {product.images && product.images.length > 1 && (
-            <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImage(idx)}
-                  className={cn(
-                    "w-20 h-20 flex-shrink-0 border-2 rounded-sm overflow-hidden transition-all",
-                    activeImage === idx
-                      ? "border-[#191A23] shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] translate-y-[-2px]"
-                      : "border-neutral-200 grayscale hover:grayscale-0"
-                  )}
-                >
-                  <img
-                    src={img.url}
-                    alt=""
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+        {/* ── Breadcrumb ──────────────────────────────────────── */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="rounded-sm border border-[#191A23]/20 hover:bg-[#191A23]/5 font-black uppercase text-xs gap-2"
+          >
+            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="#191A23" strokeWidth={1.5} />
+            Back
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-sm border-2 border-[#191A23] font-black uppercase text-[10px] gap-1.5 hover:bg-[#191A23] hover:text-white transition-all"
+            onClick={() => {
+              navigator.clipboard.writeText(window.location.href);
+              toast.success("Link copied!");
+            }}
+          >
+            <HugeiconsIcon icon={Share01Icon} size={13} strokeWidth={1.5} />
+            Share
+          </Button>
         </div>
 
-        {/* Product Info */}
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-black text-[#191A23] uppercase tracking-tighter leading-none">
-              {product.name}
-            </h1>
-            <div className="flex items-center gap-4">
-              <p className="text-3xl font-black text-[#191A23]">
-                ₦{product.price.toLocaleString()}
-              </p>
-              <Badge
-                className={cn(
-                  "border-2 border-[#191A23] font-black uppercase px-2 py-0.5",
-                  product.category === "Vouchers" || product.stock > 0
-                    ? "bg-[#B4F8C8] text-[#191A23]"
-                    : "bg-red-100 text-red-600"
-                )}
-              >
-                {product.category === "Vouchers" || product.stock > 0
-                  ? product.category === "Vouchers"
-                    ? "AVAILABLE"
-                    : `${product.stock} IN STOCK`
-                  : "OUT OF STOCK"}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+          {/* ── Images ────────────────────────────────────────── */}
+          <div className="space-y-3 sticky top-6">
+            <div className="aspect-square bg-[#F5F5F5] border-2 border-[#191A23] border-b-4 rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,0.18)] overflow-hidden relative">
+              {product.images?.[activeImage]?.url ? (
+                <img
+                  src={product.images[activeImage].url}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <HugeiconsIcon icon={PackageIcon} size={80} className="text-neutral-300" />
+                </div>
+              )}
+              <Badge className="absolute top-3 left-3 border border-[#191A23] bg-[#B4F8C8] text-[#191A23] font-black uppercase text-[9px] px-2 py-0.5 rounded-sm">
+                {product.category}
               </Badge>
             </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="font-black uppercase text-sm tracking-widest text-neutral-400">
-              Description
-            </h3>
-            <p className="text-neutral-600 font-medium leading-relaxed">
-              {product.description ||
-                "No description provided for this product."}
-            </p>
+
+            {product.images && product.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImage(idx)}
+                    className={cn(
+                      "w-16 h-16 shrink-0 rounded-sm border-2 overflow-hidden transition-all",
+                      activeImage === idx
+                        ? "border-[#191A23] shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                        : "border-[#191A23]/20 grayscale hover:grayscale-0 hover:border-[#191A23]/60",
+                    )}
+                  >
+                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <Card className="border-2 border-[#191A23] rounded-sm shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] bg-white">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-black uppercase text-sm tracking-widest text-neutral-400">
-                  Vendor
-                </h3>
-                <Link
-                  href={`/vendors/store/${vendor?.slug}`}
-                  className="text-xs font-black uppercase flex items-center gap-1 text-[#191A23] hover:underline"
-                >
-                  Visit Store
-                  <HugeiconsIcon
-                    icon={ArrowLeft02Icon}
-                    size={12}
-                    className="rotate-180"
-                  />
-                </Link>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-neutral-50 border-2 border-[#191A23] rounded-sm flex items-center justify-center overflow-hidden">
-                  {vendor?.logo ? (
-                    <img
-                      src={vendor.logo}
-                      alt={vendor.storeName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <HugeiconsIcon icon={Store01Icon} size={24} />
+          {/* ── Info + Purchase ────────────────────────────────── */}
+          <div className="space-y-6">
+            {/* Name & price */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                {product.category}
+              </p>
+              <h1 className="text-3xl font-black text-[#191A23] uppercase tracking-tight leading-tight">
+                {product.name}
+              </h1>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-black text-[#191A23]">
+                  ₦{product.price.toLocaleString()}
+                </span>
+                <Badge
+                  className={cn(
+                    "border border-[#191A23] font-black uppercase text-[9px] px-2 py-0.5 rounded-sm",
+                    inStock ? "bg-[#B4F8C8] text-[#191A23]" : "bg-red-100 text-red-600",
                   )}
-                </div>
-                <div>
-                  <h4 className="font-black uppercase text-lg leading-tight">
-                    {vendor?.storeName || "WishCube Vendor"}
-                  </h4>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center text-amber-500">
-                      {[...Array(5)].map((_, i) => (
-                        <svg
-                          key={i}
-                          className={cn(
-                            "w-3 h-3 fill-current",
-                            i < (vendor?.rating || 0)
-                              ? "opacity-100"
-                              : "opacity-30"
-                          )}
-                          viewBox="0 0 20 20"
-                        >
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
-                    <span className="text-[10px] font-black uppercase text-neutral-500">
-                      {vendor?.rating || 0} Rating
-                    </span>
-                  </div>
-                </div>
+                >
+                  {inStock
+                    ? (product as any).category === "Vouchers"
+                      ? "Available"
+                      : `${product.stock} in stock`
+                    : "Out of stock"}
+                </Badge>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <div className="pt-4 flex flex-col sm:flex-row gap-4">
-            <Button className="flex-1 h-14 border-2 border-[#191A23] bg-[#FFD700] hover:bg-[#FFD700]/90 text-[#191A23] font-black uppercase text-lg shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] active:shadow-none active:translate-x-1 active:translate-y-1 transition-all gap-3">
-              <HugeiconsIcon icon={ShoppingBasketAdd03Icon} size={24} />
-              Add to GiftBox
-            </Button>
-            <Button
-              variant="outline"
-              className="h-14 px-8 border-2 border-[#191A23] font-black uppercase text-lg shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:bg-neutral-50 active:shadow-none active:translate-x-1 active:translate-y-1 transition-all"
-            >
-              Contact Vendor
-            </Button>
+            {/* Description */}
+            {product.description && (
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                  About this gift
+                </p>
+                <p className="text-sm text-neutral-600 leading-relaxed font-medium">
+                  {product.description}
+                </p>
+              </div>
+            )}
+
+            {/* Occasion tags */}
+            {product.occasionTags?.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {product.occasionTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="px-2 py-0.5 text-[9px] font-black uppercase border border-[#191A23]/20 rounded-sm bg-white text-neutral-500"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Vendor */}
+            <div className="rounded-sm border-2 border-[#191A23]/10 bg-white p-4 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-sm border border-[#191A23]/20 overflow-hidden bg-[#F5F5F5] shrink-0 flex items-center justify-center">
+                {vendor?.logo ? (
+                  <img src={vendor.logo} alt={vendor.storeName} className="w-full h-full object-cover" />
+                ) : (
+                  <HugeiconsIcon icon={Store01Icon} size={18} className="text-neutral-400" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">Sold by</p>
+                <p className="text-sm font-black text-[#191A23] truncate">
+                  {vendor?.storeName || "WishCube"}
+                </p>
+              </div>
+              {vendor?.slug && (
+                <Link
+                  href={`/vendors/store/${vendor.slug}`}
+                  className="text-[10px] font-black uppercase text-[#9151FF] hover:underline shrink-0"
+                >
+                  Visit →
+                </Link>
+              )}
+            </div>
+
+            {/* ── Purchase Box ───────────────────────────────── */}
+            <div className="rounded-sm border-2 border-[#191A23] border-b-4 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,0.12)] p-5 space-y-5">
+              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 flex items-center gap-2">
+                <HugeiconsIcon icon={ShoppingBasketAdd03Icon} size={13} color="#191A23" strokeWidth={2} />
+                Send as a Gift
+              </p>
+
+              {/* Payment method toggle */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  Payment method
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["paystack", "wallet"] as PaymentMethod[]).map((method) => (
+                    <button
+                      key={method}
+                      onClick={() => setPaymentMethod(method)}
+                      className={cn(
+                        "flex items-center justify-center gap-2 py-2.5 px-3 rounded-sm border-2 text-xs font-black uppercase transition-all",
+                        paymentMethod === method
+                          ? "bg-[#191A23] text-white border-[#191A23]"
+                          : "bg-white text-[#191A23] border-[#191A23]/20 hover:border-[#191A23]/60",
+                      )}
+                    >
+                      {method === "wallet" ? (
+                        <HugeiconsIcon icon={Wallet01Icon} size={14} color={paymentMethod === "wallet" ? "white" : "#191A23"} strokeWidth={1.5} />
+                      ) : (
+                        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color={paymentMethod === "paystack" ? "white" : "#191A23"} strokeWidth={1.5} />
+                      )}
+                      {method === "wallet" ? "Wallet" : "Paystack"}
+                    </button>
+                  ))}
+                </div>
+
+                {paymentMethod === "wallet" && walletBalance !== null && (
+                  <div className={cn(
+                    "flex items-center gap-2 px-3 py-2 rounded-sm text-[10px] font-bold border",
+                    canAffordWallet
+                      ? "bg-[#B4F8C8]/30 border-green-200 text-green-700"
+                      : "bg-red-50 border-red-200 text-red-600",
+                  )}>
+                    <HugeiconsIcon icon={InformationCircleIcon} size={12} strokeWidth={2} />
+                    Wallet balance: ₦{walletBalance.toLocaleString()}
+                    {!canAffordWallet && " — insufficient funds"}
+                  </div>
+                )}
+              </div>
+
+              {/* Gift message */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] font-black uppercase tracking-wide text-neutral-400">
+                  Gift message (optional)
+                </p>
+                <Textarea
+                  placeholder="Write a message for the recipient…"
+                  value={giftMessage}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setGiftMessage(e.target.value)}
+                  maxLength={280}
+                  rows={3}
+                  className="rounded-sm border-2 border-[#191A23]/20 focus-visible:border-[#191A23] focus-visible:ring-0 font-medium text-sm resize-none"
+                />
+                <p className="text-[9px] text-neutral-400 text-right font-medium">
+                  {giftMessage.length}/280
+                </p>
+              </div>
+
+              <Button
+                id="buy-as-gift-btn"
+                onClick={handleBuyAsGift}
+                disabled={purchasing || !inStock || (paymentMethod === "wallet" && !canAffordWallet)}
+                className="w-full rounded-sm bg-[#FFD700] hover:bg-[#e6c200] text-[#191A23] border-2 border-[#191A23] border-b-4 active:border-b-2 active:translate-y-0.5 transition-all font-black uppercase py-5 text-sm gap-2"
+              >
+                {purchasing ? (
+                  <>
+                    <HugeiconsIcon icon={Loading03Icon} size={16} color="#191A23" strokeWidth={1.5} className="animate-spin" />
+                    Processing…
+                  </>
+                ) : (
+                  <>
+                    <HugeiconsIcon icon={ShoppingBasketAdd03Icon} size={18} color="#191A23" strokeWidth={1.5} />
+                    Buy as Gift · ₦{product.price.toLocaleString()}
+                  </>
+                )}
+              </Button>
+
+              <p className="text-[10px] text-neutral-400 text-center font-medium">
+                Gifts are held in escrow until the recipient redeems them.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
-
-export default ProductDetailPage;
+}

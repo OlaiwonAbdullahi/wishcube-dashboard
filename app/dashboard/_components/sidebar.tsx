@@ -67,7 +67,7 @@ const navItems: NavItem[] = [
     title: "Party Rooms",
     icon: Video02Icon,
     iconColor: "text-cyan-500",
-    href: "/dashboard/party-rooms",
+    href: "/dashboard/party-room",
   },
   {
     title: "Settings",
