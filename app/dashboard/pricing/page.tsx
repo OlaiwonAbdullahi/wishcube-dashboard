@@ -135,7 +135,7 @@ export default function PricingPage() {
 
     if (res.success && res.data) {
       // Redirect to Paystack checkout — backend has already set the callback
-      window.location.href = res.data.authorization_url;
+      window.location.assign(res.data.authorization_url);
     } else {
       toast.error(res.message || "Failed to initialize subscription");
       setSubscribing(null);
