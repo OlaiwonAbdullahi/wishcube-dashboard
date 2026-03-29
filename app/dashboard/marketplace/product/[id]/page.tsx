@@ -72,19 +72,20 @@ export default function ProductDetailPage() {
     if (!product) return;
     setPurchasing(true);
 
-    const callbackUrl = `${window.location.origin}/dashboard/marketplace/giftbox/verify`;
+    const callbackUrl = `https://app.usewishcube.com/dashboard/marketplace/giftbox/verify`;
 
     const res = await purchaseGift({
       type: "physical",
       paymentMethod,
       productId: product._id,
       giftMessage: giftMessage || undefined,
+      callbackUrl,
     });
 
     if (res.success && res.data) {
       if (paymentMethod === "paystack" && res.data.paymentUrl) {
         // Append callback so Paystack redirects correctly
-        window.location.href = `${res.data.paymentUrl}?callback_url=${encodeURIComponent(callbackUrl)}`;
+        window.location.href = `${res.data.paymentUrl}`;
       } else {
         // Wallet payment — no redirect needed
         toast.success("Gift purchased from wallet! View it in your Gift Box.");
@@ -106,7 +107,10 @@ export default function ProductDetailPage() {
             <div className="aspect-square bg-neutral-200 animate-pulse rounded-sm border-2 border-[#191A23]/10" />
             <div className="space-y-5">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-10 bg-neutral-200 animate-pulse rounded-sm" />
+                <div
+                  key={i}
+                  className="h-10 bg-neutral-200 animate-pulse rounded-sm"
+                />
               ))}
             </div>
           </div>
@@ -120,8 +124,13 @@ export default function ProductDetailPage() {
       <div className="min-h-screen bg-[#FAFAFA] font-space flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="text-5xl">📦</div>
-          <h2 className="text-2xl font-black uppercase text-[#191A23]">Product Not Found</h2>
-          <Button asChild className="rounded-sm border-2 border-[#191A23] border-b-4 bg-[#191A23] text-white font-black uppercase">
+          <h2 className="text-2xl font-black uppercase text-[#191A23]">
+            Product Not Found
+          </h2>
+          <Button
+            asChild
+            className="rounded-sm border-2 border-[#191A23] border-b-4 bg-[#191A23] text-white font-black uppercase"
+          >
             <Link href="/dashboard/marketplace">Back to Marketplace</Link>
           </Button>
         </div>
@@ -131,12 +140,12 @@ export default function ProductDetailPage() {
 
   const vendor = product.vendorId as any;
   const inStock = (product as any).category === "Vouchers" || product.stock > 0;
-  const canAffordWallet = walletBalance !== null && walletBalance >= product.price;
+  const canAffordWallet =
+    walletBalance !== null && walletBalance >= product.price;
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-space">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-
         {/* ── Breadcrumb ──────────────────────────────────────── */}
         <div className="flex items-center justify-between">
           <Button
@@ -144,7 +153,12 @@ export default function ProductDetailPage() {
             onClick={() => router.back()}
             className="rounded-sm border border-[#191A23]/20 hover:bg-[#191A23]/5 font-black uppercase text-xs gap-2"
           >
-            <HugeiconsIcon icon={ArrowLeft01Icon} size={16} color="#191A23" strokeWidth={1.5} />
+            <HugeiconsIcon
+              icon={ArrowLeft01Icon}
+              size={16}
+              color="#191A23"
+              strokeWidth={1.5}
+            />
             Back
           </Button>
           <Button
@@ -173,7 +187,11 @@ export default function ProductDetailPage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <HugeiconsIcon icon={PackageIcon} size={80} className="text-neutral-300" />
+                  <HugeiconsIcon
+                    icon={PackageIcon}
+                    size={80}
+                    className="text-neutral-300"
+                  />
                 </div>
               )}
               <Badge className="absolute top-3 left-3 border border-[#191A23] bg-[#B4F8C8] text-[#191A23] font-black uppercase text-[9px] px-2 py-0.5 rounded-sm">
@@ -194,7 +212,11 @@ export default function ProductDetailPage() {
                         : "border-[#191A23]/20 grayscale hover:grayscale-0 hover:border-[#191A23]/60",
                     )}
                   >
-                    <img src={img.url} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={img.url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -218,7 +240,9 @@ export default function ProductDetailPage() {
                 <Badge
                   className={cn(
                     "border border-[#191A23] font-black uppercase text-[9px] px-2 py-0.5 rounded-sm",
-                    inStock ? "bg-[#B4F8C8] text-[#191A23]" : "bg-red-100 text-red-600",
+                    inStock
+                      ? "bg-[#B4F8C8] text-[#191A23]"
+                      : "bg-red-100 text-red-600",
                   )}
                 >
                   {inStock
@@ -260,13 +284,23 @@ export default function ProductDetailPage() {
             <div className="rounded-sm border-2 border-[#191A23]/10 bg-white p-4 flex items-center gap-3">
               <div className="w-10 h-10 rounded-sm border border-[#191A23]/20 overflow-hidden bg-[#F5F5F5] shrink-0 flex items-center justify-center">
                 {vendor?.logo ? (
-                  <img src={vendor.logo} alt={vendor.storeName} className="w-full h-full object-cover" />
+                  <img
+                    src={vendor.logo}
+                    alt={vendor.storeName}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  <HugeiconsIcon icon={Store01Icon} size={18} className="text-neutral-400" />
+                  <HugeiconsIcon
+                    icon={Store01Icon}
+                    size={18}
+                    className="text-neutral-400"
+                  />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">Sold by</p>
+                <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                  Sold by
+                </p>
                 <p className="text-sm font-black text-[#191A23] truncate">
                   {vendor?.storeName || "WishCube"}
                 </p>
@@ -284,7 +318,12 @@ export default function ProductDetailPage() {
             {/* ── Purchase Box ───────────────────────────────── */}
             <div className="rounded-sm border-2 border-[#191A23] border-b-4 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,0.12)] p-5 space-y-5">
               <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 flex items-center gap-2">
-                <HugeiconsIcon icon={ShoppingBasketAdd03Icon} size={13} color="#191A23" strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={ShoppingBasketAdd03Icon}
+                  size={13}
+                  color="#191A23"
+                  strokeWidth={2}
+                />
                 Send as a Gift
               </p>
 
@@ -306,9 +345,23 @@ export default function ProductDetailPage() {
                       )}
                     >
                       {method === "wallet" ? (
-                        <HugeiconsIcon icon={Wallet01Icon} size={14} color={paymentMethod === "wallet" ? "white" : "#191A23"} strokeWidth={1.5} />
+                        <HugeiconsIcon
+                          icon={Wallet01Icon}
+                          size={14}
+                          color={
+                            paymentMethod === "wallet" ? "white" : "#191A23"
+                          }
+                          strokeWidth={1.5}
+                        />
                       ) : (
-                        <HugeiconsIcon icon={CheckmarkCircle02Icon} size={14} color={paymentMethod === "paystack" ? "white" : "#191A23"} strokeWidth={1.5} />
+                        <HugeiconsIcon
+                          icon={CheckmarkCircle02Icon}
+                          size={14}
+                          color={
+                            paymentMethod === "paystack" ? "white" : "#191A23"
+                          }
+                          strokeWidth={1.5}
+                        />
                       )}
                       {method === "wallet" ? "Wallet" : "Paystack"}
                     </button>
@@ -316,13 +369,19 @@ export default function ProductDetailPage() {
                 </div>
 
                 {paymentMethod === "wallet" && walletBalance !== null && (
-                  <div className={cn(
-                    "flex items-center gap-2 px-3 py-2 rounded-sm text-[10px] font-bold border",
-                    canAffordWallet
-                      ? "bg-[#B4F8C8]/30 border-green-200 text-green-700"
-                      : "bg-red-50 border-red-200 text-red-600",
-                  )}>
-                    <HugeiconsIcon icon={InformationCircleIcon} size={12} strokeWidth={2} />
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2 rounded-sm text-[10px] font-bold border",
+                      canAffordWallet
+                        ? "bg-[#B4F8C8]/30 border-green-200 text-green-700"
+                        : "bg-red-50 border-red-200 text-red-600",
+                    )}
+                  >
+                    <HugeiconsIcon
+                      icon={InformationCircleIcon}
+                      size={12}
+                      strokeWidth={2}
+                    />
                     Wallet balance: ₦{walletBalance.toLocaleString()}
                     {!canAffordWallet && " — insufficient funds"}
                   </div>
@@ -337,7 +396,9 @@ export default function ProductDetailPage() {
                 <Textarea
                   placeholder="Write a message for the recipient…"
                   value={giftMessage}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setGiftMessage(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                    setGiftMessage(e.target.value)
+                  }
                   maxLength={280}
                   rows={3}
                   className="rounded-sm border-2 border-[#191A23]/20 focus-visible:border-[#191A23] focus-visible:ring-0 font-medium text-sm resize-none"
@@ -350,17 +411,32 @@ export default function ProductDetailPage() {
               <Button
                 id="buy-as-gift-btn"
                 onClick={handleBuyAsGift}
-                disabled={purchasing || !inStock || (paymentMethod === "wallet" && !canAffordWallet)}
+                disabled={
+                  purchasing ||
+                  !inStock ||
+                  (paymentMethod === "wallet" && !canAffordWallet)
+                }
                 className="w-full rounded-sm bg-[#FFD700] hover:bg-[#e6c200] text-[#191A23] border-2 border-[#191A23] border-b-4 active:border-b-2 active:translate-y-0.5 transition-all font-black uppercase py-5 text-sm gap-2"
               >
                 {purchasing ? (
                   <>
-                    <HugeiconsIcon icon={Loading03Icon} size={16} color="#191A23" strokeWidth={1.5} className="animate-spin" />
+                    <HugeiconsIcon
+                      icon={Loading03Icon}
+                      size={16}
+                      color="#191A23"
+                      strokeWidth={1.5}
+                      className="animate-spin"
+                    />
                     Processing…
                   </>
                 ) : (
                   <>
-                    <HugeiconsIcon icon={ShoppingBasketAdd03Icon} size={18} color="#191A23" strokeWidth={1.5} />
+                    <HugeiconsIcon
+                      icon={ShoppingBasketAdd03Icon}
+                      size={18}
+                      color="#191A23"
+                      strokeWidth={1.5}
+                    />
                     Buy as Gift · ₦{product.price.toLocaleString()}
                   </>
                 )}

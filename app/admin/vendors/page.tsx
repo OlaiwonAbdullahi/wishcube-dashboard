@@ -6,6 +6,8 @@ import {
   getAllVendorsAdmin,
   toggleVendorActive,
   deleteVendor,
+  approveVendor,
+  rejectVendor,
 } from "@/lib/admin";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -40,6 +42,8 @@ export default function VendorsPage() {
   const [loading, setLoading] = useState(true);
   const [deletingVendor, setDeletingVendor] = useState<any>(null);
   const [togglingVendor, setTogglingVendor] = useState<any>(null);
+  const [rejectingVendor, setRejectingVendor] = useState<any>(null);
+  const [rejectReason, setRejectReason] = useState("");
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
@@ -50,6 +54,7 @@ export default function VendorsPage() {
     setLoading(true);
     try {
       const response = await getAllVendorsAdmin();
+      console.log(response);
       if (response.success) {
         const vendorList = response.data?.vendors || [];
         const vendorTotal = response.data?.total || 0;
@@ -108,6 +113,49 @@ export default function VendorsPage() {
     }
   };
 
+  const handleApprove = async (vendor: any) => {
+    setIsActionLoading(true);
+    const vendorId = vendor._id || vendor.id;
+    try {
+      const response = await approveVendor(vendorId);
+      if (response.success) {
+        toast.success(response.message || "Vendor approved!");
+        await fetchVendors();
+      } else {
+        toast.error(response.message || "Approval failed");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectingVendor) return;
+    if (!rejectReason.trim()) {
+      toast.error("Please provide a reason for rejection");
+      return;
+    }
+    setIsActionLoading(true);
+    const vendorId = rejectingVendor._id || rejectingVendor.id;
+    try {
+      const response = await rejectVendor(vendorId, rejectReason);
+      if (response.success) {
+        toast.success(response.message || "Vendor rejected!");
+        setRejectingVendor(null);
+        setRejectReason("");
+        await fetchVendors();
+      } else {
+        toast.error(response.message || "Rejection failed");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
@@ -138,9 +186,6 @@ export default function VendorsPage() {
                 </th>
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
                   Owner
-                </th>
-                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
-                  Status
                 </th>
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
                   Status
@@ -230,24 +275,7 @@ export default function VendorsPage() {
                               "w-fit text-[8px] font-black uppercase border-2 border-[#191A23]",
                               vendor.isActive
                                 ? "bg-[#B4F8C8] text-[#191A23]"
-                                : "bg-[#FFE5E5] text-[#191A23]"
-                            )}
-                          >
-                            {vendor.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                          <Badge className="w-fit text-[8px] font-black uppercase border-2 border-[#191A23] bg-blue-50 text-blue-600">
-                            {vendor.status}
-                          </Badge>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <Badge
-                            className={cn(
-                              "w-fit text-[8px] font-black uppercase border-2 border-[#191A23]",
-                              vendor.isActive
-                                ? "bg-[#B4F8C8] text-[#191A23]"
-                                : "bg-[#FFE5E5] text-[#191A23]"
+                                : "bg-[#FFE5E5] text-[#191A23]",
                             )}
                           >
                             {vendor.isActive ? "Active" : "Inactive"}
@@ -270,24 +298,46 @@ export default function VendorsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => handleToggleActive(vendor)}
-                            disabled={isActionLoading}
-                            className={cn(
-                              "p-1.5 rounded-sm border-2 border-[#191A23] transition-all",
-                              vendor.isActive
-                                ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                : "bg-green-100 text-green-600 hover:bg-green-200",
-                              isToggling && "opacity-50 animate-pulse"
-                            )}
-                            title={vendor.isActive ? "Deactivate" : "Activate"}
-                          >
-                            {vendor.isActive ? (
-                              <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                            ) : (
-                              <HugeiconsIcon icon={Tick01Icon} size={16} />
-                            )}
-                          </button>
+                          {vendor.status === "pending" && (
+                            <>
+                              <button
+                                onClick={() => handleApprove(vendor)}
+                                disabled={isActionLoading}
+                                className="p-1.5 rounded-sm bg-green-100 border-2 border-[#191A23] text-green-600 hover:bg-green-200 transition-colors"
+                                title="Approve"
+                              >
+                                <HugeiconsIcon icon={Tick01Icon} size={16} />
+                              </button>
+                              <button
+                                onClick={() => setRejectingVendor(vendor)}
+                                disabled={isActionLoading}
+                                className="p-1.5 rounded-sm bg-red-100 border-2 border-[#191A23] text-red-600 hover:bg-red-200 transition-colors"
+                                title="Reject"
+                              >
+                                <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                              </button>
+                            </>
+                          )}
+                          {vendor.status === "approved" && (
+                            <button
+                              onClick={() => handleToggleActive(vendor)}
+                              disabled={isActionLoading}
+                              className={cn(
+                                "p-1.5 rounded-sm border-2 border-[#191A23] transition-all",
+                                vendor.isActive
+                                  ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                  : "bg-green-100 text-green-600 hover:bg-green-200",
+                                isToggling && "opacity-50 animate-pulse",
+                              )}
+                              title={vendor.isActive ? "Deactivate" : "Activate"}
+                            >
+                              {vendor.isActive ? (
+                                <HugeiconsIcon icon={Cancel01Icon} size={16} />
+                              ) : (
+                                <HugeiconsIcon icon={Tick01Icon} size={16} />
+                              )}
+                            </button>
+                          )}
                           {vendor.slug && (
                             <Link
                               href={`/marketplace/store/${vendor.slug}`}
@@ -352,6 +402,63 @@ export default function VendorsPage() {
               className="flex-1 border-2 border-[#191A23] rounded-sm bg-red-100 text-red-600 text-xs font-black uppercase hover:bg-red-200 transition-colors h-12 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
             >
               {isActionLoading ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reject Confirmation Modal */}
+      <Dialog
+        open={!!rejectingVendor}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectingVendor(null);
+            setRejectReason("");
+          }
+        }}
+      >
+        <DialogContent className="border-4 border-[#191A23] rounded-sm p-6 shadow-[8px_8px_0px_0px_rgba(25,26,35,1)]">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-red-600 mb-2">
+              <HugeiconsIcon icon={Cancel01Icon} size={24} />
+              <DialogTitle className="text-xl font-black uppercase tracking-tight">
+                Reject Vendor Application
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-sm font-medium text-neutral-500 tracking-wider">
+              Please provide a reason for rejecting{" "}
+              <span className="text-[#191A23] font-black">
+                {rejectingVendor?.storeName}
+              </span>
+              . This will be sent to the user.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <textarea
+              className="w-full border-2 border-[#191A23] rounded-sm p-3 text-sm focus:outline-none focus:ring-0"
+              placeholder="Enter rejection reason..."
+              rows={4}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter className="mt-6 flex gap-3 sm:justify-start">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectingVendor(null);
+                setRejectReason("");
+              }}
+              className="flex-1 border-2 border-[#191A23] rounded-sm text-xs font-black uppercase hover:bg-neutral-50 transition-colors h-12"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleReject}
+              disabled={isActionLoading || !rejectReason.trim()}
+              className="flex-1 border-2 border-[#191A23] rounded-sm bg-red-100 text-red-600 text-xs font-black uppercase hover:bg-red-200 transition-colors h-12 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+            >
+              {isActionLoading ? "Rejecting..." : "Confirm Reject"}
             </Button>
           </DialogFooter>
         </DialogContent>

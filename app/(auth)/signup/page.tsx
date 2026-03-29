@@ -50,7 +50,7 @@ export default function SignUp() {
         const response = await googleAuth(tokenResponse.access_token);
         if (response.success) {
           toast.success("Signed up with Google successfully!");
-          router.push("/dashboard");
+          router.push("/");
         } else {
           toast.error(response.message || "Google signup failed");
         }

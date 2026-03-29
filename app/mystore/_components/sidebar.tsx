@@ -58,15 +58,9 @@ const navItems: NavItem[] = [
   },
   {
     title: "Store Settings",
-    icon: Store01Icon,
+    icon: Settings01Icon,
     iconColor: "text-pink-500",
     href: "/mystore/settings",
-  },
-  {
-    title: "General Settings",
-    icon: Settings01Icon,
-    iconColor: "text-muted-foreground",
-    href: "/dashboard/settings",
   },
 ];
 
@@ -102,16 +96,19 @@ export function StoreSidebar(props: React.ComponentProps<typeof Sidebar>) {
                         "h-11 px-4 rounded-sm transition-all duration-200 border-2 border-transparent",
                         isActive
                           ? "bg-[#191A23] text-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] border-[#191A23] -translate-x-0.5 -translate-y-0.5 hover:bg-[#191A23] hover:text-white"
-                          : "text-neutral-500 hover:bg-neutral-100 hover:text-[#191A23]"
+                          : "text-neutral-500 hover:bg-neutral-100 hover:text-[#191A23]",
                       )}
                     >
-                      <Link href={item.href} className="flex items-center gap-3">
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-3"
+                      >
                         <HugeiconsIcon
                           icon={item.icon}
                           size={18}
                           className={cn(
                             "transition-colors duration-200",
-                            isActive ? "text-white" : item.iconColor
+                            isActive ? "text-white" : item.iconColor,
                           )}
                         />
                         <span className="font-black uppercase text-[10px] tracking-wider">

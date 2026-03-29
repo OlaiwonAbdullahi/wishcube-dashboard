@@ -5,6 +5,30 @@ import { Product } from "./products";
 
 const API_BASE_URL = "https://api.usewishcube.com/api";
 
+export interface Bank {
+  id: number;
+  name: string;
+  code: string;
+  slug: string;
+}
+
+export const getBanks = async (): Promise<{
+  success: boolean;
+  message: string;
+  data?: { total: number; banks: Bank[] };
+}> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/general/banks`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch banks error:", error);
+    return { success: false, message: "Network error fetching banks" };
+  }
+};
+
 export interface VendorApplication {
   storeName: string;
   description: string;
@@ -31,6 +55,7 @@ export interface Vendor {
   totalEarnings: number;
   deliveryZones: string[];
   bankDetails: {
+    bankCode: string;
     bankName: string;
     accountName: string;
     accountNumber: string;
@@ -64,8 +89,8 @@ export const registerVendor = async (data: {
       body: JSON.stringify(data),
     });
     const resData = await response.json();
-    
-    // If successful, we should transform the 'vendor' field to 'user' for setAuth compatibility 
+
+    // If successful, we should transform the 'vendor' field to 'user' for setAuth compatibility
     // or just handle it in the component. Let's handle it in the component or add a helper.
     return resData;
   } catch (error) {
@@ -158,6 +183,32 @@ export const getMyVendorProfile = async (): Promise<{
   } catch (error) {
     console.error("Fetch my vendor profile error:", error);
     return { success: false, message: "Network error fetching vendor profile" };
+  }
+};
+
+// Update the currently authenticated vendor's profile
+export const updateVendorProfile = async (
+  payload: Partial<
+    Pick<
+      VendorApplication,
+      "storeName" | "description" | "category" | "deliveryZones" | "bankDetails"
+    >
+  >,
+): Promise<{
+  success: boolean;
+  message: string;
+  data?: { vendor: Vendor };
+}> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vendors/me`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Update vendor profile error:", error);
+    return { success: false, message: "Network error updating vendor profile" };
   }
 };
 

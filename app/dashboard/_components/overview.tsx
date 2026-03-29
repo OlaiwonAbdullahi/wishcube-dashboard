@@ -91,9 +91,9 @@ export const Overview = ({
           isLoading={!initialStats}
         />
         <KpiCard
-          title="Gifts attached"
+          title="Gifts"
           value={stats.gifts.toString()}
-          hint="Cards with value"
+          hint="Gifts Bought"
           isLoading={!initialStats}
         />
       </div>

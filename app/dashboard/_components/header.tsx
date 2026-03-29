@@ -124,7 +124,7 @@ export function DashboardHeader() {
               <HugeiconsIcon icon={Banknote} size={16} className="mr-2" />
               Pricing
             </DropdownMenuItem>
-
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-red-600 cursor-pointer"

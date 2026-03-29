@@ -41,7 +41,7 @@ export const getAllVendorsAdmin = async (): Promise<
   AdminResponse<{ total: number; vendors: any[] }>
 > => {
   try {
-    const response = await fetch(`${API_BASE_URL}/vendors/admin/all`, {
+    const response = await fetch(`${API_BASE_URL}/vendors/all`, {
       method: "GET",
       headers: getHeaders(),
     });
@@ -64,6 +64,38 @@ export const toggleVendorActive = async (
   } catch (error) {
     console.error("Toggle vendor active error:", error);
     return { success: false, message: "Network error toggling vendor status" };
+  }
+};
+
+export const approveVendor = async (
+  id: string,
+): Promise<AdminResponse<any>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vendors/${id}/approve`, {
+      method: "PUT",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Approve vendor error:", error);
+    return { success: false, message: "Network error approving vendor" };
+  }
+};
+
+export const rejectVendor = async (
+  id: string,
+  reason: string,
+): Promise<AdminResponse<any>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/vendors/${id}/reject`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Reject vendor error:", error);
+    return { success: false, message: "Network error rejecting vendor" };
   }
 };
 

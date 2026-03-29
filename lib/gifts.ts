@@ -13,6 +13,7 @@ export interface PurchaseGiftPayload {
   productId?: string; // required for physical
   websiteId?: string; // optional link
   giftMessage?: string;
+  callbackUrl?: string;
 }
 
 export interface DigitalRedemptionData {

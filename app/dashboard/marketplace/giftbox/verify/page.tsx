@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CheckmarkCircle02Icon,
   Cancel01Icon,
   Loading03Icon,
-  Gift01Icon,
+  ShoppingBag01Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { verifyGiftPayment, Gift } from "@/lib/gifts";
@@ -21,15 +21,22 @@ function VerifyGiftInner() {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [gift, setGift] = useState<Gift | null>(null);
   const [message, setMessage] = useState("");
+  const verifiedRef = useRef(false);
 
   useEffect(() => {
-    if (!reference) {
-      setStatus("error");
-      setMessage("No payment reference found.");
-      return;
-    }
+    if (verifiedRef.current) return;
 
     const verify = async () => {
+      if (!reference) {
+        // use an async boundary to avoid cascading state updates during render
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        setStatus("error");
+        setMessage("No payment reference found.");
+        return;
+      }
+
+      verifiedRef.current = true;
+
       const res = await verifyGiftPayment(reference);
       if (res.success && res.data) {
         setGift(res.data.gift);
@@ -94,7 +101,7 @@ function VerifyGiftInner() {
                   onClick={() => router.push("/dashboard/marketplace/giftbox")}
                   className="w-full rounded-sm bg-[#191A23] text-white border-b-4 border-b-black hover:bg-[#191A23]/90 active:border-b-2 active:translate-y-0.5 transition-all font-bold py-5 gap-2"
                 >
-                  <HugeiconsIcon icon={Gift01Icon} size={16} color="white" strokeWidth={1.5} />
+                  <HugeiconsIcon icon={ShoppingBag01Icon} size={16} color="white" strokeWidth={1.5} />
                   View My Gift Box
                 </Button>
                 <Button
