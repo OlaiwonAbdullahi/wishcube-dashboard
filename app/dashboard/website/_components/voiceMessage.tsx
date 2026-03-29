@@ -32,7 +32,7 @@ async function uploadAudioBlob(
 ): Promise<{ url: string; publicId: string }> {
   const auth = getAuth();
   const formData = new FormData();
-  formData.append("images", blob, filename); // field name must be "images" for that endpoint
+  formData.append("files", blob, filename);
 
   const response = await fetch(
     "https://api.usewishcube.com/api/products/media-upload",
@@ -83,13 +83,16 @@ export default function VoiceMessage({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Sync state if parent clears the URL
+  // Sync state if parent clears the URL (deferred to avoid synchronous setState in effect)
   useEffect(() => {
     if (!voiceMessageUrl && state === "done") {
-      setState("idle");
-      setAudioBlob(null);
-      setAudioUrl(null);
-      setElapsed(0);
+      const id = setTimeout(() => {
+        setState("idle");
+        setAudioBlob(null);
+        setAudioUrl(null);
+        setElapsed(0);
+      }, 0);
+      return () => clearTimeout(id);
     }
   }, [voiceMessageUrl, state]);
 

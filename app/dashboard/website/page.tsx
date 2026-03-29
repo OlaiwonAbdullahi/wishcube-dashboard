@@ -27,10 +27,7 @@ import {
 import { verifyGiftPayment } from "@/lib/gifts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { callAI } from "@/lib/ai";
-import WebsiteForm, {
-  THEMES,
-  Theme,
-} from "./_components/website-form";
+import WebsiteForm, { THEMES, Theme } from "./_components/website-form";
 import WebsitePreview from "./_components/website-preview";
 import { cn } from "@/lib/utils";
 
@@ -176,9 +173,7 @@ export default function WebsitePage() {
                   <div className="flex items-center gap-2 pt-2 border-t border-[#191A23]/10">
                     {ws.status === "live" && ws.slug && (
                       <button
-                        onClick={() =>
-                          window.open(`/w/${ws.slug}`, "_blank")
-                        }
+                        onClick={() => window.open(`/w/${ws.slug}`, "_blank")}
                         className="flex-1 flex items-center justify-center gap-1 py-2 bg-[#B4F8C8] border border-[#191A23] text-[10px] font-black uppercase hover:bg-[#191A23] hover:text-white transition-all rounded-sm"
                       >
                         <HugeiconsIcon icon={EyeIcon} size={12} />
@@ -266,7 +261,9 @@ const Generator: React.FC = () => {
   const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
   const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
   const [voiceMessageUrl, setVoiceMessageUrl] = useState<string | null>(null);
-  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<string | null>(null);
+  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<
+    string | null
+  >(null);
   const [greetingId, setGreetingId] = useState<string>("");
   const [isOn, setIsOn] = useState(false);
   const [addMusic, setAddMusic] = useState(false);
@@ -434,8 +431,7 @@ Return ONLY the font name.
       const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
       const font =
         fonts.find(
-          (f) =>
-            f.family.toLowerCase() === suggestedName.trim().toLowerCase(),
+          (f) => f.family.toLowerCase() === suggestedName.trim().toLowerCase(),
         ) || fonts[0];
       setSelectedFont(font.family);
     } catch (error) {
@@ -465,22 +461,42 @@ Return ONLY the font name.
   ): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Guard: max 5 images
     if (images.length >= 5) {
       toast.error("You can only upload up to 5 images.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
+
+    // Guard: type check
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    // Guard: size check (10 MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image must be under 10 MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setIsUploading(true);
     try {
       const response = await uploadWebsiteImages([file]);
-      if (response.success && response.data?.images) {
-        setImages([...images, ...response.data.images]);
-        toast.success("Image uploaded successfully");
+      console.log(response);
+      if (response.success && response.data?.images?.length) {
+        setImages((prev) => [...prev, ...response.data!.images]);
+        toast.success("Image uploaded!");
       } else {
-        toast.error(response.message || "Failed to upload image");
+        console.error("Upload response:", response);
+        toast.error(response.message || "Failed to upload image.");
       }
     } catch (error) {
       console.error("Upload error:", error);
-      toast.error("An unexpected error occurred during upload");
+      toast.error("An unexpected error occurred during upload.");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -509,7 +525,7 @@ Return ONLY the font name.
         images: images.map((img, i) => ({ ...img, order: i + 1 })),
         theme: selectedTheme.name,
         font: selectedFont,
-        primaryColor: "#6366f1",
+        primaryColor: selectedTheme.hex,
         countdownDate: new Date(
           Date.now() + 7 * 24 * 60 * 60 * 1000,
         ).toISOString(),

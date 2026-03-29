@@ -756,7 +756,6 @@ export default function PublicWebsitePage() {
   if (!website) return <ErrorScreen />;
 
   const accent = website.primaryColor || "#6366f1";
-  const occasionEmoji = OCCASION_EMOJI(website.occasion);
   const activeGift =
     website.giftIds?.find((g) => g.status !== "redeemed") ??
     website.giftIds?.[0];
@@ -784,7 +783,7 @@ export default function PublicWebsitePage() {
           {/* Top row */}
           <div className="flex items-center justify-between mb-8">
             <span
-              className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-1.5 rounded-full"
+              className="inline-flex items-center capitalize gap-2 bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-1.5 rounded-full"
               style={{ fontFamily: font }}
             >
               <HugeiconsIcon icon={SparklesIcon} size={11} color="white" />

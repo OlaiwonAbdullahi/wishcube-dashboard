@@ -19,6 +19,7 @@ import { FALLBACK_FONTS, useLoadFontPreview } from "@/lib/use-google-fonts";
 
 export interface Theme {
   name: string;
+  hex: string;       // actual CSS hex for primaryColor payload
   primary: string;
   secondary: string;
   textPrimary: string;
@@ -45,6 +46,7 @@ export interface GiftItem {
 export const THEMES: Theme[] = [
   {
     name: "corporate-blue",
+    hex: "#2563EB",
     primary: "bg-blue-600",
     secondary: "bg-blue-800",
     textPrimary: "text-blue-600",
@@ -56,6 +58,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "elegant-charcoal",
+    hex: "#374151",
     primary: "bg-gray-700",
     secondary: "bg-gray-900",
     textPrimary: "text-gray-700",
@@ -67,6 +70,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "emerald-success",
+    hex: "#059669",
     primary: "bg-emerald-600",
     secondary: "bg-emerald-800",
     textPrimary: "text-emerald-600",
@@ -78,6 +82,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "royal-purple",
+    hex: "#9333EA",
     primary: "bg-purple-600",
     secondary: "bg-purple-900",
     textPrimary: "text-purple-600",
@@ -89,6 +94,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "classic-maroon",
+    hex: "#991B1B",
     primary: "bg-red-800",
     secondary: "bg-red-900",
     textPrimary: "text-red-800",
@@ -100,6 +106,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "teal-professional",
+    hex: "#0D9488",
     primary: "bg-teal-600",
     secondary: "bg-teal-800",
     textPrimary: "text-teal-600",
@@ -111,6 +118,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "amber-accent",
+    hex: "#D97706",
     primary: "bg-amber-600",
     secondary: "bg-amber-800",
     textPrimary: "text-amber-600",
@@ -122,6 +130,7 @@ export const THEMES: Theme[] = [
   },
   {
     name: "indigo-modern",
+    hex: "#4F46E5",
     primary: "bg-indigo-600",
     secondary: "bg-indigo-900",
     textPrimary: "text-indigo-600",

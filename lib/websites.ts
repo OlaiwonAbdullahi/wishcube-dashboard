@@ -116,7 +116,7 @@ export const uploadWebsiteImages = async (
     const auth = getAuth();
     // Using the confirmed working products upload endpoint as a general purpose upload
     const response = await fetch(
-      "https://api.usewishcube.com/api/products/media-upload",
+      "https://api.usewishcube.com/api/products/upload",
       {
         method: "POST",
         headers: {
