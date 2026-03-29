@@ -177,7 +177,7 @@ export default function ProductDetailPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
           {/* ── Images ────────────────────────────────────────── */}
-          <div className="space-y-3 sticky top-6">
+          <div className="space-y-3 md:sticky top-6">
             <div className="aspect-square bg-[#F5F5F5] border-2 border-[#191A23] border-b-4 rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,0.18)] overflow-hidden relative">
               {product.images?.[activeImage]?.url ? (
                 <img
