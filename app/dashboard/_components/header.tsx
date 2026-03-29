@@ -1,9 +1,11 @@
 "use client";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  Banknote,
   Folder01Icon,
   Logout01Icon,
   ShoppingBasket03Icon,
+  Wallet01Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
@@ -104,6 +106,22 @@ export function DashboardHeader() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/wallet")}
+              className="cursor-pointer"
+            >
+              <HugeiconsIcon icon={Wallet01Icon} size={16} className="mr-2" />
+              Wallet
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/pricing")}
+              className="cursor-pointer"
+            >
+              <HugeiconsIcon icon={Banknote} size={16} className="mr-2" />
+              Pricing
+            </DropdownMenuItem>
+
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-red-600 cursor-pointer"
