@@ -503,11 +503,6 @@ export function CardCustomizer({
                   </Label>
                   <select
                     value={cardState.headlineSizeOverride || "null"}
-                    onChange={(e) => {
-                      const value =
-                        e.target.value === "null" ? null : e.target.value;
-                      updateStateAndSync({ headlineSizeOverride: value });
-                    }}
                     className="w-full border border-[#191A23]/20 rounded-lg bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#191A23] appearance-none"
                   >
                     <option value="null">Default</option>
