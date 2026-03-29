@@ -19,7 +19,7 @@ import { FALLBACK_FONTS, useLoadFontPreview } from "@/lib/use-google-fonts";
 
 export interface Theme {
   name: string;
-  hex: string;       // actual CSS hex for primaryColor payload
+  hex: string; // actual CSS hex for primaryColor payload
   primary: string;
   secondary: string;
   textPrimary: string;
@@ -346,7 +346,9 @@ export default function WebsiteForm({
               className="w-full rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
             />
           </div>
-          <p className="text-[9px] text-[#9151FF] font-bold">Upgrade to Pro to use a custom URL slug</p>
+          <p className="text-[9px] text-[#9151FF] font-bold">
+            Upgrade to Pro to use a custom URL slug
+          </p>
         </div>
       </div>
 
@@ -731,7 +733,7 @@ export default function WebsiteForm({
               />
             </button>
           </div>
-          <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3 mt-4">
+          <div className=" hidden items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3 mt-4">
             <div className="">
               <h2 className=" text-xl font-medium">Add Music</h2>
             </div>
@@ -762,6 +764,7 @@ export default function WebsiteForm({
               />
             </div>
           )}
+
           {addMusic && (
             <div className="">
               <Music

@@ -43,17 +43,26 @@ async function uploadAudioBlob(
     },
   );
 
-  if (!response.ok) {
-    throw new Error(`Upload failed: HTTP ${response.status}`);
-  }
-
+  // Read body once — response.json() can only be called once per response
   const json = await response.json();
-  if (!json.success || !json.data?.images?.[0]) {
-    throw new Error(json.message || "Upload returned no data");
+
+  if (!response.ok || !json.success) {
+    throw new Error(json.message || `Upload failed: HTTP ${response.status}`);
   }
 
-  const { url, publicId } = json.data.images[0];
-  return { url, publicId };
+  // Actual response shape: { data: { media: [{ url, publicId, ... }] } }
+  const raw = json.data ?? {};
+  const first =
+    raw.media?.[0] ??    // confirmed shape
+    raw.images?.[0] ??   // fallback
+    raw.files?.[0] ??    // fallback
+    (raw.url ? { url: raw.url, publicId: raw.publicId ?? raw.url } : null);
+
+  if (!first?.url) {
+    throw new Error("Upload returned no URL");
+  }
+
+  return { url: first.url, publicId: first.publicId ?? first.url };
 }
 
 /** Formats seconds as MM:SS */
@@ -226,7 +235,11 @@ export default function VoiceMessage({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={Mic01Icon} size={14} className="text-[#191A23]" />
+          <HugeiconsIcon
+            icon={Mic01Icon}
+            size={14}
+            className="text-[#191A23]"
+          />
           <h3 className="text-[10px] font-black uppercase tracking-widest text-[#191A23]">
             Voice Message
           </h3>
@@ -309,7 +322,9 @@ export default function VoiceMessage({
             <span className="text-xs font-black text-red-600">
               {fmt(elapsed)}
             </span>
-            <span className="text-[9px] text-red-400 font-medium">/ {fmt(MAX_SECONDS)}</span>
+            <span className="text-[9px] text-red-400 font-medium">
+              / {fmt(MAX_SECONDS)}
+            </span>
           </div>
           <p className="text-[9px] text-red-400 font-bold uppercase tracking-wider">
             Tap the button to stop
@@ -336,7 +351,9 @@ export default function VoiceMessage({
           </div>
 
           {error && (
-            <p className="text-[9px] text-red-500 font-bold text-center">{error}</p>
+            <p className="text-[9px] text-red-500 font-bold text-center">
+              {error}
+            </p>
           )}
 
           <div className="flex gap-2">
