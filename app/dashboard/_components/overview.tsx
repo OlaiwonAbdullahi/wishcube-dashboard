@@ -26,6 +26,8 @@ import { Badge } from "@/components/ui/badge";
 
 export const Overview = ({
   initialStats,
+  isPro = false,
+  tier = "free",
 }: {
   initialStats?: {
     cardsCount: number;
@@ -33,6 +35,8 @@ export const Overview = ({
     giftsCount: number;
     walletBalance: number;
   };
+  isPro?: boolean;
+  tier?: "free" | "pro" | "premium";
 }) => {
   const stats = {
     cards: initialStats?.cardsCount || 0,
@@ -41,13 +45,27 @@ export const Overview = ({
     gifts: initialStats?.giftsCount || 0,
   };
 
+  const proAccent =
+    tier === "premium" ? "#F59E0B" : tier === "pro" ? "#9151FF" : null;
+
   return (
     <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
       <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
-            Dashboard Overview
-          </h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
+              Dashboard Overview
+            </h1>
+            {isPro && proAccent && (
+              <span
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest text-white"
+                style={{ backgroundColor: proAccent }}
+              >
+                <HugeiconsIcon icon={AiMagicIcon} size={9} color="white" />
+                {tier}
+              </span>
+            )}
+          </div>
           <p className="text-sm text-neutral-600">
             Start something new or pick up from your recent activity.
           </p>
@@ -89,6 +107,7 @@ export const Overview = ({
           value={`₦${stats.wallet.toLocaleString()}`}
           hint="Total Funds"
           isLoading={!initialStats}
+          accent={isPro ? proAccent ?? undefined : undefined}
         />
         <KpiCard
           title="Gifts"
@@ -174,19 +193,34 @@ function KpiCard({
   value,
   hint,
   isLoading,
+  accent,
 }: {
   title: string;
   value: string;
   hint: string;
   isLoading?: boolean;
+  accent?: string;
 }) {
   return (
-    <Card className="shadow-none border border-[#191A23] border-b-4 bg-[#F3F3F3]">
+    <Card
+      className="shadow-none border border-[#191A23] border-b-4 bg-[#F3F3F3] overflow-hidden relative"
+      style={accent ? { borderColor: accent, borderBottomColor: accent } : {}}
+    >
+      {/* subtle colored top stripe for pro wallet */}
+      {accent && (
+        <div
+          className="absolute top-0 left-0 right-0 h-0.5"
+          style={{ backgroundColor: accent }}
+        />
+      )}
       <CardHeader className="pb-0">
         <CardDescription className="text-neutral-500 text-xs uppercase font-semibold">
           {title}
         </CardDescription>
-        <CardTitle className="text-3xl font-bold text-[#191A23]">
+        <CardTitle
+          className="text-3xl font-bold"
+          style={{ color: accent ?? "#191A23" }}
+        >
           {isLoading ? (
             <div className="h-10 w-36 bg-[#191A23]/10 rounded animate-pulse" />
           ) : (

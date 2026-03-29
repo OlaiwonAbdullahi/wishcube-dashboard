@@ -174,18 +174,50 @@ export default function PricingPage() {
         {statusLoading ? (
           <div className="h-14 rounded-sm border-2 border-[#191A23]/10 bg-white animate-pulse" />
         ) : subscription ? (
-          <div className="flex items-center gap-3 rounded-sm border-2 border-[#191A23] bg-[#191A23] text-white px-5 py-3">
+          <div
+            className="flex items-center gap-3 rounded-sm border-2 px-5 py-3"
+            style={{
+              borderColor:
+                subscription.tier === "premium"
+                  ? "#F59E0B"
+                  : subscription.tier === "pro"
+                    ? "#9151FF"
+                    : "#191A23",
+              background:
+                subscription.tier === "premium"
+                  ? "#FFFBEB"
+                  : subscription.tier === "pro"
+                    ? "#F5EEFF"
+                    : "#191A23",
+            }}
+          >
             <HugeiconsIcon
               icon={Crown02Icon}
               size={18}
-              color="white"
+              color={
+                subscription.tier === "premium"
+                  ? "#F59E0B"
+                  : subscription.tier === "pro"
+                    ? "#9151FF"
+                    : "white"
+              }
               strokeWidth={1.5}
             />
-            <span className="text-sm font-bold">
+            <span
+              className="text-sm font-bold"
+              style={{
+                color:
+                  subscription.tier === "premium"
+                    ? "#92400E"
+                    : subscription.tier === "pro"
+                      ? "#5B21B6"
+                      : "white",
+              }}
+            >
               Current plan:{" "}
               <span className="capitalize font-black">{subscription.tier}</span>
               {isActive && subscription.expiry && (
-                <span className="ml-2 font-normal text-white/60 text-xs">
+                <span className="ml-2 font-normal opacity-60 text-xs">
                   · Renews{" "}
                   {new Date(subscription.expiry).toLocaleDateString("en-NG", {
                     day: "numeric",
@@ -195,7 +227,7 @@ export default function PricingPage() {
                 </span>
               )}
               {!isActive && (
-                <span className="ml-2 px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 text-[10px] font-bold uppercase">
+                <span className="ml-2 px-2 py-0.5 rounded-full bg-red-500/20 text-red-500 text-[10px] font-bold uppercase">
                   {subscription.status}
                 </span>
               )}
@@ -222,17 +254,36 @@ export default function PricingPage() {
               currentTier === plan.id && (plan.id === "free" || isActive);
             const isThisLoading = subscribing === plan.id;
             const canUpgrade = plan.id !== "free";
+            // Accent color used for border glow + stripe when this is the current plan
+            const accentHex = plan.accentColor;
 
             return (
               <div
                 key={plan.id}
                 className={cn(
-                  "relative rounded-sm border-2 border-b-4 bg-white flex flex-col transition-all duration-200",
+                  "relative rounded-sm border-2 border-b-4 bg-white flex flex-col transition-all duration-200 overflow-hidden",
                   isCurrent
-                    ? "border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,0.25)]"
+                    ? "shadow-[0_0_0_3px]"
                     : "border-[#191A23]/20 border-b-[#191A23]/30 hover:border-[#191A23]/60 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,0.1)]",
                 )}
+                style={
+                  isCurrent
+                    ? {
+                        borderColor: accentHex,
+                        borderBottomColor: accentHex,
+                        boxShadow: `0 0 0 3px ${accentHex}22`,
+                      }
+                    : {}
+                }
               >
+                {/* Accent top stripe for current plan */}
+                {isCurrent && (
+                  <div
+                    className="absolute top-0 left-0 right-0 h-1"
+                    style={{ backgroundColor: accentHex }}
+                  />
+                )}
+
                 {/* Tag badge */}
                 {plan.tag && (
                   <div
@@ -322,11 +373,18 @@ export default function PricingPage() {
                   {/* CTA */}
                   <div className="pt-2">
                     {isCurrent ? (
-                      <div className="flex items-center justify-center gap-2 py-2.5 rounded-sm border-2 border-[#191A23] bg-[#F3F3F3] text-xs font-black text-[#191A23]">
+                      <div
+                        className="flex items-center justify-center gap-2 py-2.5 rounded-sm border-2 text-xs font-black"
+                        style={{
+                          borderColor: accentHex,
+                          color: accentHex,
+                          backgroundColor: plan.badgeColor,
+                        }}
+                      >
                         <HugeiconsIcon
                           icon={CheckmarkCircle02Icon}
                           size={14}
-                          color="#191A23"
+                          color={accentHex}
                           strokeWidth={2}
                         />
                         Current Plan

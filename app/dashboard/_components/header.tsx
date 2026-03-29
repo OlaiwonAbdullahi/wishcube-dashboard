@@ -6,6 +6,7 @@ import {
   Logout01Icon,
   ShoppingBasket03Icon,
   Wallet01Icon,
+  Crown02Icon,
 } from "@hugeicons/core-free-icons";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
@@ -22,20 +23,37 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import {
+  getSubscriptionStatus,
+  SubscriptionStatusData,
+} from "@/lib/subscriptions";
+import { cn } from "@/lib/utils";
+
+// Tier accent palette
+const TIER_STYLES: Record<
+  string,
+  { label: string; ring: string; badge: string; text: string }
+> = {
+  pro: {
+    label: "Pro",
+    ring: "ring-2 ring-[#9151FF]/50",
+    badge: "bg-[#9151FF] text-white",
+    text: "text-[#9151FF]",
+  },
+  premium: {
+    label: "Premium",
+    ring: "ring-2 ring-[#F59E0B]/60",
+    badge: "bg-[#F59E0B] text-white",
+    text: "text-[#F59E0B]",
+  },
+};
 
 export function DashboardHeader() {
   const [user, setUser] = useState<User | null>(null);
   const [balance, setBalance] = useState<number | null>(null);
+  const [subscription, setSubscription] =
+    useState<SubscriptionStatusData | null>(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const auth = getAuth();
-    if (auth) {
-      queueMicrotask(() => setUser(auth.user));
-      // eslint-disable-next-line react-hooks/immutability
-      fetchBalance();
-    }
-  }, []);
 
   const fetchBalance = async () => {
     const res = await getWalletBalance();
@@ -44,10 +62,34 @@ export function DashboardHeader() {
     }
   };
 
+  const fetchSubscription = async () => {
+    const res = await getSubscriptionStatus();
+    if (res.success && res.data) {
+      setSubscription(res.data);
+    }
+  };
+
+  useEffect(() => {
+    const auth = getAuth();
+    if (auth) {
+      queueMicrotask(() => setUser(auth.user));
+      // eslint-disable-next-line react-hooks/immutability
+      fetchBalance();
+      fetchSubscription();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleLogout = () => {
     clearAuth();
     router.push("/");
   };
+
+  const isPro =
+    subscription?.status === "active" &&
+    (subscription?.tier === "pro" || subscription?.tier === "premium");
+  const tier = subscription?.tier ?? "free";
+  const tierStyle = TIER_STYLES[tier];
 
   return (
     <header className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3 border-b bg-card sticky top-0 z-10 w-full shrink-0">
@@ -61,6 +103,19 @@ export function DashboardHeader() {
           />
           <span className="text-sm font-medium">Dashboard</span>
         </div>
+
+        {/* PRO / Premium tier badge in breadcrumb area */}
+        {isPro && tierStyle && (
+          <div
+            className={cn(
+              "hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest",
+              tierStyle.badge,
+            )}
+          >
+            <HugeiconsIcon icon={Crown02Icon} size={9} color="white" />
+            {tierStyle.label}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
@@ -88,9 +143,15 @@ export function DashboardHeader() {
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="relative font-space h-8 w-8 rounded-full"
+              className="relative font-space h-8 w-8 rounded-full p-0"
             >
-              <Avatar className="h-8 w-8">
+              {/* Avatar with tier ring */}
+              <Avatar
+                className={cn(
+                  "h-8 w-8 transition-all",
+                  isPro && tierStyle ? tierStyle.ring : "",
+                )}
+              >
                 <AvatarImage
                   src={
                     user?.avatar ||
@@ -100,12 +161,36 @@ export function DashboardHeader() {
                 />
                 <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
+
+              {/* Crown pip on avatar */}
+              {isPro && (
+                <span
+                  className={cn(
+                    "absolute -top-1 -right-1 size-3.5 rounded-full flex items-center justify-center border border-white",
+                    tierStyle?.badge,
+                  )}
+                >
+                  <HugeiconsIcon icon={Crown02Icon} size={7} color="white" />
+                </span>
+              )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">{user?.name}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  {isPro && tierStyle && (
+                    <span
+                      className={cn(
+                        "px-1.5 py-0.5 rounded-sm text-[8px] font-black uppercase tracking-wider",
+                        tierStyle.badge,
+                      )}
+                    >
+                      {tierStyle.label}
+                    </span>
+                  )}
+                </div>
                 <p className="text-xs leading-none text-muted-foreground">
                   {user?.email}
                 </p>
@@ -125,7 +210,7 @@ export function DashboardHeader() {
               className="cursor-pointer"
             >
               <HugeiconsIcon icon={Banknote} size={16} className="mr-2" />
-              Pricing
+              {isPro ? "Manage Plan" : "Upgrade to Pro"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

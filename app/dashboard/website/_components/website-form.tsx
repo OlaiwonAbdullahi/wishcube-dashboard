@@ -12,7 +12,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Gift from "./gift";
+import GiftSelector from "./gift";
 import Music from "./music";
 import VoiceMessage from "./voiceMessage";
 import { FALLBACK_FONTS, useLoadFontPreview } from "@/lib/use-google-fonts";
@@ -218,9 +218,8 @@ interface WebsiteFormProps {
   suggestGifts: () => void;
   isSuggestingGifts: boolean;
   giftSuggestions: string[];
-  gifts: GiftItem[];
-  selectedGift: string | null;
-  setSelectedGift: (id: string | null) => void;
+  selectedGiftId: string | null;
+  setSelectedGiftId: (id: string | null) => void;
   selectedMusic: any | null;
   setSelectedMusic: (track: any) => void;
   setIsPreviewMode: (val: boolean) => void;
@@ -272,9 +271,8 @@ export default function WebsiteForm({
   suggestGifts,
   isSuggestingGifts,
   giftSuggestions,
-  gifts,
-  selectedGift,
-  setSelectedGift,
+  selectedGiftId,
+  setSelectedGiftId,
   selectedMusic,
   setSelectedMusic,
   setIsPreviewMode,
@@ -314,18 +312,24 @@ export default function WebsiteForm({
         <div className="flex flex-col space-y-1.5">
           <label
             htmlFor="customSlug"
-            className="text-[10px] font-bold uppercase text-[#191A23]"
+            className="text-[10px] font-bold uppercase text-[#191A23] flex items-center gap-2"
           >
-            Custom Slug (Optional)
+            Custom Slug
+            <span className="px-1.5 py-0.5 bg-[#9151FF] text-white text-[8px] font-black uppercase rounded-sm tracking-wider">
+              PRO
+            </span>
           </label>
-          <input
-            type="text"
-            id="customSlug"
-            value={customSlug}
-            onChange={(e) => setCustomSlug(e.target.value)}
-            placeholder="e.g. happy-birthday-john"
-            className="rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              id="customSlug"
+              value={customSlug}
+              onChange={(e) => setCustomSlug(e.target.value)}
+              placeholder="e.g. happy-birthday-john"
+              className="w-full rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
+            />
+          </div>
+          <p className="text-[9px] text-[#9151FF] font-bold">Upgrade to Pro to use a custom URL slug</p>
         </div>
       </div>
 
@@ -379,15 +383,20 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Password Protection */}
-      <div className="p-4 border-2 border-[#191A23] rounded-sm bg-[#F3F3F3] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] space-y-4">
+      {/* Password Protection — PRO */}
+      <div className="p-4 border-2 border-[#9151FF]/30 rounded-sm bg-[#F3F3F3] shadow-[4px_4px_0px_0px_rgba(145,81,255,0.25)] space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-sm font-black uppercase text-[#191A23]">
-              Password Protection
-            </span>
-            <span className="text-[10px] font-bold text-neutral-500 uppercase">
-              Restrict access with a password
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black uppercase text-[#191A23]">
+                Password Protection
+              </span>
+              <span className="px-1.5 py-0.5 bg-[#9151FF] text-white text-[8px] font-black uppercase rounded-sm tracking-wider">
+                PRO
+              </span>
+            </div>
+            <span className="text-[9px] font-bold text-[#9151FF]">
+              Upgrade to Pro to restrict access with a password
             </span>
           </div>
           <button
@@ -730,10 +739,9 @@ export default function WebsiteForm({
         <div className="space-y-3">
           {isOn && (
             <div className="">
-              <Gift
-                gifts={gifts}
-                onSelectGift={setSelectedGift}
-                selectedGift={selectedGift}
+              <GiftSelector
+                selectedGiftId={selectedGiftId}
+                onSelectGift={setSelectedGiftId}
               />
             </div>
           )}

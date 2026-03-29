@@ -24,13 +24,12 @@ import {
   uploadWebsiteImages,
   deleteWebsite,
 } from "@/lib/websites";
-import { verifyGiftPayment, purchaseGift } from "@/lib/gifts";
+import { verifyGiftPayment } from "@/lib/gifts";
 import { useRouter, useSearchParams } from "next/navigation";
 import { callAI } from "@/lib/ai";
 import WebsiteForm, {
   THEMES,
   Theme,
-  GiftItem,
 } from "./_components/website-form";
 import WebsitePreview from "./_components/website-preview";
 import { cn } from "@/lib/utils";
@@ -264,7 +263,7 @@ const Generator: React.FC = () => {
   );
   const [isPasswordProtected, setIsPasswordProtected] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [selectedGift, setSelectedGift] = useState<string | null>(null);
+  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
   const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
   const [greetingId, setGreetingId] = useState<string>("");
   const [isOn, setIsOn] = useState(false);
@@ -490,37 +489,6 @@ Return ONLY the font name.
     setImages(images.filter((_, i) => i !== index));
   };
 
-  const gifts: GiftItem[] = [
-    {
-      id: "flower",
-      name: "Flower",
-      price: 500,
-      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-pink-600" />,
-      bgColor: "bg-pink-100",
-    },
-    {
-      id: "ice-cream",
-      name: "Ice Cream",
-      price: 500,
-      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-teal-600" />,
-      bgColor: "bg-teal-100",
-    },
-    {
-      id: "cupcake",
-      name: "Cupcake",
-      price: 750,
-      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-purple-600" />,
-      bgColor: "bg-purple-100",
-    },
-    {
-      id: "frozen-yogurt",
-      name: "Frozen Yogurt",
-      price: 650,
-      icon: <HugeiconsIcon icon={Edit01Icon} size={24} className="text-blue-600" />,
-      bgColor: "bg-blue-100",
-    },
-  ];
-
   const copyGreetingLink = async (): Promise<void> => {
     if (!recipientName) {
       toast.error("Please enter a recipient name.");
@@ -547,6 +515,7 @@ Return ONLY the font name.
         password: isPasswordProtected ? password : null,
         customSlug: customSlug || undefined,
         expiresAt: new Date(expiresAt).toISOString(),
+        giftIds: selectedGiftId ? [selectedGiftId] : [],
       };
 
       const res = await createWebsite(websiteData);
@@ -555,29 +524,12 @@ Return ONLY the font name.
         const websiteId = res.data.website._id;
         setGreetingId(websiteId);
 
-        if (selectedGift) {
-          const giftInfo = gifts.find((g) => g.id === selectedGift);
-          if (giftInfo) {
-            const giftRes = await purchaseGift({
-              websiteId,
-              type: "digital",
-              amount: giftInfo.price,
-              paymentMethod: "paystack",
-              giftMessage: customMessage || message || "Enjoy your gift!",
-            });
-            if (giftRes.success && giftRes.data) {
-              toast.success(
-                "Website created and gift attached! Redirecting to payment...",
-              );
-              window.location.href = giftRes.data.paymentUrl ?? "";
-              return;
-            } else {
-              toast.error(
-                giftRes.message ||
-                  "Failed to attach gift, but website was created.",
-              );
-            }
-          }
+        if (selectedGiftId) {
+          toast.success("Website created with gift linked!");
+          const baseUrl = window.location.origin;
+          const previewUrl = `${baseUrl}/preview/${websiteId}`;
+          await navigator.clipboard.writeText(previewUrl);
+          return;
         }
 
         const baseUrl = window.location.origin;
@@ -680,9 +632,8 @@ Return ONLY the font name.
           suggestGifts={suggestGifts}
           isSuggestingGifts={isSuggestingGifts}
           giftSuggestions={giftSuggestions}
-          gifts={gifts}
-          selectedGift={selectedGift}
-          setSelectedGift={setSelectedGift}
+          selectedGiftId={selectedGiftId}
+          setSelectedGiftId={setSelectedGiftId}
           selectedMusic={selectedMusic}
           setSelectedMusic={setSelectedMusic}
           setIsPreviewMode={() => {}}
