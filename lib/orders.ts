@@ -28,12 +28,15 @@ export interface StatusHistoryEntry {
 }
 
 export type OrderStatus =
+  | "pending"
   | "processing"
   | "shipped"
   | "delivered"
   | "cancelled";
 
 export interface Order {
+  customerName: string;
+  customerId: any;
   _id: string;
   giftId: string;
   vendorId: string;
