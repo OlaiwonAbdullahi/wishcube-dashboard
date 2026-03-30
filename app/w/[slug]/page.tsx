@@ -46,6 +46,7 @@ interface GiftInfo {
   status: string;
   escrowStatus?: string;
   expiresAt?: string;
+  redeemToken?: string;
   productSnapshot?: ProductSnapshot | null;
   productId?: any;
 }
@@ -616,6 +617,50 @@ function GiftCard({
   const storeName = gift.productSnapshot?.storeName || "WishCube Marketplace";
   const isRedeemed = gift.status === "redeemed";
 
+  /* ── Compact card for already-redeemed gifts ── */
+  if (isRedeemed) {
+    return (
+      <div
+        className="flex items-center gap-3 px-4 py-3 rounded-2xl border"
+        style={{ borderColor: accent + "25", background: accent + "06" }}
+      >
+        {img ? (
+          <img
+            src={img}
+            alt={name}
+            className="size-10 rounded-xl object-cover shrink-0"
+          />
+        ) : (
+          <div
+            className="size-10 rounded-xl flex items-center justify-center shrink-0"
+            style={{ background: accent + "15" }}
+          >
+            <HugeiconsIcon icon={GiftIcon} size={18} color={accent} />
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <p
+            className="text-sm font-semibold text-slate-700 truncate"
+            style={{ fontFamily: font }}
+          >
+            {name}
+          </p>
+          <p
+            className="text-xs text-slate-400 truncate"
+            style={{ fontFamily: font }}
+          >
+            from {storeName}
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shrink-0 bg-emerald-50 text-emerald-600">
+          <HugeiconsIcon icon={Tick01Icon} size={10} color="#16a34a" />
+          Redeemed
+        </span>
+      </div>
+    );
+  }
+
+  /* ── Full card for active / pending gifts ── */
   return (
     <div
       className="rounded-2xl overflow-hidden shadow-sm"
@@ -683,29 +728,14 @@ function GiftCard({
 
         <button
           onClick={onRedeem}
-          disabled={isRedeemed}
-          className={cn(
-            "mt-4 w-full py-3 rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2",
-            isRedeemed
-              ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-              : "text-white hover:opacity-90 active:scale-[0.98]",
-          )}
-          style={isRedeemed ? {} : { background: accent, fontFamily: font }}
+          className="mt-4 w-full py-3 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98]"
+          style={{ background: accent, fontFamily: font }}
         >
-          {isRedeemed ? (
-            <>
-              <HugeiconsIcon icon={Tick01Icon} size={14} color="#94a3b8" />
-              Already Redeemed
-            </>
-          ) : (
-            <>
-              Redeem My Gift
-              <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="white" />
-            </>
-          )}
+          Redeem My Gift
+          <HugeiconsIcon icon={ArrowRight01Icon} size={14} color="white" />
         </button>
 
-        {gift.expiresAt && !isRedeemed && (
+        {gift.expiresAt && (
           <p
             className="text-center text-[11px] text-slate-400 mt-2"
             style={{ fontFamily: font }}
@@ -1095,11 +1125,14 @@ export default function PublicWebsitePage() {
   };
 
   const handleRedeem = async (payload: RedeemPayload) => {
-    const giftId = activeGift?._id;
-    if (!giftId) return;
+    const token = activeGift?.redeemToken;
+    if (!token) {
+      toast.error("Missing redeem token — cannot process this gift.");
+      return;
+    }
     setIsRedeeming(true);
     try {
-      const res = await redeemGift(giftId, payload);
+      const res = await redeemGift(token, payload);
       if (res.success) {
         toast.success("Gift redeemed! 🎉");
         setShowRedeemModal(false);
@@ -1419,7 +1452,10 @@ export default function PublicWebsitePage() {
               />
               <div
                 className="rounded-xl p-4 space-y-2"
-                style={{ background: accent + "0D", border: `1px solid ${accent}25` }}
+                style={{
+                  background: accent + "0D",
+                  border: `1px solid ${accent}25`,
+                }}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -1441,10 +1477,13 @@ export default function PublicWebsitePage() {
                         style={{ fontFamily: font }}
                       >
                         Sent{" "}
-                        {new Date(website.recipientReply.repliedAt).toLocaleDateString(
-                          "en-NG",
-                          { day: "numeric", month: "long", year: "numeric" },
-                        )}
+                        {new Date(
+                          website.recipientReply.repliedAt,
+                        ).toLocaleDateString("en-NG", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
                       </p>
                     )}
                   </div>
