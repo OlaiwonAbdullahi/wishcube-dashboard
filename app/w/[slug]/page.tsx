@@ -73,7 +73,7 @@ interface WebsiteData {
   publicUrl?: string;
   views?: number;
   reaction?: { emoji?: string | null };
-  recipientReply?: { message?: string | null };
+  recipientReply?: { message?: string | null; repliedAt?: string | null };
   expiresAt?: string;
 }
 
@@ -740,30 +740,63 @@ const BANKS = [
   { name: "Moniepoint", code: "50515" },
 ];
 
+type BankDetails = {
+  accountName: string;
+  accountNumber: string;
+  bankCode: string;
+  bankName: string;
+};
+type DeliveryAddress = {
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+};
+type RedeemPayload =
+  | { bankDetails: BankDetails }
+  | { deliveryAddress: DeliveryAddress };
+
 function RedeemModal({
   accent,
   font,
+  giftType,
   onClose,
   onSubmit,
   isLoading,
 }: {
   accent: string;
   font: string;
+  giftType: string;
   onClose: () => void;
-  onSubmit: (d: {
-    accountName: string;
-    accountNumber: string;
-    bankCode: string;
-    bankName: string;
-  }) => void;
+  onSubmit: (payload: RedeemPayload) => void;
   isLoading: boolean;
 }) {
-  const [form, setForm] = useState({
+  const isPhysical = giftType === "physical";
+
+  const [bank, setBank] = useState<BankDetails>({
     accountName: "",
     accountNumber: "",
     bankCode: "058",
     bankName: "GTBank",
   });
+
+  const [delivery, setDelivery] = useState<DeliveryAddress>({
+    fullName: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isPhysical) {
+      onSubmit({ deliveryAddress: delivery });
+    } else {
+      onSubmit({ bankDetails: bank });
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
@@ -771,6 +804,7 @@ function RedeemModal({
         className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
         style={{ fontFamily: font }}
       >
+        {/* Header */}
         <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100">
           <div className="flex items-center gap-3">
             <div
@@ -784,7 +818,9 @@ function RedeemModal({
                 Redeem Your Gift
               </h3>
               <p className="text-xs text-slate-400">
-                Enter your bank details to receive funds
+                {isPhysical
+                  ? "Enter your delivery address"
+                  : "Enter your bank details to receive funds"}
               </p>
             </div>
           </div>
@@ -796,67 +832,131 @@ function RedeemModal({
           </button>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmit(form);
-          }}
-          className="p-6 space-y-4"
-        >
-          {[
-            {
-              id: "accountName",
-              label: "Account Name",
-              type: "text",
-              placeholder: "Full name as on account",
-            },
-            {
-              id: "accountNumber",
-              label: "Account Number",
-              type: "text",
-              placeholder: "10-digit number",
-              maxLength: 10,
-            },
-          ].map(({ id, label, type, placeholder, maxLength }) => (
-            <div key={id} className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-600">
-                {label}
-              </label>
-              <input
-                type={type}
-                required
-                maxLength={maxLength}
-                value={(form as any)[id]}
-                onChange={(e) => setForm({ ...form, [id]: e.target.value })}
-                placeholder={placeholder}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 text-sm transition-all"
-                style={{ fontFamily: font }}
-              />
-            </div>
-          ))}
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600">Bank</label>
-            <select
-              value={form.bankName}
-              onChange={(e) => {
-                const bank = BANKS.find((b) => b.name === e.target.value);
-                setForm({
-                  ...form,
-                  bankName: e.target.value,
-                  bankCode: bank?.code ?? "058",
-                });
-              }}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none text-sm bg-white appearance-none cursor-pointer"
-              style={{ fontFamily: font }}
-            >
-              {BANKS.map((b) => (
-                <option key={b.code} value={b.name}>
-                  {b.name}
-                </option>
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {isPhysical ? (
+            /* ── Physical: delivery address ── */
+            <>
+              {(
+                [
+                  {
+                    id: "fullName",
+                    label: "Full Name",
+                    placeholder: "Recipient's full name",
+                  },
+                  {
+                    id: "phone",
+                    label: "Phone Number",
+                    placeholder: "08012345678",
+                  },
+                  {
+                    id: "address",
+                    label: "Street Address",
+                    placeholder: "House number, street name",
+                  },
+                  { id: "city", label: "City", placeholder: "City" },
+                  { id: "state", label: "State", placeholder: "State" },
+                ] as {
+                  id: keyof DeliveryAddress;
+                  label: string;
+                  placeholder: string;
+                }[]
+              ).map(({ id, label, placeholder }) => (
+                <div key={id} className="space-y-1.5">
+                  <label
+                    className="text-xs font-semibold text-slate-600"
+                    style={{ fontFamily: font }}
+                  >
+                    {label}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={delivery[id]}
+                    onChange={(e) =>
+                      setDelivery({ ...delivery, [id]: e.target.value })
+                    }
+                    placeholder={placeholder}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 text-sm transition-all"
+                    style={{ fontFamily: font }}
+                  />
+                </div>
               ))}
-            </select>
-          </div>
+            </>
+          ) : (
+            /* ── Digital: bank details ── */
+            <>
+              {(
+                [
+                  {
+                    id: "accountName",
+                    label: "Account Name",
+                    type: "text",
+                    placeholder: "Full name as on account",
+                  },
+                  {
+                    id: "accountNumber",
+                    label: "Account Number",
+                    type: "text",
+                    placeholder: "10-digit number",
+                    maxLength: 10,
+                  },
+                ] as {
+                  id: keyof BankDetails;
+                  label: string;
+                  type: string;
+                  placeholder: string;
+                  maxLength?: number;
+                }[]
+              ).map(({ id, label, type, placeholder, maxLength }) => (
+                <div key={id} className="space-y-1.5">
+                  <label
+                    className="text-xs font-semibold text-slate-600"
+                    style={{ fontFamily: font }}
+                  >
+                    {label}
+                  </label>
+                  <input
+                    type={type}
+                    required
+                    maxLength={maxLength}
+                    value={bank[id]}
+                    onChange={(e) => setBank({ ...bank, [id]: e.target.value })}
+                    placeholder={placeholder}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 text-sm transition-all"
+                    style={{ fontFamily: font }}
+                  />
+                </div>
+              ))}
+
+              <div className="space-y-1.5">
+                <label
+                  className="text-xs font-semibold text-slate-600"
+                  style={{ fontFamily: font }}
+                >
+                  Bank
+                </label>
+                <select
+                  value={bank.bankName}
+                  onChange={(e) => {
+                    const b = BANKS.find((x) => x.name === e.target.value);
+                    setBank({
+                      ...bank,
+                      bankName: e.target.value,
+                      bankCode: b?.code ?? "058",
+                    });
+                  }}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none text-sm bg-white appearance-none cursor-pointer"
+                  style={{ fontFamily: font }}
+                >
+                  {BANKS.map((b) => (
+                    <option key={b.code} value={b.name}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
 
           <button
             type="submit"
@@ -876,7 +976,7 @@ function RedeemModal({
               </>
             ) : (
               <>
-                Confirm Redemption
+                {isPhysical ? "Confirm Delivery Address" : "Confirm Redemption"}
                 <HugeiconsIcon
                   icon={ArrowRight01Icon}
                   size={14}
@@ -994,17 +1094,12 @@ export default function PublicWebsitePage() {
     }
   };
 
-  const handleRedeem = async (details: {
-    accountName: string;
-    accountNumber: string;
-    bankCode: string;
-    bankName: string;
-  }) => {
-    const giftId = website?.giftIds?.[0]?._id;
+  const handleRedeem = async (payload: RedeemPayload) => {
+    const giftId = activeGift?._id;
     if (!giftId) return;
     setIsRedeeming(true);
     try {
-      const res = await redeemGift(giftId, { bankDetails: details });
+      const res = await redeemGift(giftId, payload);
       if (res.success) {
         toast.success("Gift redeemed! 🎉");
         setShowRedeemModal(false);
@@ -1313,61 +1408,116 @@ export default function PublicWebsitePage() {
 
         {/* Reply */}
         <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 space-y-4">
-          <SectionLabel
-            icon={SentIcon}
-            label="Send a Reply"
-            accent={accent}
-            font={font}
-          />
-          {replySent ? (
-            <div
-              className="flex items-center gap-3 p-4 rounded-xl"
-              style={{
-                background: accent + "12",
-                border: `1px solid ${accent}30`,
-              }}
-            >
-              <HugeiconsIcon icon={Tick01Icon} size={18} color={accent} />
-              <p
-                className="text-sm font-medium text-slate-700"
-                style={{ fontFamily: font }}
-              >
-                Your reply was sent successfully!
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleReply} className="space-y-3">
-              <textarea
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-                placeholder="Write a heartfelt thank you…"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 min-h-[100px] text-sm text-slate-700 resize-none transition-all"
-                style={{ fontFamily: font }}
+          {/* Already replied (loaded from API) */}
+          {website.recipientReply?.message ? (
+            <>
+              <SectionLabel
+                icon={SentIcon}
+                label="Your Reply"
+                accent={accent}
+                font={font}
               />
-              <button
-                type="submit"
-                disabled={isSubmittingReply || !reply.trim()}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 ml-auto"
-                style={{ background: accent, fontFamily: font }}
+              <div
+                className="rounded-xl p-4 space-y-2"
+                style={{ background: accent + "0D", border: `1px solid ${accent}25` }}
               >
-                {isSubmittingReply ? (
-                  <>
-                    <HugeiconsIcon
-                      icon={Loading03Icon}
-                      size={14}
-                      color="white"
-                      className="animate-spin"
-                    />
-                    Sending…
-                  </>
-                ) : (
-                  <>
+                <div className="flex items-start gap-3">
+                  <div
+                    className="size-8 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                    style={{ background: accent }}
+                  >
                     <HugeiconsIcon icon={SentIcon} size={14} color="white" />
-                    Send Reply
-                  </>
-                )}
-              </button>
-            </form>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className="text-sm leading-relaxed text-slate-700 whitespace-pre-line"
+                      style={{ fontFamily: font }}
+                    >
+                      {website.recipientReply.message}
+                    </p>
+                    {website.recipientReply.repliedAt && (
+                      <p
+                        className="text-[10px] text-slate-400 mt-1"
+                        style={{ fontFamily: font }}
+                      >
+                        Sent{" "}
+                        {new Date(website.recipientReply.repliedAt).toLocaleDateString(
+                          "en-NG",
+                          { day: "numeric", month: "long", year: "numeric" },
+                        )}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : replySent ? (
+            /* Just sent in this session */
+            <>
+              <SectionLabel
+                icon={SentIcon}
+                label="Your Reply"
+                accent={accent}
+                font={font}
+              />
+              <div
+                className="flex items-center gap-3 p-4 rounded-xl"
+                style={{
+                  background: accent + "12",
+                  border: `1px solid ${accent}30`,
+                }}
+              >
+                <HugeiconsIcon icon={Tick01Icon} size={18} color={accent} />
+                <p
+                  className="text-sm font-medium text-slate-700"
+                  style={{ fontFamily: font }}
+                >
+                  Your reply was sent successfully!
+                </p>
+              </div>
+            </>
+          ) : (
+            /* No reply yet — show the form */
+            <>
+              <SectionLabel
+                icon={SentIcon}
+                label="Send a Reply"
+                accent={accent}
+                font={font}
+              />
+              <form onSubmit={handleReply} className="space-y-3">
+                <textarea
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder="Write a heartfelt thank you…"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 min-h-[100px] text-sm text-slate-700 resize-none transition-all"
+                  style={{ fontFamily: font }}
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmittingReply || !reply.trim()}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 ml-auto"
+                  style={{ background: accent, fontFamily: font }}
+                >
+                  {isSubmittingReply ? (
+                    <>
+                      <HugeiconsIcon
+                        icon={Loading03Icon}
+                        size={14}
+                        color="white"
+                        className="animate-spin"
+                      />
+                      Sending…
+                    </>
+                  ) : (
+                    <>
+                      <HugeiconsIcon icon={SentIcon} size={14} color="white" />
+                      Send Reply
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
           )}
         </div>
 
@@ -1409,10 +1559,11 @@ export default function PublicWebsitePage() {
       </div>
 
       {/* Redeem Modal */}
-      {showRedeemModal && (
+      {showRedeemModal && activeGift && (
         <RedeemModal
           accent={accent}
           font={font}
+          giftType={activeGift.type}
           onClose={() => setShowRedeemModal(false)}
           onSubmit={handleRedeem}
           isLoading={isRedeeming}
