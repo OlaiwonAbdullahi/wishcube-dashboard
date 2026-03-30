@@ -6,9 +6,7 @@ import {
   SparklesIcon,
   ClipboardIcon,
   CloudUploadIcon,
-  AiImageIcon,
   MagicWand01Icon,
-  GiftIcon,
 } from "@hugeicons/core-free-icons";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,15 +17,7 @@ import { FALLBACK_FONTS, useLoadFontPreview } from "@/lib/use-google-fonts";
 
 export interface Theme {
   name: string;
-  hex: string; // actual CSS hex for primaryColor payload
-  primary: string;
-  secondary: string;
-  textPrimary: string;
-  textSecondary: string;
-  bgNeutral: string;
-  textNeutral: string;
-  bgAccent?: string;
-  hoverAccent?: string;
+  hex: string;
 }
 
 export interface Occasion {
@@ -44,102 +34,30 @@ export interface GiftItem {
 }
 
 export const THEMES: Theme[] = [
-  {
-    name: "corporate-blue",
-    hex: "#2563EB",
-    primary: "bg-blue-600",
-    secondary: "bg-blue-800",
-    textPrimary: "text-blue-600",
-    textSecondary: "text-blue-800",
-    bgNeutral: "bg-gray-50",
-    textNeutral: "text-gray-50",
-    bgAccent: "bg-blue-100",
-    hoverAccent: "hover:bg-blue-100",
-  },
-  {
-    name: "elegant-charcoal",
-    hex: "#374151",
-    primary: "bg-gray-700",
-    secondary: "bg-gray-900",
-    textPrimary: "text-gray-700",
-    textSecondary: "text-gray-900",
-    bgNeutral: "bg-gray-100",
-    textNeutral: "text-gray-100",
-    bgAccent: "bg-gray-200",
-    hoverAccent: "hover:bg-gray-200",
-  },
-  {
-    name: "emerald-success",
-    hex: "#059669",
-    primary: "bg-emerald-600",
-    secondary: "bg-emerald-800",
-    textPrimary: "text-emerald-600",
-    textSecondary: "text-emerald-800",
-    bgNeutral: "bg-white",
-    textNeutral: "text-white",
-    bgAccent: "bg-emerald-100",
-    hoverAccent: "hover:bg-emerald-100",
-  },
-  {
-    name: "royal-purple",
-    hex: "#9333EA",
-    primary: "bg-purple-600",
-    secondary: "bg-purple-900",
-    textPrimary: "text-purple-600",
-    textSecondary: "text-purple-900",
-    bgNeutral: "bg-gray-50",
-    textNeutral: "text-gray-50",
-    bgAccent: "bg-purple-100",
-    hoverAccent: "hover:bg-purple-100",
-  },
-  {
-    name: "classic-maroon",
-    hex: "#991B1B",
-    primary: "bg-red-800",
-    secondary: "bg-red-900",
-    textPrimary: "text-red-800",
-    textSecondary: "text-red-900",
-    bgNeutral: "bg-gray-100",
-    textNeutral: "text-gray-100",
-    bgAccent: "bg-red-100",
-    hoverAccent: "hover:bg-red-100",
-  },
-  {
-    name: "teal-professional",
-    hex: "#0D9488",
-    primary: "bg-teal-600",
-    secondary: "bg-teal-800",
-    textPrimary: "text-teal-600",
-    textSecondary: "text-teal-800",
-    bgNeutral: "bg-white",
-    textNeutral: "text-white",
-    bgAccent: "bg-teal-100",
-    hoverAccent: "hover:bg-teal-100",
-  },
-  {
-    name: "amber-accent",
-    hex: "#D97706",
-    primary: "bg-amber-600",
-    secondary: "bg-amber-800",
-    textPrimary: "text-amber-600",
-    textSecondary: "text-amber-800",
-    bgNeutral: "bg-gray-50",
-    textNeutral: "text-gray-50",
-    bgAccent: "bg-amber-100",
-    hoverAccent: "hover:bg-amber-100",
-  },
-  {
-    name: "indigo-modern",
-    hex: "#4F46E5",
-    primary: "bg-indigo-600",
-    secondary: "bg-indigo-900",
-    textPrimary: "text-indigo-600",
-    textSecondary: "text-indigo-900",
-    bgNeutral: "bg-white",
-    textNeutral: "text-white",
-    bgAccent: "bg-indigo-100",
-    hoverAccent: "hover:bg-indigo-100",
-  },
+  { name: "corporate-blue", hex: "#2563EB" },
+  { name: "elegant-charcoal", hex: "#374151" },
+  { name: "emerald-success", hex: "#059669" },
+  { name: "royal-purple", hex: "#9333EA" },
+  { name: "classic-maroon", hex: "#991B1B" },
+  { name: "teal-professional", hex: "#0D9488" },
+  { name: "amber-accent", hex: "#D97706" },
+  { name: "indigo-modern", hex: "#4F46E5" },
+  { name: "rose-romantic", hex: "#E11D48" },
+  { name: "midnight-navy", hex: "#1E3A5F" },
+  { name: "sunset-orange", hex: "#EA580C" },
+  { name: "forest-green", hex: "#166534" },
+  { name: "blush-pink", hex: "#DB2777" },
+  { name: "cyber-violet", hex: "#7C3AED" },
+  { name: "gold-luxury", hex: "#B45309" },
+  { name: "slate-minimal", hex: "#475569" },
+  { name: "deep-crimson", hex: "#B91C1C" },
+  { name: "ocean-cyan", hex: "#0891B2" },
+  { name: "warm-sand", hex: "#92400E" },
+  { name: "neon-lime", hex: "#4D7C0F" },
+  { name: "lavender-dream", hex: "#A78BFA" },
+  { name: "steel-blue", hex: "#0369A1" },
+  { name: "earth-brown", hex: "#78350F" },
+  { name: "mint-fresh", hex: "#10B981" },
 ];
 
 export const OCCASIONS: Occasion[] = [
@@ -154,6 +72,112 @@ export const OCCASIONS: Occasion[] = [
   { value: "holiday", label: "Holiday" },
   { value: "other", label: "Other" },
 ];
+
+function ThemePicker({
+  selectedTheme,
+  setSelectedTheme,
+}: {
+  selectedTheme: Theme;
+  setSelectedTheme: (t: Theme) => void;
+}) {
+  const [showPicker, setShowPicker] = React.useState(false);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-[10px] font-bold uppercase text-[#191A23]">
+        Colour Theme
+      </label>
+
+      {/* Trigger row */}
+      <div className="flex items-center justify-between border-2 border-[#191A23] rounded-sm px-3 py-2 bg-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
+        <button
+          type="button"
+          onClick={() => setShowPicker((p) => !p)}
+          className="flex items-center gap-2.5 flex-1 text-left"
+        >
+          {/* Current colour dot */}
+          <span
+            className="size-5 rounded-full border-2 border-[#191A23] flex-shrink-0 shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
+            style={{ backgroundColor: selectedTheme.hex }}
+          />
+          <span className="text-xs font-bold text-[#191A23] capitalize">
+            {selectedTheme.name.replace(/-/g, " ")}
+          </span>
+          <span className="text-[9px] font-mono text-neutral-400 ml-1">
+            {selectedTheme.hex}
+          </span>
+          <span
+            className={cn(
+              "ml-auto text-[#191A23] transition-transform duration-200",
+              showPicker ? "rotate-180" : "",
+            )}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path
+                d="M2 4l4 4 4-4"
+                stroke="#191A23"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+        </button>
+      </div>
+
+      {/* Collapsible colour palette */}
+      {showPicker && (
+        <div className="border-2 border-[#191A23] rounded-sm bg-white p-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] animate-in slide-in-from-top-2 duration-200">
+          <p className="text-[9px] font-black uppercase text-neutral-400 mb-2.5 tracking-wider">
+            {THEMES.length} colours available
+          </p>
+          <div className="flex flex-wrap gap-2.5">
+            {THEMES.map((theme) => {
+              const isSelected = selectedTheme.name === theme.name;
+              return (
+                <button
+                  key={theme.name}
+                  type="button"
+                  title={theme.name.replace(/-/g, " ")}
+                  onClick={() => {
+                    setSelectedTheme(theme);
+                    setShowPicker(false);
+                  }}
+                  className={cn(
+                    "group relative size-8 rounded-full border-2 transition-all duration-150 focus:outline-none",
+                    isSelected
+                      ? "border-[#191A23] scale-110 shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
+                      : "border-transparent hover:border-[#191A23] hover:scale-105",
+                  )}
+                  style={{ backgroundColor: theme.hex }}
+                >
+                  {isSelected && (
+                    <span className="absolute inset-0 flex items-center justify-center">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                      >
+                        <path
+                          d="M2 6l3 3 5-5"
+                          stroke="white"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const FontOption = ({
   font,
@@ -207,12 +231,8 @@ interface WebsiteFormProps {
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   removeImage: (index: number) => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
-  generateAIImage: () => void;
-  isGeneratingImage: boolean;
   selectedTheme: Theme;
   setSelectedTheme: (theme: Theme) => void;
-  suggestTheme: () => void;
-  isSuggestingTheme: boolean;
   selectedFont: string;
   setSelectedFont: (font: string) => void;
   fontSearch: string;
@@ -224,9 +244,6 @@ interface WebsiteFormProps {
   setIsOn: (val: boolean) => void;
   addMusic: boolean;
   setAddMusic: (val: boolean) => void;
-  suggestGifts: () => void;
-  isSuggestingGifts: boolean;
-  giftSuggestions: string[];
   selectedGiftId: string | null;
   setSelectedGiftId: (id: string | null) => void;
   selectedMusic: any | null;
@@ -264,12 +281,8 @@ export default function WebsiteForm({
   handleImageUpload,
   removeImage,
   fileInputRef,
-  generateAIImage,
-  isGeneratingImage,
   selectedTheme,
   setSelectedTheme,
-  suggestTheme,
-  isSuggestingTheme,
   selectedFont,
   setSelectedFont,
   fontSearch,
@@ -281,9 +294,6 @@ export default function WebsiteForm({
   setIsOn,
   addMusic,
   setAddMusic,
-  suggestGifts,
-  isSuggestingGifts,
-  giftSuggestions,
   selectedGiftId,
   setSelectedGiftId,
   selectedMusic,
@@ -525,19 +535,6 @@ export default function WebsiteForm({
       <div className="flex flex-col space-y-1.5">
         <label className="text-[10px] font-bold uppercase text-[#191A23] flex items-center justify-between">
           <span>Upload Images (Max 5)</span>
-          <button
-            type="button"
-            onClick={generateAIImage}
-            disabled={isGeneratingImage || images.length >= 5}
-            className="flex items-center gap-1 px-2 py-1 bg-purple-100 border border-purple-300 rounded-sm text-[8px] font-black text-purple-700 hover:bg-purple-200 transition-all disabled:opacity-50"
-          >
-            <HugeiconsIcon
-              icon={AiImageIcon}
-              size={10}
-              className={isGeneratingImage ? "animate-bounce" : ""}
-            />
-            {isGeneratingImage ? "GENERATING..." : "MAGIC GENERATE"}
-          </button>
         </label>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
@@ -589,45 +586,10 @@ export default function WebsiteForm({
       </div>
 
       {/* Theme Picker */}
-      <div className="flex flex-col">
-        <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
-          <span>Select Theme</span>
-          <button
-            type="button"
-            onClick={suggestTheme}
-            disabled={isSuggestingTheme}
-            className="flex items-center gap-1 px-2 py-1 bg-indigo-100 border border-indigo-300 rounded-sm text-[8px] font-black text-indigo-700 hover:bg-indigo-200 transition-all disabled:opacity-50"
-          >
-            <HugeiconsIcon
-              icon={MagicWand01Icon}
-              size={10}
-              className={isSuggestingTheme ? "animate-pulse" : ""}
-            />
-            {isSuggestingTheme ? "SUGGESTING..." : "MAGIC SUGGEST"}
-          </button>
-        </label>
-        <div className="grid grid-cols-4 gap-3">
-          {THEMES.map((theme) => (
-            <div
-              key={theme.name}
-              onClick={() => setSelectedTheme(theme)}
-              className={`rounded-lg cursor-pointer transition-all duration-200 ${
-                selectedTheme.name === theme.name
-                  ? "ring-2 ring-blue-500 ring-offset-2"
-                  : "hover:ring-1 hover:ring-gray-300"
-              }`}
-            >
-              <div className="flex flex-col h-16 w-full rounded-lg overflow-hidden">
-                <div className={`flex flex-row flex-1`}>
-                  <div className={`flex-1 ${theme.primary}`} />
-                  <div className={`flex-1 ${theme.bgNeutral}`} />
-                </div>
-                <div className={`flex-1 ${theme.secondary}`} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+      <ThemePicker
+        selectedTheme={selectedTheme}
+        setSelectedTheme={setSelectedTheme}
+      />
 
       {/* Font Picker */}
       <div className="flex flex-col">
@@ -688,34 +650,7 @@ export default function WebsiteForm({
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
                 <h2 className=" text-xl font-medium">Add Gift</h2>
-                {isOn && (
-                  <button
-                    type="button"
-                    onClick={suggestGifts}
-                    disabled={isSuggestingGifts}
-                    className="p-1.5 bg-yellow-100 border border-yellow-300 rounded-full text-yellow-700 hover:bg-yellow-200 transition-all disabled:opacity-50"
-                    title="Magic Gift Suggest"
-                  >
-                    <HugeiconsIcon
-                      icon={GiftIcon}
-                      size={14}
-                      className={isSuggestingGifts ? "animate-bounce" : ""}
-                    />
-                  </button>
-                )}
               </div>
-              {isOn && giftSuggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {giftSuggestions.map((gift, i) => (
-                    <span
-                      key={i}
-                      className="px-2 py-0.5 bg-yellow-50 border border-yellow-200 text-[8px] font-bold text-yellow-800 rounded-full uppercase"
-                    >
-                      {gift}
-                    </span>
-                  ))}
-                </div>
-              )}
             </div>
             <button
               type="button"

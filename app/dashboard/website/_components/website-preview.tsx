@@ -8,6 +8,9 @@ import {
   MusicNote01Icon,
   GiftIcon,
   SparklesIcon,
+  FavouriteIcon,
+  SentIcon,
+  CameraIcon,
 } from "@hugeicons/core-free-icons";
 import { Theme } from "./website-form";
 import { cn } from "@/lib/utils";
@@ -29,23 +32,30 @@ interface WebsitePreviewProps {
   isCreating?: boolean;
 }
 
-// Map theme primary class → actual hex for inline styles
-const THEME_HEX: Record<string, string> = {
-  "bg-blue-600": "#2563eb",
-  "bg-gray-700": "#374151",
-  "bg-emerald-600": "#059669",
-  "bg-purple-600": "#9333ea",
-  "bg-red-800": "#991b1b",
-  "bg-teal-600": "#0d9488",
-  "bg-amber-600": "#d97706",
-  "bg-indigo-600": "#4f46e5",
-};
-
-const THEME_NEUTRAL_HEX: Record<string, string> = {
-  "bg-gray-50": "#f9fafb",
-  "bg-gray-100": "#f3f4f6",
-  "bg-white": "#ffffff",
-};
+/** Small section label matching the public page SectionLabel component */
+function SectionLabel({
+  icon,
+  label,
+  accent,
+}: {
+  icon: any;
+  label: string;
+  accent: string;
+}) {
+  return (
+    <div className="flex items-center gap-1.5 mb-2">
+      <span
+        className="size-4 rounded-md flex items-center justify-center"
+        style={{ background: accent + "20" }}
+      >
+        <HugeiconsIcon icon={icon} size={9} color={accent} />
+      </span>
+      <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400">
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export default function WebsitePreview({
   selectedTheme,
@@ -62,196 +72,391 @@ export default function WebsitePreview({
   isCreating,
 }: WebsitePreviewProps) {
   const displayMessage = customMessage || message;
-  const primaryHex = THEME_HEX[selectedTheme.primary] ?? "#6366f1";
-  const bgHex = THEME_NEUTRAL_HEX[selectedTheme.bgNeutral] ?? "#f9fafb";
+  const accent = selectedTheme.hex ?? "#6366f1";
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Phone Frame */}
-      <div className="mx-auto w-full max-w-[320px]">
-        {/* Device chrome */}
-        <div className="relative bg-[#191A23] rounded-[2.5rem] p-3 shadow-[0_40px_80px_rgba(25,26,35,0.4)]">
-          {/* Top notch */}
-          <div className="absolute top-3 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#191A23] rounded-full z-20" />
+      {/* ── Phone Frame ─────────────────────────────────────────────── */}
+      <div className="mx-auto w-full max-w-[280px]">
+        {/* Outer shell — dark bezel */}
+        <div
+          className="relative rounded-[2.8rem] p-[10px]"
+          style={{
+            background:
+              "linear-gradient(145deg, #2a2d3a 0%, #191A23 60%, #111318 100%)",
+          }}
+        >
+          {/* Side buttons (left) */}
+          <div className="absolute left-[-3px] top-[90px] w-[3px] h-7 rounded-l-sm bg-[#111318]" />
+          <div className="absolute left-[-3px] top-[128px] w-[3px] h-10 rounded-l-sm bg-[#111318]" />
+          <div className="absolute left-[-3px] top-[178px] w-[3px] h-10 rounded-l-sm bg-[#111318]" />
+          {/* Power button (right) */}
+          <div className="absolute right-[-3px] top-[130px] w-[3px] h-14 rounded-r-sm bg-[#111318]" />
 
-          {/* Screen */}
+          {/* Inner bezel ring */}
           <div
-            className="relative rounded-[2rem] overflow-hidden"
-            style={{ height: 580, background: bgHex }}
+            className="rounded-[2.2rem] overflow-hidden"
+            style={{
+              boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
+            }}
           >
-            {/* Scrollable content */}
+            {/* Screen */}
             <div
-              className="absolute inset-0 overflow-y-auto"
-              style={{ fontFamily: selectedFont }}
+              className="relative rounded-[2.2rem] overflow-hidden bg-slate-50"
+              style={{ height: 560 }}
             >
-              {/* Header bar with accent color */}
+              {/* Dynamic island / notch */}
               <div
-                className="relative px-5 pt-10 pb-5"
-                style={{ background: primaryHex }}
-              >
-                {/* Occasion badge */}
-                {occasion && (
-                  <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 mb-3">
-                    <HugeiconsIcon
-                      icon={SparklesIcon}
-                      size={10}
-                      color="white"
-                    />
-                    <span
-                      className="text-[9px] font-black uppercase tracking-widest text-white"
-                    >
-                      {occasion}
-                    </span>
-                  </div>
-                )}
-                {/* Recipient name */}
-                <h1
-                  className="text-2xl font-black text-white leading-tight"
-                  style={{ fontFamily: selectedFont }}
-                >
-                  {recipientName ? `Hey, ${recipientName}! 🎉` : "Hey there! 🎉"}
-                </h1>
-                <div className="mt-1 flex items-center gap-1 opacity-70">
-                  <HugeiconsIcon icon={RocketIcon} size={10} color="white" />
-                  <span className="text-[9px] text-white font-medium">WishCube</span>
-                </div>
+                className="absolute top-3 left-1/2 -translate-x-1/2 z-30 rounded-full"
+                style={{
+                  width: 72,
+                  height: 18,
+                  background: "#191A23",
+                }}
+              />
 
-                {/* Curved bottom */}
-                <div
-                  className="absolute -bottom-3 left-0 right-0 h-6 rounded-t-[50%]"
-                  style={{ background: bgHex }}
-                />
+              {/* Status bar */}
+              <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 pt-2 pb-1">
+                <span className="text-[7px] font-bold text-white drop-shadow">
+                  9:41
+                </span>
+                <div className="flex items-center gap-1">
+                  <div className="flex gap-[2px] items-end h-2.5">
+                    {[40, 60, 80, 100].map((h, i) => (
+                      <div
+                        key={i}
+                        className="w-[2px] rounded-full bg-white"
+                        style={{ height: `${h}%`, opacity: 0.8 }}
+                      />
+                    ))}
+                  </div>
+                  <svg width="10" height="8" viewBox="0 0 10 8" fill="white">
+                    <path d="M0 3l1.5-1.5 1.5 1.5L5 1l1.5 1.5L8 1 9.5 2.5l-7 7z" />
+                  </svg>
+                  <div className="flex items-center gap-0.5">
+                    <div
+                      className="h-2 rounded-full bg-white"
+                      style={{ width: 12 }}
+                    />
+                    <div className="h-2.5 w-[2px] rounded-full bg-white opacity-40" />
+                  </div>
+                </div>
               </div>
 
-              {/* Hero image */}
-              {images.length > 0 ? (
-                <div className="px-5 mt-5">
-                  <div className="relative rounded-2xl overflow-hidden border-2 border-[#191A23]/10 shadow-md aspect-[4/3]">
-                    <img
-                      src={images[0].url}
-                      alt="Greeting"
-                      className="w-full h-full object-cover"
-                    />
-                    {images.length > 1 && (
-                      <div className="absolute top-2 right-2 bg-[#191A23]/70 text-white rounded-full px-2 py-0.5 text-[8px] font-black">
-                        +{images.length - 1}
-                      </div>
+              {/* Scrollable page content */}
+              <div
+                className="absolute inset-0 overflow-y-auto overflow-x-hidden"
+                style={{
+                  fontFamily: `'${selectedFont}', 'Inter', sans-serif`,
+                  scrollbarWidth: "none",
+                }}
+              >
+                {/* ── Hero ─────────────────────────────────────────── */}
+                <div
+                  className="relative overflow-hidden"
+                  style={{
+                    background: `linear-gradient(135deg, ${accent}ee 0%, ${accent}bb 100%)`,
+                    minHeight: 140,
+                  }}
+                >
+                  {/* Decorative circles */}
+                  <div
+                    className="absolute -top-8 -right-8 size-28 rounded-full"
+                    style={{ background: "rgba(255,255,255,0.10)" }}
+                  />
+                  <div
+                    className="absolute -bottom-6 -left-6 size-20 rounded-full"
+                    style={{ background: "rgba(255,255,255,0.08)" }}
+                  />
+
+                  <div className="relative px-4 pt-10 pb-10">
+                    {/* Occasion badge */}
+                    {occasion && (
+                      <span
+                        className="inline-flex items-center capitalize gap-1 text-white text-[7px] font-semibold px-2.5 py-1 rounded-full mb-2"
+                        style={{ background: "rgba(255,255,255,0.22)" }}
+                      >
+                        <HugeiconsIcon
+                          icon={SparklesIcon}
+                          size={7}
+                          color="white"
+                        />
+                        {occasion}
+                      </span>
                     )}
-                  </div>
-                </div>
-              ) : (
-                <div className="mx-5 mt-5 h-28 rounded-2xl border-2 border-dashed border-[#191A23]/10 flex items-center justify-center">
-                  <p className="text-[9px] text-[#191A23]/30 font-bold uppercase">
-                    No images added
-                  </p>
-                </div>
-              )}
 
-              {/* Message */}
-              {displayMessage ? (
-                <div className="mx-5 mt-4 p-4 bg-white rounded-2xl shadow-sm border border-[#191A23]/5">
-                  <p
-                    className="text-xs text-[#191A23] leading-relaxed"
-                    style={{ fontFamily: selectedFont }}
-                  >
-                    {displayMessage}
-                  </p>
-                </div>
-              ) : (
-                <div className="mx-5 mt-4 p-4 bg-white/60 rounded-2xl border border-dashed border-[#191A23]/10">
-                  <p className="text-[9px] text-[#191A23]/30 font-bold uppercase text-center">
-                    Message will appear here
-                  </p>
-                </div>
-              )}
+                    {/* Sub-label */}
+                    <p className="text-white/70 text-[7px] font-medium mb-0.5">
+                      A special message for
+                    </p>
 
-              {/* Music player */}
-              {selectedMusic && (
-                <div className="mx-5 mt-3">
-                  <div className="p-3 bg-white rounded-xl border border-[#191A23]/10 shadow-sm flex items-center gap-3">
-                    <img
-                      src={selectedMusic.cover}
-                      alt={selectedMusic.title}
-                      className="size-8 rounded-lg object-cover"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-black text-[#191A23] truncate">
-                        {selectedMusic.title}
-                      </p>
-                      <p className="text-[8px] text-neutral-400 truncate">
-                        {selectedMusic.artist}
-                      </p>
-                    </div>
-                    <div
-                      className="size-6 rounded-full flex items-center justify-center"
-                      style={{ background: primaryHex }}
-                    >
+                    {/* Recipient name */}
+                    <h1 className="text-lg font-bold text-white leading-tight">
+                      {recipientName || "Your Recipient"}
+                    </h1>
+
+                    <div className="flex items-center gap-1 mt-1 text-white/60">
                       <HugeiconsIcon
-                        icon={MusicNote01Icon}
-                        size={10}
+                        icon={FavouriteIcon}
+                        size={7}
                         color="white"
                       />
+                      <p className="text-[7px]">
+                        Someone who cares made this for you
+                      </p>
                     </div>
                   </div>
-                </div>
-              )}
 
-              {/* Gift placeholder */}
-              <div className="mx-5 mt-3 mb-3">
-                <div
-                  className="p-3 rounded-xl flex items-center gap-3"
-                  style={{ background: primaryHex + "18" }}
-                >
-                  <div
-                    className="size-8 rounded-xl flex items-center justify-center"
-                    style={{ background: primaryHex }}
-                  >
-                    <HugeiconsIcon icon={GiftIcon} size={14} color="white" />
-                  </div>
-                  <div>
-                    <p
-                      className="text-[9px] font-black uppercase"
-                      style={{ color: primaryHex }}
+                  {/* Wave */}
+                  <div className="absolute bottom-0 left-0 right-0">
+                    <svg
+                      viewBox="0 0 1440 40"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      preserveAspectRatio="none"
+                      className="w-full"
+                      style={{ display: "block" }}
                     >
-                      Special Gift Attached
+                      <path
+                        d="M0,40 C360,0 1080,0 1440,40 L1440,40 L0,40 Z"
+                        fill="#f8fafc"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* ── Content cards ─────────────────────────────────── */}
+                <div
+                  className="px-3 pb-6 -mt-1 space-y-3"
+                  style={{ background: "#f8fafc" }}
+                >
+                  {/* Images card */}
+                  {images.length > 0 ? (
+                    <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100">
+                      <SectionLabel
+                        icon={CameraIcon}
+                        label="Memories"
+                        accent={accent}
+                      />
+                      <div className="aspect-[4/3] rounded-lg overflow-hidden bg-slate-100">
+                        <img
+                          src={images[0].url}
+                          alt="Memory"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      {images.length > 1 && (
+                        <div className="flex justify-center gap-1 mt-2">
+                          {images.slice(0, 5).map((_, i) => (
+                            <div
+                              key={i}
+                              className="h-1 rounded-full transition-all"
+                              style={{
+                                width: i === 0 ? 14 : 5,
+                                background: i === 0 ? accent : "#CBD5E1",
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100">
+                      <SectionLabel
+                        icon={CameraIcon}
+                        label="Memories"
+                        accent={accent}
+                      />
+                      <div className="aspect-[4/3] rounded-lg border-2 border-dashed border-slate-100 flex items-center justify-center">
+                        <p className="text-[7px] text-slate-300 font-bold uppercase">
+                          No images added
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Message card */}
+                  <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 relative overflow-hidden">
+                    <div
+                      className="absolute -top-1 -left-0.5 text-[50px] font-serif leading-none opacity-[0.04] select-none pointer-events-none"
+                      style={{ color: accent }}
+                    >
+                      &ldquo;
+                    </div>
+                    <SectionLabel
+                      icon={SparklesIcon}
+                      label="A message for you"
+                      accent={accent}
+                    />
+                    {displayMessage ? (
+                      <p className="text-[8px] leading-relaxed text-slate-700 relative z-10">
+                        {displayMessage}
+                      </p>
+                    ) : (
+                      <p className="text-[7px] text-slate-300 font-bold uppercase text-center py-3">
+                        Message will appear here
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Music card */}
+                  {selectedMusic && (
+                    <div
+                      className="flex items-center gap-2 p-2.5 rounded-xl border"
+                      style={{
+                        background: accent + "08",
+                        borderColor: accent + "25",
+                      }}
+                    >
+                      <div
+                        className="size-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: accent }}
+                      >
+                        <HugeiconsIcon
+                          icon={MusicNote01Icon}
+                          size={14}
+                          color="white"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[7px] font-semibold uppercase tracking-widest text-slate-400">
+                          Background Track
+                        </p>
+                        <p className="text-[8px] font-semibold text-slate-800 truncate">
+                          {selectedMusic.title}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Gift card */}
+                  <div
+                    className="rounded-xl overflow-hidden"
+                    style={{ border: `1px solid ${accent}30` }}
+                  >
+                    <div
+                      className="h-14 flex items-center justify-center"
+                      style={{ background: accent + "15" }}
+                    >
+                      <HugeiconsIcon
+                        icon={GiftIcon}
+                        size={24}
+                        color={accent}
+                        strokeWidth={1.5}
+                      />
+                    </div>
+                    <div
+                      className="p-3"
+                      style={{
+                        background: `linear-gradient(135deg, ${accent}06, ${accent}14)`,
+                      }}
+                    >
+                      <span
+                        className="inline-flex items-center gap-1 text-[7px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full mb-1.5"
+                        style={{ background: accent + "20", color: accent }}
+                      >
+                        <HugeiconsIcon
+                          icon={GiftIcon}
+                          size={7}
+                          color={accent}
+                        />
+                        A gift for you
+                      </span>
+                      <p className="text-[9px] font-bold text-slate-800">
+                        Special Gift Attached
+                      </p>
+                      <button
+                        className="mt-2 w-full py-1.5 rounded-lg text-[8px] font-semibold text-white"
+                        style={{ background: accent }}
+                      >
+                        Redeem My Gift →
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Reactions card */}
+                  <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 text-center space-y-2">
+                    <p className="text-[8px] font-semibold text-slate-800">
+                      How does this make you feel?
                     </p>
-                    <p className="text-[8px] text-neutral-400">
-                      Tap to redeem
+                    <p className="text-[7px] text-slate-400">
+                      Tap an emoji to react
+                    </p>
+                    <div className="flex justify-center gap-1.5 flex-wrap">
+                      {["❤️", "🎉", "🔥", "🥹", "🙌", "😍", "🫶"].map((e) => (
+                        <div
+                          key={e}
+                          className="size-7 text-sm flex items-center justify-center rounded-xl bg-slate-50"
+                        >
+                          {e}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Reply card */}
+                  <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 space-y-2">
+                    <SectionLabel
+                      icon={SentIcon}
+                      label="Send a Reply"
+                      accent={accent}
+                    />
+                    <div className="w-full px-2.5 py-2 rounded-lg border border-slate-200 min-h-[40px] flex items-start">
+                      <p className="text-[7px] text-slate-300">
+                        Write a heartfelt thank you…
+                      </p>
+                    </div>
+                    <div className="flex justify-end">
+                      <div
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[7px] font-semibold text-white"
+                        style={{ background: accent }}
+                      >
+                        <HugeiconsIcon icon={SentIcon} size={8} color="white" />
+                        Send Reply
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="text-center py-3 space-y-1">
+                    <div className="flex items-center justify-center gap-1 text-slate-300">
+                      <HugeiconsIcon
+                        icon={RocketIcon}
+                        size={8}
+                        color="currentColor"
+                      />
+                      <p className="text-[7px]">
+                        Made with <span style={{ color: accent }}>♥</span> via{" "}
+                        <span
+                          className="font-semibold"
+                          style={{ color: accent }}
+                        >
+                          WishCube
+                        </span>
+                      </p>
+                    </div>
+                    <p className="text-[7px] text-slate-300">
+                      Create your own celebration page →
                     </p>
                   </div>
                 </div>
-              </div>
-
-              {/* Emoji reactions */}
-              <div className="mx-5 mt-3 flex justify-center gap-2 pb-6">
-                {["❤️", "🎉", "🔥", "🥹", "🙌"].map((e) => (
-                  <div
-                    key={e}
-                    className="size-8 bg-white rounded-xl flex items-center justify-center text-sm shadow-sm border border-[#191A23]/5"
-                  >
-                    {e}
-                  </div>
-                ))}
               </div>
             </div>
-
-            {/* Status bar overlay */}
-            <div className="absolute top-0 left-0 right-0 h-8 pointer-events-none" />
           </div>
 
           {/* Home indicator */}
-          <div className="flex justify-center mt-2">
-            <div className="w-24 h-1 bg-white/30 rounded-full" />
+          <div className="flex justify-center mt-2 mb-1">
+            <div className="w-20 h-[3px] bg-white/25 rounded-full" />
           </div>
         </div>
 
-        {/* Theme label */}
-        <p className="text-center text-[10px] font-bold uppercase text-neutral-400 mt-3 tracking-widest">
+        {/* Theme · Font label */}
+        <p className="text-center text-[9px] font-bold uppercase text-neutral-400 mt-3 tracking-widest">
           {selectedTheme.name} · {selectedFont}
         </p>
       </div>
 
-      {/* Action buttons */}
+      {/* ── Action buttons ───────────────────────────────────────────── */}
       <div className="flex flex-col gap-3">
         <button
           onClick={copyGreetingLink}

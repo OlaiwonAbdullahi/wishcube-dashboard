@@ -268,11 +268,7 @@ const Generator: React.FC = () => {
   const [isOn, setIsOn] = useState(false);
   const [addMusic, setAddMusic] = useState(false);
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
-  const [isSuggestingTheme, setIsSuggestingTheme] = useState(false);
-  const [isSuggestingGifts, setIsSuggestingGifts] = useState(false);
   const [isSuggestingFont, setIsSuggestingFont] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [giftSuggestions, setGiftSuggestions] = useState<string[]>([]);
   const [selectedFont, setSelectedFont] = useState<string>("Space Grotesk");
   const [fontSearch, setFontSearch] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
@@ -328,87 +324,6 @@ Do not include a signature or sender name. Use emojis.
       console.error("Failed to generate message:", error);
     } finally {
       setIsGeneratingMessage(false);
-    }
-  };
-
-  const suggestTheme = async (): Promise<void> => {
-    if (!occasion) {
-      toast.error("Please select an occasion first.");
-      return;
-    }
-    setIsSuggestingTheme(true);
-    const prompt = `
-Based on the occasion "${occasion}", suggest the most appropriate theme name from this list:
-${THEMES.map((t) => t.name).join(", ")}.
-Return ONLY the theme name.
-`;
-    try {
-      const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
-      const theme =
-        THEMES.find((t) => t.name === suggestedName.trim().toLowerCase()) ||
-        THEMES[0];
-      setSelectedTheme(theme);
-    } catch (error) {
-      console.error("Failed to suggest theme:", error);
-    } finally {
-      setIsSuggestingTheme(false);
-    }
-  };
-
-  const suggestGifts = async (): Promise<void> => {
-    if (!occasion || !recipientName) {
-      toast.error("Please provide recipient name and occasion first.");
-      return;
-    }
-    setIsSuggestingGifts(true);
-    const prompt = `
-Suggest 3-4 gift ideas for a ${occasion} for ${recipientName}. 
-The gift ideas should be short (1-3 words). 
-Format as a simple comma-separated list of items without any other text.
-`;
-    try {
-      const response = await callAI(prompt, "deepseek/deepseek-v3.2");
-      const suggestions = response
-        .split(",")
-        .map((s: string) => s.trim())
-        .filter(Boolean);
-      setGiftSuggestions(suggestions);
-    } catch (error) {
-      console.error("Failed to suggest gifts:", error);
-    } finally {
-      setIsSuggestingGifts(false);
-    }
-  };
-
-  const generateAIImage = async (): Promise<void> => {
-    if (!occasion || !recipientName) {
-      toast.error("Please provide recipient name and occasion first.");
-      return;
-    }
-    setIsGeneratingImage(true);
-    const prompt = `
-Generate a professional and beautiful illustration for a ${occasion} card for ${recipientName}.
-The image should be high-quality, festive, and warm.
-Return ONLY a URL to the generated image.
-`;
-    try {
-      const imageUrl = await callAI(
-        prompt,
-        "google/gemini-3.1-flash-image-preview",
-      );
-      if (imageUrl && imageUrl.startsWith("http")) {
-        setImages([
-          ...images,
-          { url: imageUrl, publicId: "ai_generated_" + Date.now() },
-        ]);
-        toast.success("AI Image generated!");
-      } else {
-        toast.error("Failed to generate AI image");
-      }
-    } catch (error) {
-      console.error("Failed to generate image:", error);
-    } finally {
-      setIsGeneratingImage(false);
     }
   };
 
@@ -632,12 +547,8 @@ Return ONLY the font name.
           handleImageUpload={handleImageUpload}
           removeImage={removeImage}
           fileInputRef={fileInputRef}
-          generateAIImage={generateAIImage}
-          isGeneratingImage={isGeneratingImage}
           selectedTheme={selectedTheme}
           setSelectedTheme={setSelectedTheme}
-          suggestTheme={suggestTheme}
-          isSuggestingTheme={isSuggestingTheme}
           selectedFont={selectedFont}
           setSelectedFont={setSelectedFont}
           fontSearch={fontSearch}
@@ -649,9 +560,6 @@ Return ONLY the font name.
           setIsOn={setIsOn}
           addMusic={addMusic}
           setAddMusic={setAddMusic}
-          suggestGifts={suggestGifts}
-          isSuggestingGifts={isSuggestingGifts}
-          giftSuggestions={giftSuggestions}
           selectedGiftId={selectedGiftId}
           setSelectedGiftId={setSelectedGiftId}
           selectedMusic={selectedMusic}
