@@ -60,35 +60,25 @@ export async function generateMetadata({
     website.message?.slice(0, 160) ??
     `You've received a personalised ${occasion.toLowerCase()} page from someone special. Open it to see the surprise!`;
 
-  const ogImageUrl = `https://app.usewishcube.com/w/${slug}/opengraph-image`;
   const pageUrl = `https://app.usewishcube.com/w/${slug}`;
 
   return {
     title,
     description,
+    metadataBase: new URL("https://app.usewishcube.com"),
     openGraph: {
       title,
       description,
       url: pageUrl,
       siteName: "WishCube",
       type: "website",
-      images: [
-        {
-          url: ogImageUrl,
-          width: 1200,
-          height: 630,
-          alt: `${website.recipientName}'s ${occasion} page on WishCube`,
-        },
-      ],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
-      images: [ogImageUrl],
       site: "@usewishcube",
     },
-    metadataBase: new URL("https://app.usewishcube.com"),
   };
 }
 

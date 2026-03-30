@@ -61,9 +61,9 @@ function OccasionIcon({
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d={path} />
     </svg>
@@ -78,9 +78,9 @@ function GiftIcon({ color, size: sz = 28 }: { color: string; size?: number }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
-      stroke-width="1.8"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path d={GIFT_PATH} />
     </svg>
@@ -90,9 +90,9 @@ function GiftIcon({ color, size: sz = 28 }: { color: string; size?: number }) {
 export default async function OgImage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: { slug: string };
 }) {
-  const { slug } = await params;
+  const { slug } = params;
 
   let website: {
     recipientName: string;
