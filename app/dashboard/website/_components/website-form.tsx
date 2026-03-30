@@ -221,11 +221,11 @@ interface WebsiteFormProps {
   setOccasion: (val: string) => void;
   customMessage: string;
   setCustomMessage: (val: string) => void;
-  generatedMessage: string;
+  generatedMessages: string[];
   isGeneratingMessage: boolean;
   generateMessage: () => void;
   handlePasteMessage: () => void;
-  useGeneratedMessage: () => void;
+  handleUseGeneratedMessage: (msg: string) => void;
   messageRef: React.RefObject<HTMLTextAreaElement | null>;
   images: { url: string; publicId: string }[];
   isUploading: boolean;
@@ -272,11 +272,11 @@ export default function WebsiteForm({
   setOccasion,
   customMessage,
   setCustomMessage,
-  generatedMessage,
+  generatedMessages,
   isGeneratingMessage,
   generateMessage,
   handlePasteMessage,
-  useGeneratedMessage,
+  handleUseGeneratedMessage,
   messageRef,
   images,
   isUploading,
@@ -529,16 +529,23 @@ export default function WebsiteForm({
             Paste Message
           </button>
         </div>
-        {generatedMessage && !isGeneratingMessage && (
-          <div className="text-[#191A23] mt-4 bg-[#B4F8C8] p-4 rounded-sm border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
-            <p className="text-sm font-medium">{generatedMessage}</p>
-            <button
-              type="button"
-              onClick={useGeneratedMessage}
-              className="mt-3 w-full py-2 bg-white border border-[#191A23] text-[10px] font-bold uppercase hover:-translate-y-px shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all"
-            >
-              Use this message
-            </button>
+        {generatedMessages.length > 0 && !isGeneratingMessage && (
+          <div className="mt-4 space-y-3">
+            {generatedMessages.map((msg, idx) => (
+              <div
+                key={idx}
+                className="text-[#191A23] bg-[#B4F8C8] p-4 rounded-sm border-2 border-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]"
+              >
+                <p className="text-sm font-medium">{msg}</p>
+                <button
+                  type="button"
+                  onClick={() => handleUseGeneratedMessage(msg)}
+                  className="mt-3 w-full py-2 bg-white border border-[#191A23] text-[10px] font-bold uppercase hover:-translate-y-px shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all"
+                >
+                  Use this message
+                </button>
+              </div>
+            ))}
           </div>
         )}
       </div>

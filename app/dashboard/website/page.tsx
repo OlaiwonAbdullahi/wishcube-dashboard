@@ -23,14 +23,26 @@ import {
   getWebsites,
   uploadWebsiteImages,
   deleteWebsite,
+  updateWebsite,
 } from "@/lib/websites";
 import { verifyGiftPayment } from "@/lib/gifts";
 import { getSubscriptionStatus } from "@/lib/subscriptions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { callAI } from "@/lib/ai";
+import { generateAiMessage } from "@/lib/cards";
 import WebsiteForm, { THEMES, Theme } from "./_components/website-form";
 import WebsitePreview from "./_components/website-preview";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-neutral-100 text-neutral-500 border-neutral-300",
@@ -41,7 +53,8 @@ const STATUS_COLOR: Record<string, string> = {
 
 export default function WebsitePage() {
   const [websites, setWebsites] = useState<any[]>([]);
-  const [view, setView] = useState<"list" | "create">("list");
+  const [view, setView] = useState<"list" | "create" | "edit">("list");
+  const [editingWebsite, setEditingWebsite] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -64,7 +77,6 @@ export default function WebsitePage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this website? This cannot be undone.")) return;
     setDeletingId(id);
     try {
       const res = await deleteWebsite(id);
@@ -182,7 +194,11 @@ export default function WebsitePage() {
                       </button>
                     )}
                     <button
-                      title="Edit (coming soon)"
+                      title="Edit"
+                      onClick={() => {
+                        setEditingWebsite(ws);
+                        setView("edit");
+                      }}
                       className="p-2 border border-[#191A23] rounded-sm hover:bg-neutral-50 transition-colors"
                     >
                       <HugeiconsIcon icon={Edit01Icon} size={14} />
@@ -198,14 +214,40 @@ export default function WebsitePage() {
                         <HugeiconsIcon icon={ArrowUpRight01Icon} size={14} />
                       </button>
                     )}
-                    <button
-                      onClick={() => handleDelete(ws._id)}
-                      disabled={deletingId === ws._id}
-                      title="Delete"
-                      className="p-2 border border-red-200 rounded-sm hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
-                    >
-                      <HugeiconsIcon icon={Delete01Icon} size={14} />
-                    </button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <button
+                          disabled={deletingId === ws._id}
+                          title="Delete"
+                          className="p-2 border border-red-200 rounded-sm hover:bg-red-50 text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+                        >
+                          <HugeiconsIcon icon={Delete01Icon} size={14} />
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Delete Website</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to delete this website? This action cannot be undone.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <button className="px-4 py-2 border border-[#191A23] rounded-sm text-xs font-bold hover:bg-neutral-50 transition-colors">
+                              Cancel
+                            </button>
+                          </DialogClose>
+                          <DialogClose asChild>
+                            <button
+                              onClick={() => handleDelete(ws._id)}
+                              className="px-4 py-2 bg-red-500 text-white border border-[#191A23] rounded-sm text-xs font-bold hover:bg-red-600 transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               </div>
@@ -220,14 +262,17 @@ export default function WebsitePage() {
     <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
       <div className="flex items-center gap-3">
         <button
-          onClick={() => setView("list")}
+          onClick={() => {
+            setView("list");
+            setEditingWebsite(null);
+          }}
           className="p-2 hover:bg-neutral-100 rounded-full transition-colors"
         >
           <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
         </button>
         <div>
           <h1 className="text-2xl font-black tracking-tight text-[#191A23]">
-            Create Website
+            {view === "edit" ? "Edit Website" : "Create Website"}
           </h1>
           <p className="text-xs text-neutral-400 font-medium">
             Fill in the left panel — see the preview update live on the right.
@@ -235,42 +280,42 @@ export default function WebsitePage() {
         </div>
       </div>
       <Suspense fallback={<div>Loading generator...</div>}>
-        <Generator />
+        <Generator initialData={editingWebsite} />
       </Suspense>
     </div>
   );
 }
 
-const Generator: React.FC = () => {
+const Generator: React.FC<{ initialData?: any }> = ({ initialData }) => {
   // Form state
-  const [selectedTheme, setSelectedTheme] = useState<Theme>(THEMES[0]);
-  const [recipientName, setRecipientName] = useState<string>("");
-  const [occasion, setOccasion] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const [customMessage, setCustomMessage] = useState<string>("");
-  const [generatedMessage, setGeneratedMessage] = useState<string>("");
-  const [images, setImages] = useState<{ url: string; publicId: string }[]>([]);
+  const [selectedTheme, setSelectedTheme] = useState<Theme>(
+    initialData?.theme ? THEMES.find((t) => t.name === initialData.theme) || THEMES[0] : THEMES[0]
+  );
+  const [recipientName, setRecipientName] = useState<string>(initialData?.recipientName || "");
+  const [occasion, setOccasion] = useState<string>(initialData?.occasion || "");
+  const [message, setMessage] = useState<string>(initialData?.message || "");
+  const [customMessage, setCustomMessage] = useState<string>(initialData?.message || "");
+  const [generatedMessages, setGeneratedMessages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ url: string; publicId: string }[]>(initialData?.images || []);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [password, setPassword] = useState<string>("");
-  const [customSlug, setCustomSlug] = useState<string>("");
+  const [password, setPassword] = useState<string>(initialData?.password || "");
+  const [customSlug, setCustomSlug] = useState<string>(initialData?.slug || "");
   const [expiresAt, setExpiresAt] = useState<string>(
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
+    initialData?.expiresAt ? new Date(initialData.expiresAt).toISOString().slice(0, 16) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
   );
-  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
+  const [isPasswordProtected, setIsPasswordProtected] = useState(initialData?.isPasswordProtected || false);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(null);
+  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(initialData?.giftIds?.[0] || null);
   const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
-  const [voiceMessageUrl, setVoiceMessageUrl] = useState<string | null>(null);
-  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<
-    string | null
-  >(null);
-  const [greetingId, setGreetingId] = useState<string>("");
-  const [isOn, setIsOn] = useState(false);
+  const [voiceMessageUrl, setVoiceMessageUrl] = useState<string | null>(initialData?.voiceMessageUrl || null);
+  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<string | null>(initialData?.voiceMessagePublicId || null);
+  const [greetingId, setGreetingId] = useState<string>(initialData?._id || "");
+  const [isOn, setIsOn] = useState(!!initialData?.giftIds?.length);
   const [addMusic, setAddMusic] = useState(false);
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
   const [isSuggestingFont, setIsSuggestingFont] = useState(false);
-  const [selectedFont, setSelectedFont] = useState<string>("Space Grotesk");
+  const [selectedFont, setSelectedFont] = useState<string>(initialData?.font || "Space Grotesk");
   const [fontSearch, setFontSearch] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -318,20 +363,20 @@ const Generator: React.FC = () => {
       return;
     }
     setIsGeneratingMessage(true);
-    const prompt = `
-You are a professional greeting card writer. 
-Please write a heartfelt and personalized ${occasion} greeting for someone named "${recipientName}". 
-If relevant, incorporate the following message or sentiment: "${customMessage}". 
-The tone should be warm, sincere, and creative. 
-Keep it concise but meaningful (around 3-5 sentences). 
-Do not include a signature or sender name. Use emojis.
-`;
     try {
-      const response = await callAI(prompt, "google/gemini-2.5-flash");
-      setGeneratedMessage(response);
-      setMessage(response);
+      const data = await generateAiMessage({
+        recipientName,
+        occasion,
+        tone: "Heartfelt",
+      });
+      if (data.success && data.data?.suggestions) {
+        setGeneratedMessages(data.data.suggestions);
+      } else {
+        toast.error(data.message || "Failed to generate suggestions");
+      }
     } catch (error) {
       console.error("Failed to generate message:", error);
+      toast.error("An error occurred while generating suggestions.");
     } finally {
       setIsGeneratingMessage(false);
     }
@@ -463,14 +508,19 @@ Return ONLY the font name.
         voiceMessagePublicId: voiceMessagePublicId ?? null,
       };
 
-      const res = await createWebsite(websiteData);
+      let res;
+      if (initialData?._id) {
+        res = await updateWebsite(initialData._id, websiteData);
+      } else {
+        res = await createWebsite(websiteData);
+      }
 
       if (res.success && res.data) {
         const websiteId = res.data.website._id;
         setGreetingId(websiteId);
 
         if (selectedGiftId) {
-          toast.success("Website created with gift linked!");
+          toast.success(`Website ${initialData?._id ? "updated" : "created"} with gift linked!`);
           const baseUrl = window.location.origin;
           const previewUrl = `${baseUrl}/preview/${websiteId}`;
           await navigator.clipboard.writeText(previewUrl);
@@ -480,13 +530,13 @@ Return ONLY the font name.
         const baseUrl = window.location.origin;
         const previewUrl = `${baseUrl}/preview/${websiteId}`;
         await navigator.clipboard.writeText(previewUrl);
-        toast.success("Draft link copied! You can now publish it.");
+        toast.success(`Draft link copied! You can now publish it.`);
       } else {
-        toast.error(res.message || "Failed to create website draft");
+        toast.error(res.message || "Failed to save website draft");
       }
     } catch (err) {
-      console.error("Failed to create website:", err);
-      toast.error("Failed to create website. Please try again.");
+      console.error("Failed to save website:", err);
+      toast.error("Failed to save website. Please try again.");
     } finally {
       setIsCreating(false);
     }
@@ -544,13 +594,13 @@ Return ONLY the font name.
           setOccasion={setOccasion}
           customMessage={customMessage}
           setCustomMessage={setCustomMessage}
-          generatedMessage={generatedMessage}
+          generatedMessages={generatedMessages}
           isGeneratingMessage={isGeneratingMessage}
           generateMessage={generateMessage}
           handlePasteMessage={handlePasteMessage}
-          useGeneratedMessage={() => {
-            setCustomMessage(generatedMessage);
-            setGeneratedMessage("");
+          handleUseGeneratedMessage={(msg) => {
+            setCustomMessage(msg);
+            setGeneratedMessages([]);
           }}
           messageRef={messageRef}
           images={images}

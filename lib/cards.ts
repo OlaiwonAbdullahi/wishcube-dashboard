@@ -139,3 +139,20 @@ export const deleteCard = async (id: string): Promise<CardResponse<null>> => {
     return { success: false, message: "Network error deleting card" };
   }
 };
+
+// Generate AI suggestions
+export const generateAiMessage = async (
+  payload: { recipientName: string; occasion: string; tone?: string }
+): Promise<CardResponse<{ suggestions: string[] }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/ai/generate`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(payload),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Generate AI message error:", error);
+    return { success: false, message: "Network error generating message" };
+  }
+};
