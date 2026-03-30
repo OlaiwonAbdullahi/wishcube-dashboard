@@ -214,6 +214,7 @@ const FontOption = ({
 };
 
 interface WebsiteFormProps {
+  isFreeUser: boolean;
   recipientName: string;
   setRecipientName: (val: string) => void;
   occasion: string;
@@ -264,6 +265,7 @@ interface WebsiteFormProps {
 }
 
 export default function WebsiteForm({
+  isFreeUser,
   recipientName,
   setRecipientName,
   occasion,
@@ -342,9 +344,11 @@ export default function WebsiteForm({
             className="text-[10px] font-bold uppercase text-[#191A23] flex items-center gap-2"
           >
             Custom Slug
-            <span className="px-1.5 py-0.5 bg-[#9151FF] text-white text-[8px] font-black uppercase rounded-sm tracking-wider">
-              PRO
-            </span>
+            {isFreeUser && (
+              <span className="px-1.5 py-0.5 bg-[#9151FF] text-white text-[8px] font-black uppercase rounded-sm tracking-wider">
+                PRO
+              </span>
+            )}
           </label>
           <div className="relative">
             <input
@@ -352,13 +356,16 @@ export default function WebsiteForm({
               id="customSlug"
               value={customSlug}
               onChange={(e) => setCustomSlug(e.target.value)}
+              disabled={isFreeUser}
               placeholder="e.g. happy-birthday-john"
-              className="w-full rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
+              className="w-full disabled:opacity-50 disabled:cursor-not-allowed rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
             />
           </div>
-          <p className="text-[9px] text-[#9151FF] font-bold">
-            Upgrade to Pro to use a custom URL slug
-          </p>
+          {isFreeUser && (
+            <p className="text-[9px] text-[#9151FF] font-bold">
+              Upgrade to Pro to use a custom URL slug
+            </p>
+          )}
         </div>
       </div>
 
@@ -420,21 +427,26 @@ export default function WebsiteForm({
               <span className="text-sm font-black uppercase text-[#191A23]">
                 Password Protection
               </span>
-              <span className="px-1.5 py-0.5 bg-[#9151FF] text-white text-[8px] font-black uppercase rounded-sm tracking-wider">
-                PRO
-              </span>
+              {isFreeUser && (
+                <span className="px-1.5 py-0.5 bg-[#9151FF] text-white text-[8px] font-black uppercase rounded-sm tracking-wider">
+                  PRO
+                </span>
+              )}
             </div>
-            <span className="text-[9px] font-bold text-[#9151FF]">
-              Upgrade to Pro to restrict access with a password
-            </span>
+            {isFreeUser && (
+              <span className="text-[9px] font-bold text-[#9151FF]">
+                Upgrade to Pro to restrict access with a password
+              </span>
+            )}
           </div>
           <button
             type="button"
             className={cn(
-              "h-5 w-10 rounded-full border-2 border-[#191A23] transition-colors relative",
+              "h-5 w-10 rounded-full disabled:opacity-50 disabled:cursor-not-allowed border-2 border-[#191A23] transition-colors relative",
               isPasswordProtected ? "bg-[#B4F8C8]" : "bg-neutral-200",
             )}
             onClick={() => setIsPasswordProtected(!isPasswordProtected)}
+            disabled={isFreeUser}
           >
             <div
               className={cn(

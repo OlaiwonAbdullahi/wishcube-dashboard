@@ -32,7 +32,7 @@ export default function SignUp() {
       const response = await register(name, email, password);
       if (response.success) {
         toast.success("Account created successfully!");
-        router.push("/dashboard");
+        router.push("/");
       } else {
         toast.error(response.message || "Signup failed");
       }

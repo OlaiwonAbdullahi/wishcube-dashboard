@@ -25,6 +25,7 @@ import {
   deleteWebsite,
 } from "@/lib/websites";
 import { verifyGiftPayment } from "@/lib/gifts";
+import { getSubscriptionStatus } from "@/lib/subscriptions";
 import { useRouter, useSearchParams } from "next/navigation";
 import { callAI } from "@/lib/ai";
 import WebsiteForm, { THEMES, Theme } from "./_components/website-form";
@@ -273,8 +274,17 @@ const Generator: React.FC = () => {
   const [fontSearch, setFontSearch] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isFreeUser, setIsFreeUser] = useState(true);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    getSubscriptionStatus().then((res) => {
+      if (res.success && res.data) {
+        setIsFreeUser(res.data.tier === "free");
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const reference = searchParams.get("reference");
@@ -527,6 +537,7 @@ Return ONLY the font name.
           </p>
         </div>
         <WebsiteForm
+          isFreeUser={isFreeUser}
           recipientName={recipientName}
           setRecipientName={setRecipientName}
           occasion={occasion}

@@ -40,6 +40,7 @@ export default function ProductDetailPage() {
   const [giftMessage, setGiftMessage] = useState("");
   const [purchasing, setPurchasing] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [digital, setDigital] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -49,6 +50,12 @@ export default function ProductDetailPage() {
         const res = await getProductById(id as string);
         if (res.success && res.data) {
           setProduct(res.data.product);
+          console.log(res.data.product);
+          if (res.data.product.category === "Vouchers") {
+            setDigital(true);
+          } else {
+            setDigital(false);
+          }
         } else {
           toast.error(res.message || "Failed to load product");
         }
@@ -74,13 +81,23 @@ export default function ProductDetailPage() {
 
     const callbackUrl = `https://app.usewishcube.com/dashboard/marketplace/giftbox/verify`;
 
-    const res = await purchaseGift({
-      type: "physical",
-      paymentMethod,
-      productId: product._id,
-      giftMessage: giftMessage || undefined,
-      callbackUrl,
-    });
+    const res = await purchaseGift(
+      digital
+        ? {
+            type: "digital",
+            paymentMethod,
+            amount: product.price,
+            giftMessage: giftMessage || undefined,
+            callbackUrl,
+          }
+        : {
+            type: "physical",
+            paymentMethod,
+            productId: product._id,
+            giftMessage: giftMessage || undefined,
+            callbackUrl,
+          },
+    );
 
     if (res.success && res.data) {
       if (paymentMethod === "paystack" && res.data.paymentUrl) {
