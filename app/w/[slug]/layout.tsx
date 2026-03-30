@@ -56,9 +56,7 @@ export async function generateMetadata({
   const occasion =
     OCCASION_LABEL[website.occasion?.toLowerCase()] ?? "Celebration";
   const title = `Happy ${occasion}, ${website.recipientName}!`;
-  const description =
-    website.message?.slice(0, 160) ??
-    `You've received a personalised ${occasion.toLowerCase()} page from someone special. Open it to see the surprise!`;
+  const description = `You've received a personalised ${occasion.toLowerCase()} page from someone special. Open it to see the surprise!`;
 
   const pageUrl = `https://app.usewishcube.com/w/${slug}`;
 
