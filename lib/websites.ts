@@ -13,6 +13,7 @@ export interface WebsiteImage {
 
 export interface WebsiteData {
   recipientName: string;
+  recipientEmail?: string;
   occasion: string;
   relationship: string;
   language: string;
@@ -29,7 +30,7 @@ export interface WebsiteData {
   theme: string;
   font: string;
   primaryColor: string;
-  countdownDate: string;
+  countdownDate?: string | null;
   isPasswordProtected: boolean;
   password?: string | null;
   customSlug?: string;

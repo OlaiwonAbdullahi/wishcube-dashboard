@@ -262,6 +262,10 @@ interface WebsiteFormProps {
   voiceMessagePublicId: string | null;
   setVoiceMessageUrl: (url: string | null) => void;
   setVoiceMessagePublicId: (id: string | null) => void;
+  recipientEmail: string;
+  setRecipientEmail: (val: string) => void;
+  countdownDate: string;
+  setCountdownDate: (val: string) => void;
 }
 
 export default function WebsiteForm({
@@ -313,6 +317,10 @@ export default function WebsiteForm({
   voiceMessagePublicId,
   setVoiceMessageUrl,
   setVoiceMessagePublicId,
+  recipientEmail,
+  setRecipientEmail,
+  countdownDate,
+  setCountdownDate,
 }: WebsiteFormProps) {
   const isFormValid = recipientName.trim() !== "";
 
@@ -366,6 +374,39 @@ export default function WebsiteForm({
               Upgrade to Pro to use a custom URL slug
             </p>
           )}
+        </div>
+
+        <div className="flex flex-col space-y-1.5">
+          <label
+            htmlFor="recipientEmail"
+            className="text-[10px] font-bold uppercase text-[#191A23]"
+          >
+            Recipient's Email (Optional)
+          </label>
+          <input
+            type="email"
+            id="recipientEmail"
+            value={recipientEmail}
+            onChange={(e) => setRecipientEmail(e.target.value)}
+            placeholder="Enter recipient's email"
+            className="rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
+          />
+        </div>
+
+        <div className="flex flex-col space-y-1.5">
+          <label
+            htmlFor="countdownDate"
+            className="text-[10px] font-bold uppercase text-[#191A23]"
+          >
+            Occasion Date
+          </label>
+          <input
+            type="date"
+            id="countdownDate"
+            value={countdownDate}
+            onChange={(e) => setCountdownDate(e.target.value)}
+            className="rounded-sm px-4 py-3 border-2 border-[#191A23] text-[#191A23] text-sm focus:outline-none focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white font-medium"
+          />
         </div>
       </div>
 

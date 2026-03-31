@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   LockPasswordIcon,
   InformationCircleIcon,
+  Camera02Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -58,7 +59,9 @@ const PLANS: Plan[] = [
     badgeColor: "#F3F3F3",
     description: "Get started and explore the basics of WishCube.",
     features: [
+      { text: "Unlimited cards creation", icon: ICON(SparklesIcon) },
       { text: "1 active website at a time", icon: ICON(Globe02Icon) },
+      { text: "Media uploads (Photos only)", icon: ICON(Camera02Icon) },
       {
         text: "Standard themes & basic text messages",
         icon: ICON(SparklesIcon),
@@ -78,7 +81,7 @@ const PLANS: Plan[] = [
     features: [
       { text: "Unlimited active websites", icon: ICON(Globe02Icon) },
       { text: "AI-powered message generation", icon: ICON(SparklesIcon) },
-      { text: "Media uploads (Video, Voice & Music)", icon: ICON(VideoIcon) },
+      { text: "Media uploads (Photos,Video & Voice)", icon: ICON(VideoIcon) },
       { text: "Password-protected pages", icon: ICON(Key01Icon) },
     ],
   },
@@ -284,6 +287,26 @@ export default function PricingPage() {
                   />
                 )}
 
+                {/* Coming Soon Overlay for Premium */}
+                {plan.id === "premium" && (
+                  <div className="absolute inset-0 z-10 bg-white/20 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 text-center select-none">
+                    <div className="bg-white border-2 border-[#191A23] border-b-4 px-4 py-2 rounded-sm -rotate-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,0.1)] flex flex-col items-center gap-1">
+                      <HugeiconsIcon
+                        icon={SparklesIcon}
+                        size={20}
+                        color="#F59E0B"
+                        className="animate-bounce"
+                      />
+                      <span className="text-sm font-black uppercase tracking-widest text-[#191A23]">
+                        Coming Soon
+                      </span>
+                    </div>
+                    <p className="mt-4 text-[10px] font-bold text-neutral-500 uppercase tracking-tight max-w-[140px]">
+                      This professional plan is currently in development.
+                    </p>
+                  </div>
+                )}
+
                 {/* Tag badge */}
                 {plan.tag && (
                   <div
@@ -462,6 +485,12 @@ export default function PricingPage() {
               </thead>
               <tbody className="divide-y divide-[#191A23]/6">
                 {[
+                  {
+                    feature: "Card creation",
+                    free: "Unlimited",
+                    pro: "Unlimited",
+                    premium: "Unlimited",
+                  },
                   {
                     feature: "Active websites",
                     free: "1",

@@ -292,8 +292,10 @@ const Generator: React.FC<{ initialData?: any }> = ({ initialData }) => {
     initialData?.theme ? THEMES.find((t) => t.name === initialData.theme) || THEMES[0] : THEMES[0]
   );
   const [recipientName, setRecipientName] = useState<string>(initialData?.recipientName || "");
+  const [recipientEmail, setRecipientEmail] = useState<string>(initialData?.recipientEmail || "");
+  const [countdownDate, setCountdownDate] = useState<string>(initialData?.countdownDate ? new Date(initialData.countdownDate).toISOString().slice(0, 10) : "");
   const [occasion, setOccasion] = useState<string>(initialData?.occasion || "");
-  const [message, setMessage] = useState<string>(initialData?.message || "");
+  const [message] = useState<string>(initialData?.message || "");
   const [customMessage, setCustomMessage] = useState<string>(initialData?.message || "");
   const [generatedMessages, setGeneratedMessages] = useState<string[]>([]);
   const [images, setImages] = useState<{ url: string; publicId: string }[]>(initialData?.images || []);
@@ -336,6 +338,7 @@ const Generator: React.FC<{ initialData?: any }> = ({ initialData }) => {
     if (reference) {
       handleVerifyPayment(reference);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   const handleVerifyPayment = async (reference: string) => {
@@ -486,6 +489,7 @@ Return ONLY the font name.
     try {
       const websiteData = {
         recipientName,
+        recipientEmail,
         occasion: occasion || "Other",
         relationship: "Friend",
         language: "English",
@@ -496,9 +500,7 @@ Return ONLY the font name.
         theme: selectedTheme.name,
         font: selectedFont,
         primaryColor: selectedTheme.hex,
-        countdownDate: new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        countdownDate: countdownDate ? new Date(countdownDate).toISOString() : undefined,
         isPasswordProtected,
         password: isPasswordProtected ? password : null,
         customSlug: customSlug || undefined,
@@ -638,6 +640,10 @@ Return ONLY the font name.
           voiceMessagePublicId={voiceMessagePublicId}
           setVoiceMessageUrl={setVoiceMessageUrl}
           setVoiceMessagePublicId={setVoiceMessagePublicId}
+          recipientEmail={recipientEmail}
+          setRecipientEmail={setRecipientEmail}
+          countdownDate={countdownDate}
+          setCountdownDate={setCountdownDate}
         />
       </div>
 

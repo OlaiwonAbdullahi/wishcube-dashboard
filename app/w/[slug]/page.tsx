@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getLiveWebsite, submitReaction, submitReply } from "@/lib/websites";
 import { redeemGift } from "@/lib/gifts";
+import { getBanks } from "@/lib/vendor";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -227,9 +228,11 @@ function useCountdown(target?: string | null) {
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [target]);
-  if (diff === null || diff <= 0) return null;
+  if (diff === null) return null;
+  if (diff <= 0) return { past: true, d: 0, h: 0, m: 0, s: 0 };
   const s = Math.floor(diff / 1000);
   return {
+    past: false,
     d: Math.floor(s / 86400),
     h: Math.floor((s % 86400) / 3600),
     m: Math.floor((s % 3600) / 60),
@@ -319,6 +322,37 @@ function CountdownCard({
 }) {
   const cd = useCountdown(target);
   if (!cd) return null;
+
+  if (cd.past) {
+    return (
+      <div
+        className="rounded-2xl p-5 text-center space-y-4"
+        style={{ background: accent + "10", border: `1px solid ${accent}30` }}
+      >
+        <div className="flex flex-col items-center justify-center gap-2 py-4">
+          <HugeiconsIcon
+            icon={SparklesIcon}
+            size={40}
+            color={accent}
+            className="animate-bounce"
+          />
+          <h3
+            className="text-2xl font-black uppercase tracking-widest mt-2"
+            style={{ color: accent, fontFamily: font }}
+          >
+            It&apos;s Today!
+          </h3>
+          <p
+            className="text-sm font-medium text-slate-500"
+            style={{ fontFamily: font }}
+          >
+            The special day has finally arrived 🎊
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const units = [
     { label: "Days", val: cd.d },
     { label: "Hrs", val: cd.h },
@@ -336,7 +370,7 @@ function CountdownCard({
           className="text-xs font-semibold text-slate-500 uppercase tracking-widest"
           style={{ fontFamily: font }}
         >
-          Counting down
+          Counting down to your special day
         </p>
       </div>
       <div className="flex justify-center gap-3">
@@ -754,21 +788,6 @@ function GiftCard({
 }
 
 // ─── Redeem Modal ─────────────────────────────────────────────────────────────
-const BANKS = [
-  { name: "GTBank", code: "058" },
-  { name: "First Bank", code: "011" },
-  { name: "Zenith Bank", code: "057" },
-  { name: "Access Bank", code: "044" },
-  { name: "UBA", code: "033" },
-  { name: "Fidelity Bank", code: "070" },
-  { name: "Sterling Bank", code: "232" },
-  { name: "Polaris Bank", code: "076" },
-  { name: "Wema Bank", code: "035" },
-  { name: "Kuda Bank", code: "090267" },
-  { name: "OPay", code: "999992" },
-  { name: "PalmPay", code: "999991" },
-  { name: "Moniepoint", code: "50515" },
-];
 
 type BankDetails = {
   accountName: string;
@@ -807,9 +826,34 @@ function RedeemModal({
   const [bank, setBank] = useState<BankDetails>({
     accountName: "",
     accountNumber: "",
-    bankCode: "058",
-    bankName: "GTBank",
+    bankCode: "",
+    bankName: "",
   });
+
+  const [banksList, setBanksList] = useState<{ name: string; code: string }[]>(
+    [],
+  );
+  const [loadingBanks, setLoadingBanks] = useState(!isPhysical);
+
+  useEffect(() => {
+    if (!isPhysical) {
+      getBanks()
+        .then((res) => {
+          if (res.success && res.data?.banks) {
+            const fetchedBanks = res.data.banks;
+            setBanksList(fetchedBanks);
+            if (fetchedBanks.length > 0) {
+              setBank((prev) => ({
+                ...prev,
+                bankName: prev.bankName || fetchedBanks[0].name,
+                bankCode: prev.bankCode || fetchedBanks[0].code,
+              }));
+            }
+          }
+        })
+        .finally(() => setLoadingBanks(false));
+    }
+  }, [isPhysical]);
 
   const [delivery, setDelivery] = useState<DeliveryAddress>({
     fullName: "",
@@ -968,21 +1012,25 @@ function RedeemModal({
                 <select
                   value={bank.bankName}
                   onChange={(e) => {
-                    const b = BANKS.find((x) => x.name === e.target.value);
+                    const b = banksList.find((x) => x.name === e.target.value);
                     setBank({
                       ...bank,
                       bankName: e.target.value,
-                      bankCode: b?.code ?? "058",
+                      bankCode: b?.code ?? "",
                     });
                   }}
                   className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none text-sm bg-white appearance-none cursor-pointer"
                   style={{ fontFamily: font }}
                 >
-                  {BANKS.map((b) => (
-                    <option key={b.code} value={b.name}>
-                      {b.name}
-                    </option>
-                  ))}
+                  {loadingBanks ? (
+                    <option>Loading banks...</option>
+                  ) : (
+                    banksList.map((b) => (
+                      <option key={b.code} value={b.name}>
+                        {b.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </>
