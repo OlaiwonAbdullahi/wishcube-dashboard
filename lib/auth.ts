@@ -35,6 +35,11 @@ export const setAuth = (data: {
   localStorage.setItem(TOKEN_KEY, data.accessToken);
   localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
   localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+  
+  // Set cookies for middleware to read
+  document.cookie = `${TOKEN_KEY}=${data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `${REFRESH_TOKEN_KEY}=${data.refreshToken}; path=/; max-age=86400; SameSite=Lax`;
+  document.cookie = `${USER_KEY}=${encodeURIComponent(JSON.stringify(data.user))}; path=/; max-age=86400; SameSite=Lax`;
 };
 
 export const getAuth = () => {
@@ -56,6 +61,11 @@ export const clearAuth = () => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  
+  // Clear cookies
+  document.cookie = `${TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  document.cookie = `${REFRESH_TOKEN_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  document.cookie = `${USER_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 };
 
 // API calls
