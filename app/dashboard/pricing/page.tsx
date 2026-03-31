@@ -79,6 +79,7 @@ const PLANS: Plan[] = [
     badgeColor: "#EDE0FF",
     description: "Perfect for creators who want more power and flexibility.",
     features: [
+      { text: "Unlimited cards creation", icon: ICON(SparklesIcon) },
       { text: "Unlimited active websites", icon: ICON(Globe02Icon) },
       { text: "AI-powered message generation", icon: ICON(SparklesIcon) },
       { text: "Media uploads (Photos,Video & Voice)", icon: ICON(VideoIcon) },
@@ -94,8 +95,10 @@ const PLANS: Plan[] = [
     badgeColor: "#FEF3C7",
     description: "Everything you need to run a professional gifting brand.",
     features: [
+      { text: "Unlimited cards creation", icon: ICON(SparklesIcon) },
+      { text: "Unlimited active websites", icon: ICON(Globe02Icon) },
       {
-        text: "Custom subdomains (john.wishcube.com)",
+        text: "Custom subdomains (yourname.wishcube.com)",
         icon: ICON(Globe02Icon),
       },
       { text: "Longer expiration dates", icon: ICON(ShieldCheck) },
