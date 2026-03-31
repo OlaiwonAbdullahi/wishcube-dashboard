@@ -197,7 +197,7 @@ export function CardCustomizer({
       const data = await res.json();
       if (data.success) {
         setCardState(data.data.card);
-        setCurrentStep(1);
+        setCurrentStep(2);
         toast.success("Card draft created!");
       } else {
         toast.error(data.message || "Failed to create card");
@@ -503,7 +503,10 @@ export function CardCustomizer({
                   </Label>
                   <select
                     value={cardState.headlineSizeOverride || "null"}
-                    className="w-full border border-[#191A23]/20 rounded-lg bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#191A23] appearance-none"
+                    className="w-full border border-[#191A23]/20 rounded-lg bg-white px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#191A23] appearance-none" 
+                  onChange={(e) =>
+  updateStateAndSync({ headlineSizeOverride: e.target.value as "small" | "medium" | "large" | null })
+}
                   >
                     <option value="null">Default</option>
                     <option value="small">Small</option>
