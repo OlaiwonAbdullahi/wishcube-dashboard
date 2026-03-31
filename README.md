@@ -1,36 +1,111 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wishcube Dashboard
 
-## Getting Started
+Wishcube is a platform for creating greeting cards, Pages(website), virtual party rooms, and integrating gifting. Make every celebration unforgettable.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Greeting Card
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+User can create a greeting card for a celebrant by just filling a form with the celebrant's name, occasion,prefered styling,Font,bacground image.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Pages(Websites)
 
-## Learn More
+User will be able to create a page for a celebrant by just filling a form with the celebrant's name, occasion, and a few other details. The page will be a website with a unique url. The user can then share the link with friends and family to view the page.
 
-To learn more about Next.js, take a look at the following resources:
+The form Message field has a component where the user can generate a message based on the occasion,relationship,i used Hackclub AI API for it.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Integrated Gifting
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The user can add gifts to the page,either gifts from verified vendor onboarded on the platform or Digital gift like spotify voucher,amazon voucher, uploaded by Wishcube Admin.
 
-## Deploy on Vercel
+### Marketplace & Vendor
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Wishcube have a marketplace where users can buy gifts for the celebrant/Receipient ,the marketplace have gifts Uploaded by verified vendors onboarded on the platform.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Virtual Party Room
+
+Virtual Party Room is just like a live call for celebration this feature havent been implemented yet.
+
+## Tech Stack
+
+- **Frontend**: [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Database**: [MongoDB](https://www.mongodb.com/) (via [Mongoose](https://mongoosejs.com/))
+- **Authentication**: JWT, bcryptjs
+- **Payments**: [Paystack](https://paystack.com/)
+- **UI Components**: [Shadcn/UI](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/)
+- **Icons**: [HugeIcons](https://hugeicons.com/)
+
+---
+
+### Installation
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/OlaiwonAbdullahi/wishcube-dashboard.git
+   cd wishcube-dashboard
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**:
+   Create a `.env.local` file in the root directory and add the following:
+
+   # Google Authentication
+
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+
+   # Payments (Paystack)
+
+   NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+   PAYSTACK_SECRET_KEY=your_paystack_secret_key
+
+   # External APIs
+
+   NEXT_PUBLIC_GOOGLE_FONTS_API_KEY=your_google_fonts_api_key
+
+   ```
+
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+---
+
+## 📁 Project Structure
+
+- `app/`: Next.js App Router (pages and layouts).
+  - `dashboard/`: User and Vendor dashboard interfaces.
+  - `w/[slug]/`: Public-facing celebration websites.
+  - `api/`: Backend API routes handling logic.
+- `components/`: Shared UI components (Shadcn/UI, forms, etc.).
+- `lib/`: Utility functions, database models, and library configurations.
+- `hooks/`: Custom React hooks for global state and data fetching.
+- `public/`: Static assets (images, fonts, etc.).
+
+---
+
+## Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the project.
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4. Push to the branch (`git push origin feature/AmazingFeature`).
+5. Open a Pull Request.
+
+---
+
+Built with ❤️ for better celebrations.

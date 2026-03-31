@@ -381,7 +381,7 @@ export default function WebsiteForm({
             htmlFor="recipientEmail"
             className="text-[10px] font-bold uppercase text-[#191A23]"
           >
-            Recipient's Email (Optional)
+            Recipient&apos;s Email (Optional)
           </label>
           <input
             type="email"
