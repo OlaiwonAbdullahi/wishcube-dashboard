@@ -30,7 +30,6 @@ import {
   PlayCircleIcon,
 } from "@hugeicons/core-free-icons";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 interface ProductSnapshot {
   name: string;
   price: number;
@@ -79,7 +78,6 @@ interface WebsiteData {
   expiresAt?: string;
 }
 
-// ─── Password Gate ────────────────────────────────────────────────────────────
 function PasswordGate({
   accent,
   font,
@@ -218,7 +216,6 @@ function useDynamicFont(font: string | undefined) {
   }, [font]);
 }
 
-// ─── Countdown ────────────────────────────────────────────────────────────────
 function useCountdown(target?: string | null) {
   const [diff, setDiff] = useState<number | null>(null);
   useEffect(() => {
@@ -240,7 +237,6 @@ function useCountdown(target?: string | null) {
   };
 }
 
-// ─── Markdown renderer ────────────────────────────────────────────────────────
 function renderMessage(text: string) {
   return text.split("\n").map((line, li, arr) => {
     const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
@@ -259,7 +255,6 @@ function renderMessage(text: string) {
   });
 }
 
-// ─── Loading ──────────────────────────────────────────────────────────────────
 function LoadingScreen() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 gap-5">
@@ -276,7 +271,6 @@ function LoadingScreen() {
   );
 }
 
-// ─── Error screens ────────────────────────────────────────────────────────────
 function ErrorScreen({ expired = false }: { expired?: boolean }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 p-4">
@@ -310,7 +304,6 @@ function ErrorScreen({ expired = false }: { expired?: boolean }) {
   );
 }
 
-// ─── Countdown card ───────────────────────────────────────────────────────────
 function CountdownCard({
   target,
   accent,
@@ -398,7 +391,6 @@ function CountdownCard({
   );
 }
 
-// ─── Image Carousel ───────────────────────────────────────────────────────────
 function ImageCarousel({
   images,
   accent,
@@ -469,7 +461,6 @@ function ImageCarousel({
   );
 }
 
-// ─── Voice Message Player ─────────────────────────────────────────────────────
 function VoiceMessagePlayer({
   url,
   accent,
@@ -632,7 +623,6 @@ function VoiceMessagePlayer({
   );
 }
 
-// ─── Gift Card ────────────────────────────────────────────────────────────────
 function GiftCard({
   gift,
   accent,
@@ -651,7 +641,6 @@ function GiftCard({
   const storeName = gift.productSnapshot?.storeName || "WishCube Marketplace";
   const isRedeemed = gift.status === "redeemed";
 
-  /* ── Compact card for already-redeemed gifts ── */
   if (isRedeemed) {
     return (
       <div
@@ -694,7 +683,6 @@ function GiftCard({
     );
   }
 
-  /* ── Full card for active / pending gifts ── */
   return (
     <div
       className="rounded-2xl overflow-hidden shadow-sm"
@@ -786,8 +774,6 @@ function GiftCard({
     </div>
   );
 }
-
-// ─── Redeem Modal ─────────────────────────────────────────────────────────────
 
 type BankDetails = {
   accountName: string;
@@ -908,7 +894,6 @@ function RedeemModal({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {isPhysical ? (
-            /* ── Physical: delivery address ── */
             <>
               {(
                 [
@@ -957,7 +942,6 @@ function RedeemModal({
               ))}
             </>
           ) : (
-            /* ── Digital: bank details ── */
             <>
               {(
                 [
@@ -1069,8 +1053,7 @@ function RedeemModal({
   );
 }
 
-// ─── Section Header ───────────────────────────────────────────────────────────
-function SectionLabel({
+function SectionHeader({
   icon,
   label,
   accent,
@@ -1099,7 +1082,6 @@ function SectionLabel({
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function PublicWebsitePage() {
   const { slug } = useParams();
   const [website, setWebsite] = useState<WebsiteData | null>(null);
@@ -1245,7 +1227,6 @@ export default function PublicWebsitePage() {
     >
       {website.musicUrl && <audio ref={audioRef} src={website.musicUrl} loop />}
 
-      {/* ── Hero ───────────────────────────────────────────────────── */}
       <div
         className="relative overflow-hidden"
         style={{
@@ -1327,7 +1308,6 @@ export default function PublicWebsitePage() {
         </div>
       </div>
 
-      {/* ── Content ────────────────────────────────────────────────── */}
       <div className="max-w-xl mx-auto px-4 pb-16 -mt-2 space-y-5">
         {/* Images */}
         {website.images && website.images.length > 0 && (

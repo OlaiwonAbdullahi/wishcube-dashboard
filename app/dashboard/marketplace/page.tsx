@@ -88,7 +88,6 @@ export default function MarketplacePage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-space">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* ── Page Header ─────────────────────────────────────────── */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div className="space-y-1">
             <div className="flex items-center gap-3">
@@ -131,7 +130,6 @@ export default function MarketplacePage() {
           </div>
         </div>
 
-        {/* ── Tabs ────────────────────────────────────────────────── */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent h-auto p-0 border-2 border-[#191A23] border-b-4 rounded-sm flex gap-0 overflow-x-auto no-scrollbar mb-8">
             {TAB_TRIGGERS.map((tab, idx) => (

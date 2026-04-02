@@ -15,12 +15,10 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 interface GiftSelectorProps {
-  /** The currently selected gift _id (or null) */
   selectedGiftId: string | null;
   onSelectGift: (id: string | null) => void;
 }
 
-/* ─── Skeleton ─────────────────────────────────────────────────── */
 function GiftSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -34,7 +32,6 @@ function GiftSkeleton() {
   );
 }
 
-/* ─── Empty state ───────────────────────────────────────────────── */
 function EmptyGifts() {
   return (
     <div className="flex flex-col items-center gap-3 py-6 text-center">
@@ -60,7 +57,6 @@ function EmptyGifts() {
   );
 }
 
-/* ─── Single gift card ──────────────────────────────────────────── */
 function GiftCard({
   gift,
   selected,
@@ -148,7 +144,6 @@ function GiftCard({
   );
 }
 
-/* ─── Main Component ────────────────────────────────────────────── */
 export default function GiftSelector({
   selectedGiftId,
   onSelectGift,

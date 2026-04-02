@@ -5,8 +5,6 @@ import { getAuth } from "./auth";
 
 const API_BASE_URL = "https://api.usewishcube.com/api/vendors";
 
-/* ─── Types ─────────────────────────────────────────────────────────────── */
-
 export interface ProductSnapshot {
   name: string;
   price: number;
@@ -63,8 +61,6 @@ export interface OrderResponse<T> {
   data?: T;
 }
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
-
 const getHeaders = () => {
   const auth = getAuth();
   return {
@@ -72,8 +68,6 @@ const getHeaders = () => {
     Authorization: `Bearer ${auth?.token || ""}`,
   };
 };
-
-/* ─── GET /api/vendors/orders ────────────────────────────────────────────── */
 
 export const getVendorOrders = async (
   status?: OrderStatus,
@@ -92,8 +86,6 @@ export const getVendorOrders = async (
     return { success: false, message: "Network error fetching orders" };
   }
 };
-
-/* ─── PUT /api/vendors/orders/:orderId ───────────────────────────────────── */
 
 export interface UpdateOrderPayload {
   status: "shipped" | "delivered";

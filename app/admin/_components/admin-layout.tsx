@@ -23,10 +23,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     } else if (auth.user.role !== "admin") {
       router.push("/dashboard");
     } else {
-      // Defer state update to avoid synchronous setState in effect
-      queueMicrotask(() => setIsAuthorized(true));
+      setIsAuthorized(true);
     }
-    queueMicrotask(() => setLoading(false));
+    setLoading(false);
   }, [router]);
 
   if (loading) {

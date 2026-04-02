@@ -18,7 +18,6 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import TransactionList from "@/app/dashboard/wallet/_components/transaction-list";
 
-// Preset amounts
 const QUICK_AMOUNTS = [500, 1000, 2000, 5000, 10000, 20000];
 
 function WalletPageInner() {
@@ -66,7 +65,6 @@ function WalletPageInner() {
   return (
     <div className="min-h-screen bg-linear-to-br from-[#FAFAFA] to-[#F5F5F5] font-space">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* Page Header */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -91,9 +89,7 @@ function WalletPageInner() {
           </div>
         </div>
 
-        {/* Balance Card */}
         <div className="relative overflow-hidden rounded-sm border-2 border-[#191A23] border-b-4 bg-[#191A23] text-white p-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,0.3)]">
-          {/* Decorative circles */}
           <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
           <div className="absolute -bottom-12 -left-8 w-36 h-36 rounded-full bg-white/5 pointer-events-none" />
 

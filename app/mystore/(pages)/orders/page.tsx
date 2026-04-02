@@ -24,7 +24,6 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-/* ─── Status config ─────────────────────────────────────────────────────── */
 const STATUS_TABS: { label: string; value: OrderStatus | "all" }[] = [
   { label: "All", value: "all" },
   { label: "Processing", value: "processing" },
@@ -64,7 +63,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-/* ─── Update Modal ──────────────────────────────────────────────────────── */
 function UpdateModal({
   order,
   onClose,
@@ -279,7 +277,6 @@ function UpdateModal({
   );
 }
 
-/* ─── Main page ─────────────────────────────────────────────────────────── */
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

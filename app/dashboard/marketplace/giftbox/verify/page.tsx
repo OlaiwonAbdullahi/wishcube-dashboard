@@ -28,7 +28,6 @@ function VerifyGiftInner() {
 
     const verify = async () => {
       if (!reference) {
-        // use an async boundary to avoid cascading state updates during render
         await new Promise((resolve) => setTimeout(resolve, 0));
         setStatus("error");
         setMessage("No payment reference found.");

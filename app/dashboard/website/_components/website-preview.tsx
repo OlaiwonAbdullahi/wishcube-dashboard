@@ -32,7 +32,6 @@ interface WebsitePreviewProps {
   isCreating?: boolean;
 }
 
-/** Small section label matching the public page SectionLabel component */
 function SectionLabel({
   icon,
   label,
@@ -76,7 +75,6 @@ export default function WebsitePreview({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* ── Phone Frame ─────────────────────────────────────────────── */}
       <div className="mx-auto w-full max-w-[280px]">
         {/* Outer shell — dark bezel */}
         <div
@@ -151,7 +149,6 @@ export default function WebsitePreview({
                   scrollbarWidth: "none",
                 }}
               >
-                {/* ── Hero ─────────────────────────────────────────── */}
                 <div
                   className="relative overflow-hidden"
                   style={{
@@ -225,7 +222,6 @@ export default function WebsitePreview({
                   </div>
                 </div>
 
-                {/* ── Content cards ─────────────────────────────────── */}
                 <div
                   className="px-3 pb-6 -mt-1 space-y-3"
                   style={{ background: "#f8fafc" }}
@@ -456,7 +452,6 @@ export default function WebsitePreview({
         </p>
       </div>
 
-      {/* ── Action buttons ───────────────────────────────────────────── */}
       <div className="flex flex-col gap-3">
         <button
           onClick={copyGreetingLink}

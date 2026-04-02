@@ -34,7 +34,6 @@ const getHeaders = () => {
   };
 };
 
-// Get all products with filters
 export const getProducts = async (
   params?: Record<string, string>
 ): Promise<ProductResponse<{ total: number; products: Product[] }>> => {
@@ -51,7 +50,6 @@ export const getProducts = async (
   }
 };
 
-// Get digital gifts
 export const getDigitalGifts = async (): Promise<
   ProductResponse<{ products: Product[] }>
 > => {
@@ -67,7 +65,6 @@ export const getDigitalGifts = async (): Promise<
   }
 };
 
-// Get products by vendor ID
 export const getProductsByVendorId = async (
   vendorId: string,
 ): Promise<ProductResponse<{ total: number; products: Product[] }>> => {
@@ -86,7 +83,6 @@ export const getProductsByVendorId = async (
   }
 };
 
-// Get products for the current vendor (identifies by token)
 export const getVendorProducts = async (): Promise<
   ProductResponse<{ total: number; products: Product[] }>
 > => {

@@ -8,29 +8,29 @@ Wishcube is a platform for creating greeting cards, Pages(website), virtual part
 
 ### Greeting Card
 
-User can create a greeting card for a celebrant by just filling a form with the celebrant's name, occasion,prefered styling,Font,bacground image.
+User can create a greeting card for a celebrant by just filling a form with the celebrant's name, occasion, preferred styling, font, and background image.
 
 ### Pages(Websites)
 
-User will be able to create a page for a celebrant by just filling a form with the celebrant's name, occasion, and a few other details. The page will be a website with a unique url. The user can then share the link with friends and family to view the page.
+User will be able to create a page for a celebrant by just filling a form with the celebrant's name, occasion, and a few other details. The page will be a website with a unique URL. The user can then share the link with friends and family to view the page.
 
-The form Message field has a component where the user can generate a message based on the occasion,relationship,i used Hackclub AI API for it.
+The form Message field has a component where the user can generate a message based on the occasion and relationship using AI.
 
 ### Integrated Gifting
 
-The user can add gifts to the page,either gifts from verified vendor onboarded on the platform or Digital gift like spotify voucher,amazon voucher, uploaded by Wishcube Admin.
+The user can add gifts to the page, either gifts from verified vendors onboarded on the platform or digital gifts like Spotify/Amazon vouchers uploaded by the Wishcube Admin.
 
 ### Marketplace & Vendor
 
-Wishcube have a marketplace where users can buy gifts for the celebrant/Receipient ,the marketplace have gifts Uploaded by verified vendors onboarded on the platform.
+Wishcube has a marketplace where users can buy gifts for the celebrant/recipient. The marketplace features gifts uploaded by verified vendors onboarded on the platform.
 
 ### Virtual Party Room
 
-Virtual Party Room is just like a live call for celebration this feature havent been implemented yet.
+The Virtual Party Room is a live call for celebrations. This feature is currently in development.
 
 ## Tech Stack
 
-- **Frontend**: [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/)
+- **Frontend**: [Next.js 15](https://nextjs.org/) (App Router), [React 19](https://react.dev/)
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
 - **Database**: [MongoDB](https://www.mongodb.com/) (via [Mongoose](https://mongoosejs.com/))
 - **Authentication**: JWT, bcryptjs

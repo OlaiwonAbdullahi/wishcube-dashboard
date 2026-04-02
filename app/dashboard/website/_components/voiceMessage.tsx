@@ -25,7 +25,6 @@ type RecordState = "idle" | "recording" | "recorded" | "uploading" | "done";
 
 const MAX_SECONDS = 120; // 2 min
 
-/** Upload an audio Blob to Cloudinary via the /api/products/media-upload endpoint */
 async function uploadAudioBlob(
   blob: Blob,
   filename: string,
@@ -43,19 +42,17 @@ async function uploadAudioBlob(
     },
   );
 
-  // Read body once — response.json() can only be called once per response
   const json = await response.json();
 
   if (!response.ok || !json.success) {
     throw new Error(json.message || `Upload failed: HTTP ${response.status}`);
   }
 
-  // Actual response shape: { data: { media: [{ url, publicId, ... }] } }
   const raw = json.data ?? {};
   const first =
-    raw.media?.[0] ??    // confirmed shape
-    raw.images?.[0] ??   // fallback
-    raw.files?.[0] ??    // fallback
+    raw.media?.[0] ??
+    raw.images?.[0] ??
+    raw.files?.[0] ??
     (raw.url ? { url: raw.url, publicId: raw.publicId ?? raw.url } : null);
 
   if (!first?.url) {
@@ -65,7 +62,6 @@ async function uploadAudioBlob(
   return { url: first.url, publicId: first.publicId ?? first.url };
 }
 
-/** Formats seconds as MM:SS */
 function fmt(s: number) {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 }
@@ -92,7 +88,6 @@ export default function VoiceMessage({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Sync state if parent clears the URL (deferred to avoid synchronous setState in effect)
   useEffect(() => {
     if (!voiceMessageUrl && state === "done") {
       const id = setTimeout(() => {
@@ -279,7 +274,6 @@ export default function VoiceMessage({
         )}
       </div>
 
-      {/* ── State: idle ── */}
       {state === "idle" && (
         <div className="flex flex-col items-center justify-center py-7 border-2 border-dashed border-[#191A23]/20 bg-white rounded-sm gap-3">
           <button
@@ -303,7 +297,6 @@ export default function VoiceMessage({
         </div>
       )}
 
-      {/* ── State: recording ── */}
       {state === "recording" && (
         <div className="flex flex-col items-center justify-center py-7 border-2 border-red-200 bg-red-50 rounded-sm gap-3">
           {/* Pulsing mic */}
@@ -332,7 +325,6 @@ export default function VoiceMessage({
         </div>
       )}
 
-      {/* ── State: recorded (preview before upload) ── */}
       {state === "recorded" && audioUrl && (
         <div className="space-y-3">
           <div className="p-3 bg-white border-2 border-[#191A23] rounded-sm shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
@@ -376,7 +368,6 @@ export default function VoiceMessage({
         </div>
       )}
 
-      {/* ── State: uploading ── */}
       {state === "uploading" && (
         <div className="flex flex-col items-center justify-center py-7 bg-white border-2 border-[#191A23]/10 rounded-sm gap-3">
           <div className="size-10 rounded-full border-4 border-[#191A23] border-t-transparent animate-spin" />
@@ -386,7 +377,6 @@ export default function VoiceMessage({
         </div>
       )}
 
-      {/* ── State: done ── */}
       {state === "done" && (
         <div
           className={cn(

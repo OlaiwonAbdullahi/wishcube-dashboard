@@ -45,7 +45,6 @@ const getHeaders = () => {
   };
 };
 
-/** POST /api/subscriptions/initialize */
 export const initializeSubscription = async (
   planType: PlanType,
   callbackUrl?: string
@@ -66,7 +65,6 @@ export const initializeSubscription = async (
   }
 };
 
-/** GET /api/subscriptions/verify/:reference */
 export const verifySubscription = async (
   reference: string
 ): Promise<SubscriptionResponse<SubscriptionStatusData>> => {
@@ -82,7 +80,6 @@ export const verifySubscription = async (
   }
 };
 
-/** GET /api/subscriptions/status */
 export const getSubscriptionStatus = async (): Promise<
   SubscriptionResponse<SubscriptionStatusData>
 > => {

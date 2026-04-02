@@ -5,7 +5,6 @@ import { getAuth } from "./auth";
 
 const API_BASE_URL = "https://api.usewishcube.com/api/gifts";
 
-/* ─── Payload types ────────────────────────────────────────────── */
 export interface PurchaseGiftPayload {
   type: "digital" | "physical";
   paymentMethod: "paystack" | "wallet";
@@ -35,7 +34,6 @@ export interface PhysicalRedemptionData {
   };
 }
 
-/* ─── Response / entity types ──────────────────────────────────── */
 export interface ProductSnapshot {
   name: string;
   price: number;
@@ -90,7 +88,6 @@ export interface GiftResponse<T> {
   data?: T;
 }
 
-/* ─── Helpers ──────────────────────────────────────────────────── */
 const getHeaders = () => {
   const auth = getAuth();
   return {
@@ -99,7 +96,6 @@ const getHeaders = () => {
   };
 };
 
-/* ─── Purchase a gift  POST /api/gifts ─────────────────────────── */
 export const purchaseGift = async (
   payload: PurchaseGiftPayload
 ): Promise<GiftResponse<{ gift: Gift; paymentUrl?: string; reference?: string }>> => {
@@ -116,7 +112,6 @@ export const purchaseGift = async (
   }
 };
 
-/* ─── Get unattached gifts  GET /api/gifts/unattached ──────────── */
 export const getUnattachedGifts = async (): Promise<
   GiftResponse<{ total: number; gifts: Gift[] }>
 > => {
@@ -132,7 +127,6 @@ export const getUnattachedGifts = async (): Promise<
   }
 };
 
-/* ─── Get sent gifts  GET /api/gifts/sent ──────────────────────── */
 export const getSentGifts = async (): Promise<
   GiftResponse<{ total: number; gifts: Gift[] }>
 > => {
@@ -148,7 +142,6 @@ export const getSentGifts = async (): Promise<
   }
 };
 
-/* ─── Verify payment  POST /api/gifts/verify-payment ───────────── */
 export const verifyGiftPayment = async (
   reference: string
 ): Promise<GiftResponse<{ gift: Gift }>> => {
@@ -165,7 +158,6 @@ export const verifyGiftPayment = async (
   }
 };
 
-/* ─── Redeem a gift  POST /api/gifts/redeem/:token  (public) ───── */
 export const redeemGift = async (
   token: string,
   redemptionData: DigitalRedemptionData | PhysicalRedemptionData

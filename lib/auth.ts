@@ -21,7 +21,6 @@ export interface AuthResponse {
   };
 }
 
-// Token management
 const TOKEN_KEY = "wishcube_access_token";
 const REFRESH_TOKEN_KEY = "wishcube_refresh_token";
 const USER_KEY = "wishcube_user";
@@ -68,7 +67,6 @@ export const clearAuth = () => {
   document.cookie = `${USER_KEY}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 };
 
-// API calls
 export const register = async (
   name: string,
   email: string,

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -88,14 +87,12 @@ function ThemePicker({
         Colour Theme
       </label>
 
-      {/* Trigger row */}
       <div className="flex items-center justify-between border-2 border-[#191A23] rounded-sm px-3 py-2 bg-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]">
         <button
           type="button"
           onClick={() => setShowPicker((p) => !p)}
           className="flex items-center gap-2.5 flex-1 text-left"
         >
-          {/* Current colour dot */}
           <span
             className="size-5 rounded-full border-2 border-[#191A23] flex-shrink-0 shadow-[1px_1px_0px_0px_rgba(25,26,35,1)]"
             style={{ backgroundColor: selectedTheme.hex }}
@@ -125,7 +122,6 @@ function ThemePicker({
         </button>
       </div>
 
-      {/* Collapsible colour palette */}
       {showPicker && (
         <div className="border-2 border-[#191A23] rounded-sm bg-white p-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] animate-in slide-in-from-top-2 duration-200">
           <p className="text-[9px] font-black uppercase text-neutral-400 mb-2.5 tracking-wider">
@@ -184,7 +180,7 @@ const FontOption = ({
   isSelected,
   onSelect,
 }: {
-  font: any;
+  font: { family: string };
   isSelected: boolean;
   onSelect: (f: string) => void;
 }) => {
@@ -326,7 +322,6 @@ export default function WebsiteForm({
 
   return (
     <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-      {/* Recipient Name & Custom Slug */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col space-y-1.5">
           <label
@@ -410,7 +405,6 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Occasion & Expiration */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col space-y-1.5">
           <label
@@ -460,7 +454,6 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Password Protection — PRO */}
       <div className="p-4 border-2 border-[#9151FF]/30 rounded-sm bg-[#F3F3F3] shadow-[4px_4px_0px_0px_rgba(145,81,255,0.25)] space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-0.5">
@@ -518,7 +511,6 @@ export default function WebsiteForm({
         )}
       </div>
 
-      {/* Message */}
       <div className="flex flex-col space-y-1.5 mb-4">
         <label
           htmlFor="message"
@@ -591,7 +583,6 @@ export default function WebsiteForm({
         )}
       </div>
 
-      {/* Multi-Image Upload */}
       <div className="flex flex-col space-y-1.5">
         <label className="text-[10px] font-bold uppercase text-[#191A23] flex items-center justify-between">
           <span>Upload Images (Max 5)</span>
@@ -645,13 +636,11 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Theme Picker */}
       <ThemePicker
         selectedTheme={selectedTheme}
         setSelectedTheme={setSelectedTheme}
       />
 
-      {/* Font Picker */}
       <div className="flex flex-col">
         <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
           <span>Select Font</span>
@@ -700,12 +689,8 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Additional Features */}
       <div className=" space-y-4">
         <div className="border-t border-gray-200 pt-4 mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">
-            Additional Features
-          </h3>
           <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3">
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
@@ -722,26 +707,6 @@ export default function WebsiteForm({
               <div
                 className={`bg-gray-800 h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${
                   isOn
-                    ? "transform translate-x-5 "
-                    : "transform translate-x-0.5 bg-gray-700"
-                }`}
-              />
-            </button>
-          </div>
-          <div className=" hidden items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3 mt-4">
-            <div className="">
-              <h2 className=" text-xl font-medium">Add Music</h2>
-            </div>
-            <button
-              type="button"
-              className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
-                addMusic ? "bg-gray-200" : "bg-gray-200"
-              }`}
-              onClick={() => setAddMusic(!addMusic)}
-            >
-              <div
-                className={`bg-gray-800 h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${
-                  addMusic
                     ? "transform translate-x-5 "
                     : "transform translate-x-0.5 bg-gray-700"
                 }`}
@@ -783,7 +748,6 @@ export default function WebsiteForm({
         </div>
       </div>
 
-      {/* Info strip — replaces old preview button */}
       {!isFormValid && (
         <p className="text-[10px] font-bold uppercase text-red-500 text-center tracking-wider">
           Please enter recipient&apos;s name to enable publishing

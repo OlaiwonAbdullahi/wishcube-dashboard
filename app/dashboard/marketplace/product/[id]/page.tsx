@@ -101,10 +101,8 @@ export default function ProductDetailPage() {
 
     if (res.success && res.data) {
       if (paymentMethod === "paystack" && res.data.paymentUrl) {
-        // Append callback so Paystack redirects correctly
         window.location.href = `${res.data.paymentUrl}`;
       } else {
-        // Wallet payment — no redirect needed
         toast.success("Gift purchased from wallet! View it in your Gift Box.");
         router.push("/dashboard/marketplace/giftbox");
       }
@@ -114,7 +112,6 @@ export default function ProductDetailPage() {
     }
   };
 
-  /* ── Loading skeleton ───────────────────────────────────────── */
   if (loading) {
     return (
       <div className="min-h-screen bg-[#FAFAFA] font-space">
@@ -163,7 +160,6 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-space">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* ── Breadcrumb ──────────────────────────────────────── */}
         <div className="flex items-center justify-between">
           <Button
             variant="ghost"
@@ -193,7 +189,6 @@ export default function ProductDetailPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-          {/* ── Images ────────────────────────────────────────── */}
           <div className="space-y-3 md:sticky top-6">
             <div className="aspect-square bg-[#F5F5F5] border-2 border-[#191A23] border-b-4 rounded-sm shadow-[6px_6px_0px_0px_rgba(25,26,35,0.18)] overflow-hidden relative">
               {product.images?.[activeImage]?.url ? (
@@ -240,7 +235,6 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* ── Info + Purchase ────────────────────────────────── */}
           <div className="space-y-6">
             {/* Name & price */}
             <div className="space-y-2">
@@ -332,7 +326,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* ── Purchase Box ───────────────────────────────── */}
             <div className="rounded-sm border-2 border-[#191A23] border-b-4 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,0.12)] p-5 space-y-5">
               <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 flex items-center gap-2">
                 <HugeiconsIcon

@@ -23,10 +23,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     } else if (auth.user.role === "vendor") {
       router.push("/mystore");
     } else {
-      // Defer state update to avoid synchronous setState in effect
-      queueMicrotask(() => setIsAuthorized(true));
+      setIsAuthorized(true);
     }
-    queueMicrotask(() => setLoading(false));
+    setLoading(false);
   }, [router]);
 
   if (loading) {

@@ -7,7 +7,6 @@ import { ProductCard } from "./product-card";
 import { VendorCard } from "./vendor-card";
 import EmptyState from "./empty-state";
 
-/* ── Skeleton grid ─────────────────────────────────────────────── */
 function SkeletonGrid({ count, tall }: { count: number; tall?: boolean }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -21,7 +20,6 @@ function SkeletonGrid({ count, tall }: { count: number; tall?: boolean }) {
   );
 }
 
-/* ── Products tab ──────────────────────────────────────────────── */
 interface ProductsGridProps {
   loading: boolean;
   products: Product[];
@@ -51,7 +49,6 @@ export function ProductsGrid({ loading, products, search }: ProductsGridProps) {
   );
 }
 
-/* ── Digital gifts tab ────────────────────────────────────────── */
 interface DigitalGiftsGridProps {
   loading: boolean;
   digitalGifts: Product[];
@@ -76,7 +73,6 @@ export function DigitalGiftsGrid({ loading, digitalGifts }: DigitalGiftsGridProp
   );
 }
 
-/* ── Vendors tab ──────────────────────────────────────────────── */
 interface VendorsGridProps {
   loading: boolean;
   vendors: Vendor[];

@@ -28,7 +28,6 @@ import {
   SubscriptionStatusData,
 } from "@/lib/subscriptions";
 
-/* ─── Plan definitions ──────────────────────────────────────────── */
 interface PlanFeature {
   text: string;
   icon: any;
@@ -108,7 +107,6 @@ const PLANS: Plan[] = [
   },
 ];
 
-/* ─── Main component ─────────────────────────────────────────────── */
 export default function PricingPage() {
   const router = useRouter();
 
@@ -140,7 +138,6 @@ export default function PricingPage() {
     const res = await initializeSubscription(planType, callbackUrl);
 
     if (res.success && res.data) {
-      // Redirect to Paystack checkout — backend has already set the callback
       window.location.assign(res.data.authorization_url);
     } else {
       toast.error(res.message || "Failed to initialize subscription");
@@ -151,7 +148,6 @@ export default function PricingPage() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-space">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-        {/* ── Header ──────────────────────────────────────────────── */}
         <div className="flex items-start gap-4">
           <Button
             variant="ghost"
@@ -176,7 +172,6 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* ── Current plan banner ──────────────────────────────────── */}
         {statusLoading ? (
           <div className="h-14 rounded-sm border-2 border-[#191A23]/10 bg-white animate-pulse" />
         ) : subscription ? (
@@ -253,7 +248,6 @@ export default function PricingPage() {
           </div>
         )}
 
-        {/* ── Plan cards ───────────────────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PLANS.map((plan) => {
             const isCurrent =
@@ -461,7 +455,6 @@ export default function PricingPage() {
           })}
         </div>
 
-        {/* ── Feature comparison table ──────────────────────────────── */}
         <div className="rounded-sm border-2 border-[#191A23] border-b-4 bg-white shadow-[4px_4px_0px_0px_rgba(25,26,35,0.08)] overflow-hidden">
           <div className="px-6 py-4 border-b border-[#191A23]/10 bg-[#F9F9FB]">
             <h2 className="text-sm font-black text-[#191A23] uppercase tracking-widest">
@@ -586,7 +579,6 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* ── Security notice ───────────────────────────────────────── */}
         <div className="flex items-center gap-2 text-xs text-neutral-400 font-medium">
           <HugeiconsIcon
             icon={ShieldCheck}

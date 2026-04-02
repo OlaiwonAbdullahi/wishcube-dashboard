@@ -1,30 +1,23 @@
 import { NextResponse } from "next/server";
 
-const HACK_CLUB_AI_URL = "https://ai.hackclub.com/proxy/v1/chat/completions";
-const HACK_CLUB_API_KEY =
-  "sk-hc-v1-5891b4f3c19142459ee9c07ecfb5f8f700ac3765e2e84cdaacd3863cec87edea";
+const AI_ENDPOINT = process.env.AI_ENDPOINT || "https://api.openai.com/v1/chat/completions";
+const AI_API_KEY = process.env.AI_API_KEY || "";
 
-// Map user's "futuristic" model names to currently available ones that likely work on the proxy
 const MODEL_MAPPING: Record<string, string> = {
-  "google/gemini-2.5-flash": "google/gemini-2.0-flash",
-  "openai/gpt-5-mini": "openai/gpt-4o-mini",
-  "google/gemini-3-flash-preview": "google/gemini-2.0-flash-exp",
-  "deepseek/deepseek-v3.2": "deepseek/deepseek-v3",
-  "google/gemini-2.5-flash-image": "google/gemini-2.0-flash",
-  "google/gemini-3.1-flash-image-preview":
-    "google/gemini-3.1-flash-image-preview",
+  "gpt-4o-mini": "openai/gpt-4o-mini",
+  "gemini-flash": "google/gemini-2.0-flash",
 };
 
 export async function POST(request: Request) {
   try {
     const { prompt, model } = await request.json();
-    const actualModel = MODEL_MAPPING[model] || model;
+    const actualModel = MODEL_MAPPING[model] || "openai/gpt-4o-mini";
 
-    const response = await fetch(HACK_CLUB_AI_URL, {
+    const response = await fetch(AI_ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${HACK_CLUB_API_KEY}`,
+        Authorization: `Bearer ${AI_API_KEY}`,
       },
       body: JSON.stringify({
         model: actualModel,

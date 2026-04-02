@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -37,7 +36,6 @@ export default function JoinAsVendor() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // Step 1: Registration
   const [ownerName, setOwnerName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -45,7 +43,13 @@ export default function JoinAsVendor() {
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("Cakes");
 
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<{
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    avatar?: string;
+  } | null>(null);
 
   useEffect(() => {
     const auth = getAuth();

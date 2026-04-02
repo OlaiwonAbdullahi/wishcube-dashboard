@@ -16,7 +16,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { getSentGifts, getUnattachedGifts, Gift } from "@/lib/gifts";
 
-/* ── Status badge ────────────────────────────────────────────────── */
 const STATUS_STYLES: Record<string, string> = {
   pending: "bg-amber-50 border-amber-200 text-amber-700",
   active: "bg-[#B4F8C8]/40 border-green-200 text-green-700",
@@ -37,7 +36,6 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-/* ── Gift card ──────────────────────────────────────────────────── */
 function GiftCard({ gift }: { gift: Gift }) {
   const imageUrl =
     gift.productSnapshot?.imageUrl ||
@@ -108,7 +106,6 @@ function GiftCard({ gift }: { gift: Gift }) {
   );
 }
 
-/* ── Skeleton ───────────────────────────────────────────────────── */
 function GiftSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
@@ -119,7 +116,6 @@ function GiftSkeleton({ count = 4 }: { count?: number }) {
   );
 }
 
-/* ── Empty ──────────────────────────────────────────────────────── */
 function EmptyGifts({ label }: { label: string }) {
   const router = useRouter();
   return (
@@ -141,7 +137,6 @@ function EmptyGifts({ label }: { label: string }) {
   );
 }
 
-/* ── Tab button ─────────────────────────────────────────────────── */
 function TabBtn({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count?: number }) {
   return (
     <button
@@ -164,7 +159,6 @@ function TabBtn({ active, onClick, label, count }: { active: boolean; onClick: (
   );
 }
 
-/* ── Page ───────────────────────────────────────────────────────── */
 export default function GiftBoxPage() {
   const router = useRouter();
 

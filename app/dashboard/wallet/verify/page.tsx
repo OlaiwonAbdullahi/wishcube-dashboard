@@ -64,7 +64,6 @@ function VerifyPageInner() {
     verify();
   }, [searchParams]);
 
-  /* ── VERIFYING ─────────────────────────────────────────── */
   if (state === "verifying") {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4 font-space">
@@ -89,7 +88,6 @@ function VerifyPageInner() {
     );
   }
 
-  /* ── SUCCESS ────────────────────────────────────────────── */
   if (state === "success") {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 font-space">
@@ -156,7 +154,6 @@ function VerifyPageInner() {
     );
   }
 
-  /* ── INVALID REFERENCE (no ref in URL) ─────────────────── */
   if (state === "invalid_ref") {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 font-space">
@@ -197,7 +194,6 @@ function VerifyPageInner() {
     );
   }
 
-  /* ── ERROR (wrong ref / expired / network) ─────────────── */
   return (
     <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 font-space">
       <div className="w-full max-w-md rounded-sm border-2 border-[#191A23] border-b-4 bg-white p-8 space-y-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,0.15)] text-center">

@@ -44,7 +44,6 @@ export interface VendorApplication {
 
 export interface Vendor {
   _id: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userId: any; // Populated user object
   storeName: string;
   description: string;
@@ -73,7 +72,6 @@ const getHeaders = () => {
   };
 };
 
-// Register as a vendor
 export const registerVendor = async (data: {
   ownerName: string;
   email: string;
@@ -90,8 +88,6 @@ export const registerVendor = async (data: {
     });
     const resData = await response.json();
 
-    // If successful, we should transform the 'vendor' field to 'user' for setAuth compatibility
-    // or just handle it in the component. Let's handle it in the component or add a helper.
     return resData;
   } catch (error) {
     console.log("Vendor registration error:", error);
