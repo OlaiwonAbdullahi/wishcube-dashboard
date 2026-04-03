@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { getAuth } from "./auth";
@@ -44,7 +45,7 @@ export interface VendorApplication {
 
 export interface Vendor {
   _id: string;
-  userId: any; // Populated user object
+  userId: any;
   storeName: string;
   description: string;
   category: string;

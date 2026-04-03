@@ -30,7 +30,7 @@ export function useGoogleFontsList() {
         }
 
         const response = await fetch(
-          `https://www.googleapis.com/webfonts/v1/webfonts?key=${API_KEY}&sort=popularity`
+          `https://www.googleapis.com/webfonts/v1/webfonts?key=${API_KEY}&sort=popularity`,
         );
         if (!response.ok) throw new Error("Failed to fetch fonts");
         const data = await response.json();
@@ -61,15 +61,12 @@ export function useLoadSelectedFont(fontFamily: string) {
     link.rel = "stylesheet";
     link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
       /\s+/g,
-      "+"
+      "+",
     )}:wght@400;700&display=swap`;
 
     document.head.appendChild(link);
 
-    return () => {
-      // Optional: keep it to avoid flicker or remove if memory is a concern
-      // document.head.removeChild(link);
-    };
+    return () => {};
   }, [fontFamily]);
 }
 
@@ -88,14 +85,13 @@ export function useLoadFontPreview(fontFamily: string) {
     link.rel = "stylesheet";
     link.href = `https://fonts.googleapis.com/css2?family=${fontFamily.replace(
       /\s+/g,
-      "+"
+      "+",
     )}&text=${encodeURIComponent(fontFamily)}&display=swap`;
 
     document.head.appendChild(link);
   }, [fontFamily]);
 }
 
-// Keep the old list as fallback or for initial render
 export const FALLBACK_FONTS = [
   { family: "Inter" },
   { family: "Space Grotesk" },
