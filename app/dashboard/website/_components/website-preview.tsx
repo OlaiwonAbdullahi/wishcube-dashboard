@@ -11,6 +11,7 @@ import {
   FavouriteIcon,
   SentIcon,
   CameraIcon,
+  Save,
 } from "@hugeicons/core-free-icons";
 import { Theme } from "./website-form";
 import { cn } from "@/lib/utils";
@@ -76,7 +77,6 @@ export default function WebsitePreview({
   return (
     <div className="flex flex-col gap-6">
       <div className="mx-auto w-full max-w-[280px]">
-        {/* Outer shell — dark bezel */}
         <div
           className="relative rounded-[2.8rem] p-[10px]"
           style={{
@@ -84,26 +84,20 @@ export default function WebsitePreview({
               "linear-gradient(145deg, #2a2d3a 0%, #191A23 60%, #111318 100%)",
           }}
         >
-          {/* Side buttons (left) */}
           <div className="absolute left-[-3px] top-[90px] w-[3px] h-7 rounded-l-sm bg-[#111318]" />
           <div className="absolute left-[-3px] top-[128px] w-[3px] h-10 rounded-l-sm bg-[#111318]" />
           <div className="absolute left-[-3px] top-[178px] w-[3px] h-10 rounded-l-sm bg-[#111318]" />
-          {/* Power button (right) */}
           <div className="absolute right-[-3px] top-[130px] w-[3px] h-14 rounded-r-sm bg-[#111318]" />
-
-          {/* Inner bezel ring */}
           <div
             className="rounded-[2.2rem] overflow-hidden"
             style={{
               boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.06)",
             }}
           >
-            {/* Screen */}
             <div
               className="relative rounded-[2.2rem] overflow-hidden bg-slate-50"
               style={{ height: 560 }}
             >
-              {/* Dynamic island / notch */}
               <div
                 className="absolute top-3 left-1/2 -translate-x-1/2 z-30 rounded-full"
                 style={{
@@ -112,8 +106,6 @@ export default function WebsitePreview({
                   background: "#191A23",
                 }}
               />
-
-              {/* Status bar */}
               <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 pt-2 pb-1">
                 <span className="text-[7px] font-bold text-white drop-shadow">
                   9:41
@@ -140,8 +132,6 @@ export default function WebsitePreview({
                   </div>
                 </div>
               </div>
-
-              {/* Scrollable page content */}
               <div
                 className="absolute inset-0 overflow-y-auto overflow-x-hidden"
                 style={{
@@ -156,7 +146,6 @@ export default function WebsitePreview({
                     minHeight: 140,
                   }}
                 >
-                  {/* Decorative circles */}
                   <div
                     className="absolute -top-8 -right-8 size-28 rounded-full"
                     style={{ background: "rgba(255,255,255,0.10)" }}
@@ -165,9 +154,7 @@ export default function WebsitePreview({
                     className="absolute -bottom-6 -left-6 size-20 rounded-full"
                     style={{ background: "rgba(255,255,255,0.08)" }}
                   />
-
                   <div className="relative px-4 pt-10 pb-10">
-                    {/* Occasion badge */}
                     {occasion && (
                       <span
                         className="inline-flex items-center capitalize gap-1 text-white text-[7px] font-semibold px-2.5 py-1 rounded-full mb-2"
@@ -181,13 +168,9 @@ export default function WebsitePreview({
                         {occasion}
                       </span>
                     )}
-
-                    {/* Sub-label */}
                     <p className="text-white/70 text-[7px] font-medium mb-0.5">
                       A special message for
                     </p>
-
-                    {/* Recipient name */}
                     <h1 className="text-lg font-bold text-white leading-tight">
                       {recipientName || "Your Recipient"}
                     </h1>
@@ -203,8 +186,6 @@ export default function WebsitePreview({
                       </p>
                     </div>
                   </div>
-
-                  {/* Wave */}
                   <div className="absolute bottom-0 left-0 right-0">
                     <svg
                       viewBox="0 0 1440 40"
@@ -226,7 +207,6 @@ export default function WebsitePreview({
                   className="px-3 pb-6 -mt-1 space-y-3"
                   style={{ background: "#f8fafc" }}
                 >
-                  {/* Images card */}
                   {images.length > 0 ? (
                     <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100">
                       <SectionLabel
@@ -270,8 +250,6 @@ export default function WebsitePreview({
                       </div>
                     </div>
                   )}
-
-                  {/* Message card */}
                   <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 relative overflow-hidden">
                     <div
                       className="absolute -top-1 -left-0.5 text-[50px] font-serif leading-none opacity-[0.04] select-none pointer-events-none"
@@ -294,8 +272,6 @@ export default function WebsitePreview({
                       </p>
                     )}
                   </div>
-
-                  {/* Music card */}
                   {selectedMusic && (
                     <div
                       className="flex items-center gap-2 p-2.5 rounded-xl border"
@@ -324,8 +300,6 @@ export default function WebsitePreview({
                       </div>
                     </div>
                   )}
-
-                  {/* Gift card */}
                   <div
                     className="rounded-xl overflow-hidden"
                     style={{ border: `1px solid ${accent}30` }}
@@ -369,8 +343,6 @@ export default function WebsitePreview({
                       </button>
                     </div>
                   </div>
-
-                  {/* Reactions card */}
                   <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 text-center space-y-2">
                     <p className="text-[8px] font-semibold text-slate-800">
                       How does this make you feel?
@@ -389,8 +361,6 @@ export default function WebsitePreview({
                       ))}
                     </div>
                   </div>
-
-                  {/* Reply card */}
                   <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 space-y-2">
                     <SectionLabel
                       icon={SentIcon}
@@ -412,8 +382,6 @@ export default function WebsitePreview({
                       </div>
                     </div>
                   </div>
-
-                  {/* Footer */}
                   <div className="text-center py-3 space-y-1">
                     <div className="flex items-center justify-center gap-1 text-slate-300">
                       <HugeiconsIcon
@@ -439,20 +407,16 @@ export default function WebsitePreview({
               </div>
             </div>
           </div>
-
-          {/* Home indicator */}
           <div className="flex justify-center mt-2 mb-1">
             <div className="w-20 h-[3px] bg-white/25 rounded-full" />
           </div>
         </div>
-
-        {/* Theme · Font label */}
         <p className="text-center text-[9px] font-bold uppercase text-neutral-400 mt-3 tracking-widest">
           {selectedTheme.name} · {selectedFont}
         </p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col md:flex-row gap-3">
         <button
           onClick={copyGreetingLink}
           disabled={isCreating}
@@ -463,8 +427,8 @@ export default function WebsitePreview({
               : "bg-white text-[#191A23] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:shadow-[6px_6px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-1",
           )}
         >
-          <HugeiconsIcon icon={Copy01Icon} size={16} />
-          {isCreating ? "Saving Draft..." : "Save & Copy Draft Link"}
+          <HugeiconsIcon icon={Save} size={16} />
+          {isCreating ? "Saving Draft..." : "Save as Draft"}
         </button>
         <button
           onClick={handlePublish}
@@ -477,16 +441,8 @@ export default function WebsitePreview({
           )}
         >
           <HugeiconsIcon icon={RocketIcon} size={16} />
-          {isPublishing ? "Publishing..." : "Publish Live 🚀"}
+          {isPublishing ? "Publishing..." : "Publish Live"}
         </button>
-      </div>
-
-      {/* Watermark */}
-      <div className="flex items-center justify-center gap-1.5 opacity-40">
-        <HugeiconsIcon icon={RocketIcon} size={12} />
-        <span className="text-[9px] font-black uppercase tracking-widest text-[#191A23]">
-          Made with WishCube
-        </span>
       </div>
     </div>
   );

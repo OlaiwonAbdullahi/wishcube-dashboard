@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -295,12 +296,10 @@ export default function WebsiteForm({
   isOn,
   setIsOn,
   addMusic,
-  setAddMusic,
   selectedGiftId,
   setSelectedGiftId,
   selectedMusic,
   setSelectedMusic,
-  setIsPreviewMode,
   password,
   setPassword,
   customSlug,
@@ -648,7 +647,7 @@ export default function WebsiteForm({
             type="button"
             onClick={suggestFont}
             disabled={isSuggestingFont}
-            className="flex items-center gap-1 px-2 py-1 bg-green-100 border border-green-300 rounded-sm text-[8px] font-black text-green-700 hover:bg-green-200 transition-all disabled:opacity-50"
+            className="flex items-center gap-1 px-2 py-1 hidden bg-green-100 border border-green-300 rounded-sm text-[8px] font-black text-green-700 hover:bg-green-200 transition-all disabled:opacity-50"
           >
             <HugeiconsIcon
               icon={MagicWand01Icon}
