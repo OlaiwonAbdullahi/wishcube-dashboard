@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   getVendorOrders,
   Order,
@@ -102,7 +102,6 @@ function UpdateModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50">
       <div className="w-full max-w-lg bg-white border-2 border-[#191A23] shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] rounded-sm">
-        {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b-2 border-[#191A23] bg-[#F3F3F3]">
           <div>
             <h2 className="text-base font-black uppercase tracking-tight text-[#191A23]">
@@ -144,8 +143,6 @@ function UpdateModal({
             </div>
             <StatusBadge status={order.status} />
           </div>
-
-          {/* Two columns: delivery + earnings */}
           <div className="grid grid-cols-2 gap-4">
             <div className="border-2 border-[#191A23] rounded-sm p-3 space-y-1 shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
               <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
@@ -184,7 +181,6 @@ function UpdateModal({
             </div>
           </div>
 
-          {/* Status history */}
           {order.statusHistory.length > 0 && (
             <div className="border-2 border-[#191A23] rounded-sm overflow-hidden shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]">
               <div className="bg-[#F3F3F3] px-4 py-2 border-b-2 border-[#191A23]">
@@ -216,7 +212,6 @@ function UpdateModal({
             </div>
           )}
 
-          {/* Update controls */}
           {canUpdate && (
             <div className="space-y-3 pt-2 border-t-2 border-[#191A23]">
               <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
@@ -312,8 +307,6 @@ export default function OrdersPage() {
       o.deliveryAddress.fullName.toLowerCase().includes(q);
     return matchStatus && matchSearch;
   });
-
-  /* summary counts */
   const counts = orders.reduce(
     (acc, o) => {
       acc[o.status] = (acc[o.status] ?? 0) + 1;
@@ -324,7 +317,6 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Page header */}
       <div>
         <h1 className="text-3xl font-black text-[#191A23] uppercase tracking-tight">
           Orders
@@ -334,7 +326,6 @@ export default function OrdersPage() {
         </p>
       </div>
 
-      {/* Summary pills */}
       <div className="flex flex-wrap gap-3">
         {(
           ["processing", "shipped", "delivered", "cancelled"] as OrderStatus[]
@@ -377,7 +368,6 @@ export default function OrdersPage() {
               className="w-full pl-9 pr-4 h-10 border-2 border-[#191A23] rounded-sm text-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all bg-white"
             />
           </div>
-          {/* Status tabs */}
           <div className="flex gap-2 overflow-x-auto pb-0.5">
             {STATUS_TABS.map((tab) => (
               <button
@@ -400,8 +390,6 @@ export default function OrdersPage() {
             ))}
           </div>
         </div>
-
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
@@ -435,7 +423,6 @@ export default function OrdersPage() {
                     key={order._id}
                     className="hover:bg-[#F3F3F3] transition-colors group"
                   >
-                    {/* Order ID */}
                     <td className="px-5 py-4 whitespace-nowrap">
                       <p className="text-xs font-black text-[#191A23]">
                         #{order._id.slice(-8).toUpperCase()}
@@ -447,7 +434,6 @@ export default function OrdersPage() {
                         })}
                       </p>
                     </td>
-                    {/* Product */}
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2">
                         {order.productSnapshot.imageUrl ? (
@@ -466,7 +452,6 @@ export default function OrdersPage() {
                         </span>
                       </div>
                     </td>
-                    {/* Customer */}
                     <td className="px-5 py-4 whitespace-nowrap">
                       <p className="text-sm font-bold text-[#191A23]">
                         {order.deliveryAddress.fullName}
@@ -476,7 +461,6 @@ export default function OrdersPage() {
                         {order.deliveryAddress.state}
                       </p>
                     </td>
-                    {/* Earnings */}
                     <td className="px-5 py-4 whitespace-nowrap">
                       <p className="text-sm font-black text-[#191A23]">
                         ₦{order.vendorEarnings.toLocaleString()}
@@ -492,11 +476,9 @@ export default function OrdersPage() {
                         {order.vendorPaidOut ? "Paid out" : "Pending"}
                       </p>
                     </td>
-                    {/* Status */}
                     <td className="px-5 py-4 whitespace-nowrap">
                       <StatusBadge status={order.status} />
                     </td>
-                    {/* Action */}
                     <td className="px-5 py-4 whitespace-nowrap text-right">
                       <button
                         onClick={() => setSelectedOrder(order)}
@@ -529,8 +511,6 @@ export default function OrdersPage() {
           </table>
         </div>
       </div>
-
-      {/* Detail / update modal */}
       {selectedOrder && (
         <UpdateModal
           order={selectedOrder}

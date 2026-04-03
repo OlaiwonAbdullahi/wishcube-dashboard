@@ -46,7 +46,7 @@ export default function ProductsPage() {
 
       if (profileRes.success && profileRes.data?.vendor) {
         const response = await getProductsByVendorId(
-          profileRes.data.vendor._id
+          profileRes.data.vendor._id,
         );
         if (response.success && response.data) {
           setProducts(response.data.products);
@@ -56,7 +56,7 @@ export default function ProductsPage() {
       } else {
         toast.error(
           profileRes.message ||
-            "Could not find your vendor profile. Please ensure your store is set up correctly."
+            "Could not find your vendor profile. Please ensure your store is set up correctly.",
         );
       }
     } catch (error) {
@@ -87,7 +87,7 @@ export default function ProductsPage() {
   };
 
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    product.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -196,7 +196,7 @@ export default function ProductsPage() {
                       "border-2 border-[#191A23] font-black uppercase text-[8px]",
                       product.isAvailable
                         ? "bg-[#B4F8C8] text-[#191A23]"
-                        : "bg-red-100 text-red-600"
+                        : "bg-red-100 text-red-600",
                     )}
                   >
                     {product.isAvailable ? "Available" : "Out of Stock"}
@@ -255,8 +255,6 @@ export default function ProductsPage() {
           ))
         )}
       </div>
-
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={!!deletingProduct}
         onOpenChange={(open) => !open && setDeletingProduct(null)}

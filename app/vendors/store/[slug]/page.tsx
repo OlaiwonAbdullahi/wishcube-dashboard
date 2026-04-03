@@ -35,7 +35,7 @@ const VendorStorePage = () => {
           setVendor(vendorRes.data.vendor);
 
           const productsRes = await getProductsByVendorId(
-            vendorRes.data.vendor._id
+            vendorRes.data.vendor._id,
           );
           console.log(productsRes);
           if (productsRes.success && productsRes.data) {
@@ -87,7 +87,6 @@ const VendorStorePage = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-12 animate-in fade-in duration-500">
-      {/* Store Header */}
       <div className="relative border-4 border-[#191A23] rounded-sm p-8 bg-white shadow-[8px_8px_0px_0px_rgba(25,26,35,1)] flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
         <div className="w-32 h-32 bg-neutral-50 border-4 border-[#191A23] rounded-sm flex items-center justify-center overflow-hidden shadow-[4px_4px_0px_0px_rgba(25,26,35,1)]">
           {vendor.logo ? (
@@ -119,7 +118,7 @@ const VendorStorePage = () => {
                           "w-4 h-4 fill-current",
                           i < Math.floor(vendor.rating)
                             ? "opacity-100"
-                            : "opacity-30"
+                            : "opacity-30",
                         )}
                         viewBox="0 0 20 20"
                       >
@@ -159,8 +158,6 @@ const VendorStorePage = () => {
           Go Back
         </Button>
       </div>
-
-      {/* Store Products */}
       <div className="space-y-8">
         <div className="flex items-center justify-between border-b-4 border-[#191A23] pb-4">
           <h2 className="text-2xl font-black uppercase tracking-tighter">
@@ -215,7 +212,7 @@ const ProductCard = ({ product }: { product: any }) => (
             "border-2 border-[#191A23] font-black uppercase text-[8px] px-1.5 py-0.5",
             product.category === "Vouchers" || product.stock > 0
               ? "bg-[#B4F8C8] text-[#191A23]"
-              : "bg-red-100 text-red-600"
+              : "bg-red-100 text-red-600",
           )}
         >
           {product.category === "Vouchers" || product.stock > 0

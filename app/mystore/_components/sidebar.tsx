@@ -9,7 +9,6 @@ import {
   ShoppingBag01Icon,
   Analytics01Icon,
   Settings01Icon,
-  Store01Icon,
 } from "@hugeicons/core-free-icons";
 import {
   Sidebar,
