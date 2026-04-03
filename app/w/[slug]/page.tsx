@@ -1053,7 +1053,7 @@ function RedeemModal({
   );
 }
 
-function SectionHeader({
+function SectionLabel({
   icon,
   label,
   accent,
@@ -1193,8 +1193,6 @@ export default function PublicWebsitePage() {
   if (!website) return <ErrorScreen />;
 
   const accent = website.primaryColor || "#6366f1";
-
-  // Password gate: only block if protected AND a password value exists
   const needsPassword = website.isPasswordProtected && !!website.password;
   if (needsPassword && !unlocked) {
     return (
@@ -1544,7 +1542,6 @@ export default function PublicWebsitePage() {
               </div>
             </>
           ) : (
-            /* No reply yet — show the form */
             <>
               <SectionLabel
                 icon={SentIcon}
