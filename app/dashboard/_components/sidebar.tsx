@@ -11,6 +11,7 @@ import {
   Video02Icon,
   Settings01Icon,
   WalletAdd02Icon,
+  Calendar02FreeIcons,
 } from "@hugeicons/core-free-icons";
 import {
   Sidebar,
@@ -46,10 +47,16 @@ const navItems: NavItem[] = [
     href: "/dashboard/cards",
   },
   {
-    title: "Create Websites",
+    title: "Create Pages",
     icon: WebDesign02Icon,
     iconColor: "text-amber-500",
     href: "/dashboard/website",
+  },
+  {
+    title: "RSVP",
+    icon: Calendar02FreeIcons,
+    iconColor: "text-pink-500",
+    href: "/dashboard/rsvp",
   },
   {
     title: "Marketplace",

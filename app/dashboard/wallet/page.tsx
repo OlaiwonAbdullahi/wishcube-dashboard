@@ -50,11 +50,9 @@ function WalletPageInner() {
       return;
     }
     setFunding(true);
-    // Build the absolute callback URL pointing to the dedicated verify page
     const callbackUrl = `${window.location.origin}/dashboard/wallet/verify`;
     const res = await fundWallet(parsed, callbackUrl);
     if (res.success && res.data) {
-      // Hand off to Paystack — it will return to /dashboard/wallet/verify
       window.location.href = res.data.paymentUrl;
     } else {
       toast.error(res.message || "Failed to initialize payment");

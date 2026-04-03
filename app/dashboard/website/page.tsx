@@ -96,7 +96,6 @@ export default function WebsitePage() {
   if (view === "list") {
     return (
       <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
-        {/* Header */}
         <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-black tracking-tight text-[#191A23]">
@@ -115,7 +114,6 @@ export default function WebsitePage() {
           </button>
         </div>
 
-        {/* List */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3].map((i) => (
@@ -167,7 +165,6 @@ export default function WebsitePage() {
                     </span>
                   </div>
 
-                  {/* Name & occasion */}
                   <div className="flex-1">
                     <h3 className="text-base font-black uppercase truncate text-[#191A23]">
                       {ws.recipientName}
@@ -228,7 +225,8 @@ export default function WebsitePage() {
                         <DialogHeader>
                           <DialogTitle>Delete Website</DialogTitle>
                           <DialogDescription>
-                            Are you sure you want to delete this website? This action cannot be undone.
+                            Are you sure you want to delete this website? This
+                            action cannot be undone.
                           </DialogDescription>
                         </DialogHeader>
                         <DialogFooter>
@@ -289,35 +287,63 @@ export default function WebsitePage() {
 const Generator: React.FC<{ initialData?: any }> = ({ initialData }) => {
   // Form state
   const [selectedTheme, setSelectedTheme] = useState<Theme>(
-    initialData?.theme ? THEMES.find((t) => t.name === initialData.theme) || THEMES[0] : THEMES[0]
+    initialData?.theme
+      ? THEMES.find((t) => t.name === initialData.theme) || THEMES[0]
+      : THEMES[0],
   );
-  const [recipientName, setRecipientName] = useState<string>(initialData?.recipientName || "");
-  const [recipientEmail, setRecipientEmail] = useState<string>(initialData?.recipientEmail || "");
-  const [countdownDate, setCountdownDate] = useState<string>(initialData?.countdownDate ? new Date(initialData.countdownDate).toISOString().slice(0, 10) : "");
+  const [recipientName, setRecipientName] = useState<string>(
+    initialData?.recipientName || "",
+  );
+  const [recipientEmail, setRecipientEmail] = useState<string>(
+    initialData?.recipientEmail || "",
+  );
+  const [countdownDate, setCountdownDate] = useState<string>(
+    initialData?.countdownDate
+      ? new Date(initialData.countdownDate).toISOString().slice(0, 10)
+      : "",
+  );
   const [occasion, setOccasion] = useState<string>(initialData?.occasion || "");
   const [message] = useState<string>(initialData?.message || "");
-  const [customMessage, setCustomMessage] = useState<string>(initialData?.message || "");
+  const [customMessage, setCustomMessage] = useState<string>(
+    initialData?.message || "",
+  );
   const [generatedMessages, setGeneratedMessages] = useState<string[]>([]);
-  const [images, setImages] = useState<{ url: string; publicId: string }[]>(initialData?.images || []);
+  const [images, setImages] = useState<{ url: string; publicId: string }[]>(
+    initialData?.images || [],
+  );
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState<string>(initialData?.password || "");
   const [customSlug, setCustomSlug] = useState<string>(initialData?.slug || "");
   const [expiresAt, setExpiresAt] = useState<string>(
-    initialData?.expiresAt ? new Date(initialData.expiresAt).toISOString().slice(0, 16) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16)
+    initialData?.expiresAt
+      ? new Date(initialData.expiresAt).toISOString().slice(0, 16)
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 16),
   );
-  const [isPasswordProtected, setIsPasswordProtected] = useState(initialData?.isPasswordProtected || false);
+  const [isPasswordProtected, setIsPasswordProtected] = useState(
+    initialData?.isPasswordProtected || false,
+  );
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(initialData?.giftIds?.[0] || null);
+  const [selectedGiftId, setSelectedGiftId] = useState<string | null>(
+    initialData?.giftIds?.[0] || null,
+  );
   const [selectedMusic, setSelectedMusic] = useState<any | null>(null);
-  const [voiceMessageUrl, setVoiceMessageUrl] = useState<string | null>(initialData?.voiceMessageUrl || null);
-  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<string | null>(initialData?.voiceMessagePublicId || null);
+  const [voiceMessageUrl, setVoiceMessageUrl] = useState<string | null>(
+    initialData?.voiceMessageUrl || null,
+  );
+  const [voiceMessagePublicId, setVoiceMessagePublicId] = useState<
+    string | null
+  >(initialData?.voiceMessagePublicId || null);
   const [greetingId, setGreetingId] = useState<string>(initialData?._id || "");
   const [isOn, setIsOn] = useState(!!initialData?.giftIds?.length);
   const [addMusic, setAddMusic] = useState(false);
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
   const [isSuggestingFont, setIsSuggestingFont] = useState(false);
-  const [selectedFont, setSelectedFont] = useState<string>(initialData?.font || "Space Grotesk");
+  const [selectedFont, setSelectedFont] = useState<string>(
+    initialData?.font || "Space Grotesk",
+  );
   const [fontSearch, setFontSearch] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -500,7 +526,9 @@ Return ONLY the font name.
         theme: selectedTheme.name,
         font: selectedFont,
         primaryColor: selectedTheme.hex,
-        countdownDate: countdownDate ? new Date(countdownDate).toISOString() : undefined,
+        countdownDate: countdownDate
+          ? new Date(countdownDate).toISOString()
+          : undefined,
         isPasswordProtected,
         password: isPasswordProtected ? password : null,
         customSlug: customSlug || undefined,
@@ -522,7 +550,9 @@ Return ONLY the font name.
         setGreetingId(websiteId);
 
         if (selectedGiftId) {
-          toast.success(`Website ${initialData?._id ? "updated" : "created"} with gift linked!`);
+          toast.success(
+            `Website ${initialData?._id ? "updated" : "created"} with gift linked!`,
+          );
           const baseUrl = window.location.origin;
           const previewUrl = `${baseUrl}/preview/${websiteId}`;
           await navigator.clipboard.writeText(previewUrl);

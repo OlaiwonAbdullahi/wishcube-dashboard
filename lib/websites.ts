@@ -102,7 +102,6 @@ export const publishWebsite = async (
   }
 };
 
-// Upload website images
 export const uploadWebsiteImages = async (
   files: File[],
 ): Promise<
@@ -115,7 +114,6 @@ export const uploadWebsiteImages = async (
     });
 
     const auth = getAuth();
-    // Using the confirmed working products upload endpoint as a general purpose upload
     const response = await fetch(
       "https://api.usewishcube.com/api/products/upload",
       {
