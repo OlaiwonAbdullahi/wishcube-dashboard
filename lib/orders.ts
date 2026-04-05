@@ -109,3 +109,60 @@ export const updateOrderStatus = async (
     return { success: false, message: "Network error updating order status" };
   }
 };
+
+export interface DashboardOverviewData {
+  stats: {
+    totalOrders: number;
+    activeOrders: number;
+    totalProducts: number;
+    totalRevenue: number;
+    totalEarnings: number;
+  };
+  recentOrders: Order[];
+}
+
+export const getVendorDashboardOverview = async (): Promise<
+  OrderResponse<DashboardOverviewData>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/dashboard/overview`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch dashboard overview error:", error);
+    return { success: false, message: "Network error fetching dashboard" };
+  }
+};
+
+export interface AnalyticsData {
+  ordersByStatus: Array<{ _id: string; count: number }>;
+  revenueHistory: Array<{
+    _id: { month: number; year: number };
+    revenue: number;
+    earnings: number;
+    count: number;
+  }>;
+  topProducts: Array<{
+    _id: string;
+    name: string;
+    totalSales: number;
+    unitsSold: number;
+  }>;
+}
+
+export const getVendorAnalytics = async (): Promise<
+  OrderResponse<AnalyticsData>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/analytics`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch analytics error:", error);
+    return { success: false, message: "Network error fetching analytics" };
+  }
+};
