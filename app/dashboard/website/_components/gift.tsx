@@ -87,7 +87,6 @@ function GiftCard({
           : "bg-white border-[#191A23] shadow-[3px_3px_0px_0px_rgba(25,26,35,0.12)] hover:shadow-[4px_4px_0px_0px_rgba(25,26,35,0.25)] hover:-translate-y-0.5",
       )}
     >
-      {/* Thumbnail / Icon */}
       <div
         className={cn(
           "size-12 rounded-sm border flex items-center justify-center shrink-0 overflow-hidden",
@@ -96,7 +95,11 @@ function GiftCard({
         style={{ background: selected ? "rgba(255,255,255,0.12)" : "#F3F3F3" }}
       >
         {imageUrl ? (
-          <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+          <img
+            src={imageUrl}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
         ) : (
           <HugeiconsIcon
             icon={isDigital ? GiftIcon : PackageIcon}
