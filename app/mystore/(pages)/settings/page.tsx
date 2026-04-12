@@ -6,6 +6,7 @@ import {
   updateVendorProfile,
   uploadVendorLogo,
   getBanks,
+  resolveAccount,
   type Bank,
 } from "@/lib/vendor";
 import {
@@ -21,6 +22,7 @@ import {
   ImageAdd01Icon,
   Cancel01Icon,
   SaveIcon,
+  Tick01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -50,6 +52,7 @@ export default function StoreSettingsPage() {
   // Logo state
   const [logo, setLogo] = useState<string | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isResolving, setIsResolving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -88,6 +91,39 @@ export default function StoreSettingsPage() {
       toast.error("An error occurred loading profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (bankDetails.accountNumber.length === 10 && bankDetails.bankCode) {
+        handleResolveAccount();
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [bankDetails.accountNumber, bankDetails.bankCode]);
+
+  const handleResolveAccount = async () => {
+    setIsResolving(true);
+    try {
+      const res = await resolveAccount(
+        bankDetails.accountNumber,
+        bankDetails.bankCode,
+      );
+      if (res.success && res.data) {
+        setBankDetails((prev) => ({
+          ...prev,
+          accountName: res.data!.account_name,
+        }));
+        // toast.success("Account name resolved");
+      } else {
+        toast.error(res.message || "Could not resolve account name");
+      }
+    } catch (error) {
+      // toast.error("Failed to resolve account name");
+    } finally {
+      setIsResolving(false);
     }
   };
 
@@ -350,21 +386,45 @@ export default function StoreSettingsPage() {
                 className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-[#191A23]">
-                Account Name
-              </Label>
-              <Input
+          </div>
+          <div className="space-y-2">
+            <Label className="text-[10px] font-black uppercase text-[#191A23]">
+              Account Name
+            </Label>
+            <div className="relative">
+              <input
                 required
+                readOnly
                 value={bankDetails.accountName}
-                onChange={(e) =>
-                  setBankDetails({
-                    ...bankDetails,
-                    accountName: e.target.value,
-                  })
+                placeholder={
+                  isResolving ? "Resolving account..." : "Account Name"
                 }
-                className="border-2 border-[#191A23] rounded-sm h-12 text-sm font-bold focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
+                className={`border-2 border-[#191A23] cursor-default rounded-sm h-12 text-sm font-bold transition-all px-4 w-full ${
+                  isResolving
+                    ? "bg-neutral-50 opacity-70"
+                    : bankDetails.accountName
+                      ? "bg-[#B4F8C8]/20 text-[#191A23]"
+                      : "bg-neutral-50 cursor-not-allowed"
+                }`}
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+                {isResolving ? (
+                  <div className="w-4 h-4 border-2 border-[#191A23] border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  bankDetails.accountName && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 bg-[#191A23] rounded-sm shadow-[2px_2px_0px_0px_rgba(180,248,200,1)]">
+                      <HugeiconsIcon
+                        icon={Tick01Icon}
+                        size={12}
+                        className="text-[#B4F8C8]"
+                      />
+                      <span className="text-[8px] font-black text-[#B4F8C8] uppercase tracking-tighter">
+                        Verified
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -26,10 +26,12 @@ export interface StatusHistoryEntry {
 }
 
 export type OrderStatus =
-  | "pending"
   | "processing"
-  | "shipped"
+  | "out_for_delivery"
+  | "in_transit"
+  | "awaiting_confirmation"
   | "delivered"
+  | "disputed"
   | "cancelled";
 
 export interface Order {
@@ -88,7 +90,7 @@ export const getVendorOrders = async (
 };
 
 export interface UpdateOrderPayload {
-  status: "shipped" | "delivered";
+  status: "out_for_delivery" | "in_transit" | "awaiting_confirmation";
   trackingNumber?: string;
   note?: string;
 }
@@ -98,8 +100,8 @@ export const updateOrderStatus = async (
   payload: UpdateOrderPayload,
 ): Promise<OrderResponse<{ order: Order }>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-      method: "PUT",
+    const response = await fetch(`https://api.usewishcube.com/api/orders/${orderId}/status`, {
+      method: "PATCH",
       headers: getHeaders(),
       body: JSON.stringify(payload),
     });
@@ -107,6 +109,23 @@ export const updateOrderStatus = async (
   } catch (error) {
     console.error("Update order status error:", error);
     return { success: false, message: "Network error updating order status" };
+  }
+};
+
+export const confirmDeliveryVendor = async (
+  orderId: string,
+  code: string,
+): Promise<OrderResponse<{ order: Order }>> => {
+  try {
+    const response = await fetch(`https://api.usewishcube.com/api/orders/${orderId}/confirm`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ code, confirmedBy: "vendor" }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Confirm delivery error:", error);
+    return { success: false, message: "Network error confirming delivery" };
   }
 };
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import {
   OrderStatus,
   UpdateOrderPayload,
   updateOrderStatus,
+  confirmDeliveryVendor,
 } from "@/lib/orders";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -27,23 +29,32 @@ import { cn } from "@/lib/utils";
 const STATUS_TABS: { label: string; value: OrderStatus | "all" }[] = [
   { label: "All", value: "all" },
   { label: "Processing", value: "processing" },
-  { label: "Shipped", value: "shipped" },
+  { label: "Out for Delivery", value: "out_for_delivery" },
+  { label: "In Transit", value: "in_transit" },
+  { label: "Awaiting Conf.", value: "awaiting_confirmation" },
   { label: "Delivered", value: "delivered" },
+  { label: "Disputed", value: "disputed" },
   { label: "Cancelled", value: "cancelled" },
 ];
 
 const STATUS_STYLE: Record<string, string> = {
   processing: "bg-blue-100 text-blue-700 border-blue-200",
-  shipped: "bg-purple-100 text-purple-700 border-purple-200",
+  out_for_delivery: "bg-amber-100 text-amber-700 border-amber-200",
+  in_transit: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  awaiting_confirmation: "bg-orange-100 text-orange-700 border-orange-200",
   delivered: "bg-green-100 text-green-700 border-green-200",
+  disputed: "bg-red-100 text-red-700 border-red-200",
   cancelled: "bg-red-100 text-red-700 border-red-200",
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const STATUS_ICON: Record<string, any> = {
   processing: Time01Icon,
-  shipped: DeliveryTruck01Icon,
+  out_for_delivery: DeliveryTruck01Icon,
+  in_transit: DeliveryTruck01Icon,
+  awaiting_confirmation: PackageIcon,
   delivered: Tick01Icon,
+  disputed: Cancel01Icon,
   cancelled: Cancel01Icon,
 };
 
@@ -75,23 +86,42 @@ function UpdateModal({
   const [trackingNumber, setTrackingNumber] = useState(
     order.trackingNumber ?? "",
   );
-  const [note, setNote] = useState("");
+  const [status, setStatus] = useState<OrderStatus>(
+    order.status === "processing" ? "out_for_delivery" : order.status,
+  );
   const [loading, setLoading] = useState(false);
+  const [note, setNote] = useState("");
+  const [otpCode, setOtpCode] = useState("");
 
-  const nextStatus = order.status === "processing" ? "shipped" : "delivered";
-  const canUpdate = order.status === "processing" || order.status === "shipped";
+  const canUpdate =
+    order.status !== "delivered" && order.status !== "cancelled";
+  const showDeliveryCode = !!(order as any).deliveryCode;
 
   const handleUpdate = async () => {
     setLoading(true);
+
+    if (status === "delivered") {
+      const res = await confirmDeliveryVendor(order._id, otpCode);
+      setLoading(false);
+      if (res.success) {
+        toast.success(`Delivery confirmed successfully!`);
+        onUpdated();
+        onClose();
+      } else {
+        toast.error(res.message || "Invalid OTP code");
+      }
+      return;
+    }
+
     const payload: UpdateOrderPayload = {
-      status: nextStatus,
+      status: status as any,
       ...(trackingNumber.trim() && { trackingNumber: trackingNumber.trim() }),
       ...(note.trim() && { note: note.trim() }),
     };
     const res = await updateOrderStatus(order._id, payload);
     setLoading(false);
     if (res.success) {
-      toast.success(`Order marked as ${nextStatus}`);
+      toast.success(`Order status updated`);
       onUpdated();
       onClose();
     } else {
@@ -214,36 +244,72 @@ function UpdateModal({
 
           {canUpdate && (
             <div className="space-y-3 pt-2 border-t-2 border-[#191A23]">
-              <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
-                Mark as{" "}
-                <span className="text-[#191A23]">
-                  {nextStatus.toUpperCase()}
-                </span>
-              </p>
-              {nextStatus === "shipped" && (
-                <input
-                  type="text"
-                  placeholder="Tracking number (optional)"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  className="w-full px-4 py-2.5 border-2 border-[#191A23] rounded-sm text-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
-                />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400 mb-2">
+                  Update Status To
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      "out_for_delivery",
+                      "in_transit",
+                      "awaiting_confirmation",
+                      "delivered"
+                    ] as OrderStatus[]
+                  ).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setStatus(s)}
+                      className={cn(
+                        "px-3 py-1.5 text-[10px] font-black uppercase border-2 border-[#191A23] rounded-sm transition-all",
+                        status === s
+                          ? "bg-[#191A23] text-white"
+                          : "bg-white hover:bg-neutral-50",
+                      )}
+                    >
+                      {s.replace(/_/g, " ")}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {status === "delivered" ? (
+                <div className="space-y-3">
+                  <input
+                     type="text"
+                     placeholder="6-Digit OTP Code from Recipient"
+                     value={otpCode}
+                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
+                     maxLength={6}
+                     className="w-full px-4 py-2.5 border-2 border-[#191A23] rounded-sm text-sm font-medium focus:outline-none focus:bg-[#F3F3F3] transition-all tracking-[0.2em] text-center placeholder:tracking-normal"
+                   />
+                </div>
+              ) : (
+                <>
+                  {(status === "out_for_delivery" || status === "in_transit") && (
+                    <input
+                      type="text"
+                      placeholder="Tracking Number (e.g. DHL-123)"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      className="w-full px-4 py-2.5 border-2 border-[#191A23] rounded-sm text-sm font-medium focus:outline-none focus:bg-[#F3F3F3] transition-all"
+                    />
+                  )}
+                  <input
+                    type="text"
+                    placeholder="Updates note (optional)"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    className="w-full px-4 py-2.5 border-2 border-[#191A23] rounded-sm text-sm font-medium focus:outline-none focus:bg-[#F3F3F3] transition-all"
+                  />
+                </>
               )}
-              <input
-                type="text"
-                placeholder="Note (optional)"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                className="w-full px-4 py-2.5 border-2 border-[#191A23] rounded-sm text-sm font-medium focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
-              />
+
               <button
                 onClick={handleUpdate}
                 disabled={loading}
                 className={cn(
-                  "w-full h-11 border-2 border-[#191A23] rounded-sm font-black uppercase text-xs flex items-center justify-center gap-2 transition-all",
-                  nextStatus === "shipped"
-                    ? "bg-[#A0E7E5] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]"
-                    : "bg-[#B4F8C8] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)]",
+                  "w-full h-11 border-2 border-[#191A23] rounded-sm font-black uppercase text-xs flex items-center justify-center gap-2 bg-[#A0E7E5] shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all",
                   loading && "opacity-60 cursor-not-allowed",
                 )}
               >
@@ -253,17 +319,31 @@ function UpdateModal({
                     size={16}
                     className="animate-spin"
                   />
-                ) : nextStatus === "shipped" ? (
-                  <HugeiconsIcon icon={DeliveryTruck01Icon} size={16} />
                 ) : (
                   <HugeiconsIcon icon={CheckmarkCircle01Icon} size={16} />
                 )}
-                {loading
-                  ? "Updating…"
-                  : nextStatus === "shipped"
-                    ? "Mark as Shipped"
-                    : "Mark as Delivered"}
+                {loading ? "Updating…" : status === "delivered" ? "Confirm Delivery" : `Set as ${status.replace(/_/g, " ")}`}
               </button>
+              {status !== "delivered" && (
+                 <p className="text-[10px] text-center text-neutral-400 font-bold uppercase italic">
+                   Note: &quot;Delivered&quot; state is strictly confirmed by OTP.
+                 </p>
+              )}
+            </div>
+          )}
+
+          {showDeliveryCode && (
+            <div className="p-4 border-2 border-[#191A23] bg-[#B4F8C8] rounded-sm space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#191A23]/60">
+                Delivery Confirmation Code
+              </p>
+              <p className="text-2xl font-black text-[#191A23] tracking-widest">
+                {(order as any).deliveryCode}
+              </p>
+              <p className="text-[9px] font-bold text-[#191A23]/50">
+                Share this code with the recipient if they haven&apos;t received
+                the automated email.
+              </p>
             </div>
           )}
         </div>
@@ -328,7 +408,15 @@ export default function OrdersPage() {
 
       <div className="flex flex-wrap gap-3">
         {(
-          ["processing", "shipped", "delivered", "cancelled"] as OrderStatus[]
+          [
+            "processing",
+            "out_for_delivery",
+            "in_transit",
+            "awaiting_confirmation",
+            "delivered",
+            "disputed",
+            "cancelled",
+          ] as OrderStatus[]
         ).map((s) => (
           <div
             key={s}

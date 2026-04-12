@@ -27,6 +27,7 @@ export interface DigitalRedemptionData {
 export interface PhysicalRedemptionData {
   deliveryAddress: {
     fullName: string;
+    email: string;
     phone: string;
     address: string;
     city: string;
@@ -97,8 +98,10 @@ const getHeaders = () => {
 };
 
 export const purchaseGift = async (
-  payload: PurchaseGiftPayload
-): Promise<GiftResponse<{ gift: Gift; paymentUrl?: string; reference?: string }>> => {
+  payload: PurchaseGiftPayload,
+): Promise<
+  GiftResponse<{ gift: Gift; paymentUrl?: string; reference?: string }>
+> => {
   try {
     const response = await fetch(API_BASE_URL, {
       method: "POST",
@@ -123,7 +126,10 @@ export const getUnattachedGifts = async (): Promise<
     return await response.json();
   } catch (error) {
     console.error("Get unattached gifts error:", error);
-    return { success: false, message: "Network error fetching unattached gifts" };
+    return {
+      success: false,
+      message: "Network error fetching unattached gifts",
+    };
   }
 };
 
@@ -143,7 +149,7 @@ export const getSentGifts = async (): Promise<
 };
 
 export const verifyGiftPayment = async (
-  reference: string
+  reference: string,
 ): Promise<GiftResponse<{ gift: Gift }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/verify-payment`, {
@@ -160,7 +166,7 @@ export const verifyGiftPayment = async (
 
 export const redeemGift = async (
   token: string,
-  redemptionData: DigitalRedemptionData | PhysicalRedemptionData
+  redemptionData: DigitalRedemptionData | PhysicalRedemptionData,
 ): Promise<GiftResponse<{ gift: Gift; order?: any }>> => {
   try {
     const response = await fetch(`${API_BASE_URL}/redeem/${token}`, {
@@ -172,5 +178,41 @@ export const redeemGift = async (
   } catch (error) {
     console.error("Redeem gift error:", error);
     return { success: false, message: "Network error redeeming gift" };
+  }
+};
+
+export const trackOrder = async (
+  orderId: string,
+  token: string,
+): Promise<GiftResponse<any>> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/track/${orderId}?token=${token}`,
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Track order error:", error);
+    return { success: false, message: "Network error fetching tracking info" };
+  }
+};
+
+export const confirmDelivery = async (
+  orderId: string,
+  token: string,
+  code: string,
+): Promise<GiftResponse<any>> => {
+  try {
+    const response = await fetch(
+      `https://api.usewishcube.com/api/orders/${orderId}/confirm`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, code, confirmedBy: "recipient" }),
+      },
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Confirm delivery error:", error);
+    return { success: false, message: "Network error confirming delivery" };
   }
 };

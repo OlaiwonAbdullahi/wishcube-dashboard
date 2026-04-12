@@ -235,3 +235,27 @@ export const uploadVendorLogo = async (
     return { success: false, message: "Network error uploading logo" };
   }
 };
+
+// Resolve Bank Account
+export const resolveAccount = async (
+  accountNumber: string,
+  bankCode: string,
+): Promise<{
+  success: boolean;
+  message: string;
+  data?: { account_number: string; account_name: string; bank_id: number };
+}> => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/general/resolve-account?accountNumber=${accountNumber}&bankCode=${bankCode}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Resolve account error:", error);
+    return { success: false, message: "Network error resolving account" };
+  }
+};
