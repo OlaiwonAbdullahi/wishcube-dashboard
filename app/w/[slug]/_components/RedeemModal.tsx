@@ -137,7 +137,7 @@ export function RedeemModal({
             <>
               {(
                 [
-                  { id: "accountName", label: "Account Name", type: "text", placeholder: "Full name as on account" },
+                  { id: "accountName", label: "Account Name", type: "text", placeholder: "Full name as on account", maxLength: undefined },
                   { id: "accountNumber", label: "Account Number", type: "text", placeholder: "10-digit number", maxLength: 10 },
                 ] as const
               ).map(({ id, label, type, placeholder, maxLength }) => (
