@@ -4,7 +4,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { getLiveWebsite, submitReaction, submitReply } from "@/lib/websites";
-import { redeemGift, trackOrder, confirmDelivery } from "@/lib/gifts";
+import { redeemGift, trackOrder } from "@/lib/gifts";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -49,8 +49,7 @@ export default function PublicWebsitePage() {
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [trackingData, setTrackingData] = useState<any>(null);
   const [trackingGift, setTrackingGift] = useState<GiftInfo | null>(null);
-  const [isConfirmingDelivery, setIsConfirmingDelivery] = useState(false);
-  const [deliveryCode, setDeliveryCode] = useState("");
+
   const [replySent, setReplySent] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [pwError, setPwError] = useState(false);
@@ -86,6 +85,17 @@ export default function PublicWebsitePage() {
     if (slug) fetchWebsite();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
+
+  useEffect(() => {
+    if (website && typeof window !== "undefined" && window.location.hash === "#track") {
+      const trackableGift = website.giftIds?.find(g => g.orderId && g.redeemToken);
+      if (trackableGift) {
+        setActiveGift(trackableGift);
+        handleTrack(trackableGift.orderId!, trackableGift.redeemToken!);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [website]);
 
   const handleReaction = async (emoji: string) => {
     if (reaction === emoji) return;
@@ -147,31 +157,6 @@ export default function PublicWebsitePage() {
       }
     } catch {
       toast.error("An error occurred fetching tracking info");
-    }
-  };
-
-  const handleConfirmDelivery = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeGift?.orderId || !activeGift?.redeemToken || !deliveryCode) return;
-    setIsConfirmingDelivery(true);
-    try {
-      const res = await confirmDelivery(
-        activeGift.orderId,
-        activeGift.redeemToken,
-        deliveryCode,
-      );
-      if (res.success) {
-        toast.success("Delivery confirmed! Thank you. 🎉");
-        setShowTrackingModal(false);
-        setDeliveryCode("");
-        fetchWebsite();
-      } else {
-        toast.error(res.message || "Invalid delivery code");
-      }
-    } catch {
-      toast.error("Confirmation failed");
-    } finally {
-      setIsConfirmingDelivery(false);
     }
   };
 
@@ -427,7 +412,7 @@ export default function PublicWebsitePage() {
 
         {/* Gifts */}
         {website.giftIds && website.giftIds.length > 0 && (
-          <div className="space-y-4">
+          <section className="space-y-4" id="track">
             {website.giftIds.map((gift) => (
               <GiftCard
                 key={gift._id}
@@ -444,7 +429,7 @@ export default function PublicWebsitePage() {
                 }}
               />
             ))}
-          </div>
+          </section>
         )}
 
         {/* Reactions */}
@@ -671,10 +656,6 @@ export default function PublicWebsitePage() {
           font={font}
           tracking={trackingData}
           onClose={() => setShowTrackingModal(false)}
-          onConfirm={handleConfirmDelivery}
-          isConfirming={isConfirmingDelivery}
-          code={deliveryCode}
-          setCode={setDeliveryCode}
         />
       )}
     </div>

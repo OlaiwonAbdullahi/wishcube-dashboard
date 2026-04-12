@@ -74,6 +74,14 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+const PROGRESSION: OrderStatus[] = [
+  "processing",
+  "out_for_delivery",
+  "in_transit",
+  "awaiting_confirmation",
+  "delivered",
+];
+
 function UpdateModal({
   order,
   onClose,
@@ -83,19 +91,22 @@ function UpdateModal({
   onClose: () => void;
   onUpdated: () => void;
 }) {
+  const currentIndex = PROGRESSION.indexOf(order.status);
+  const initialNext =
+    currentIndex < PROGRESSION.length - 1
+      ? PROGRESSION[currentIndex + 1]
+      : order.status;
+
   const [trackingNumber, setTrackingNumber] = useState(
     order.trackingNumber ?? "",
   );
-  const [status, setStatus] = useState<OrderStatus>(
-    order.status === "processing" ? "out_for_delivery" : order.status,
-  );
+  const [status, setStatus] = useState<OrderStatus>(initialNext);
   const [loading, setLoading] = useState(false);
   const [note, setNote] = useState("");
   const [otpCode, setOtpCode] = useState("");
 
   const canUpdate =
     order.status !== "delivered" && order.status !== "cancelled";
-  const showDeliveryCode = !!(order as any).deliveryCode;
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -121,7 +132,7 @@ function UpdateModal({
     const res = await updateOrderStatus(order._id, payload);
     setLoading(false);
     if (res.success) {
-      toast.success(`Order status updated`);
+      toast.success(`Order status updated to ${status.replace(/_/g, " ")}`);
       onUpdated();
       onClose();
     } else {
@@ -249,14 +260,7 @@ function UpdateModal({
                   Update Status To
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {(
-                    [
-                      "out_for_delivery",
-                      "in_transit",
-                      "awaiting_confirmation",
-                      "delivered"
-                    ] as OrderStatus[]
-                  ).map((s) => (
+                  {PROGRESSION.slice(currentIndex + 1).map((s) => (
                     <button
                       key={s}
                       onClick={() => setStatus(s)}
@@ -332,20 +336,7 @@ function UpdateModal({
             </div>
           )}
 
-          {showDeliveryCode && (
-            <div className="p-4 border-2 border-[#191A23] bg-[#B4F8C8] rounded-sm space-y-1">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#191A23]/60">
-                Delivery Confirmation Code
-              </p>
-              <p className="text-2xl font-black text-[#191A23] tracking-widest">
-                {(order as any).deliveryCode}
-              </p>
-              <p className="text-[9px] font-bold text-[#191A23]/50">
-                Share this code with the recipient if they haven&apos;t received
-                the automated email.
-              </p>
-            </div>
-          )}
+
         </div>
       </div>
     </div>

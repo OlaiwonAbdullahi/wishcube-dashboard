@@ -18,19 +18,11 @@ export function TrackingModal({
   font,
   onClose,
   tracking,
-  onConfirm,
-  isConfirming,
-  code,
-  setCode,
 }: {
   accent: string;
   font: string;
   onClose: () => void;
   tracking: any;
-  onConfirm: (e: React.FormEvent) => void;
-  isConfirming: boolean;
-  code: string;
-  setCode: (val: string) => void;
 }) {
   const steps = [
     { key: "processing", label: "Processing", icon: PackageIcon },
@@ -43,7 +35,7 @@ export function TrackingModal({
     },
     { key: "delivered", label: "Delivered", icon: Tick01Icon },
   ];
-
+  console.log(tracking);
   const currentStatus = tracking.status;
   const history = tracking.statusHistory || [];
 
@@ -163,47 +155,30 @@ export function TrackingModal({
             })}
           </div>
 
-          {/* Confirm Section */}
+          {/* Confirmation Code Display */}
           {currentStatus === "awaiting_confirmation" && (
             <div className="mt-8 pt-6 border-t border-slate-100 space-y-4">
               <div
-                className="p-4 rounded-xl border"
+                className="p-4 rounded-xl border text-center"
                 style={{
                   background: accent + "08",
                   borderColor: accent + "20",
                 }}
               >
                 <p
-                  className="text-xs font-bold flex items-center gap-2"
+                  className="text-xs font-bold flex items-center justify-center gap-2 mb-3"
                   style={{ color: accent }}
                 >
                   <HugeiconsIcon icon={PackageIcon} size={14} color={accent} />
-                  Received your gift?
+                  Confirm Receipt
                 </p>
-                <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                  Enter the 6-digit confirmation code found in your shipment
-                  notification email to confirm delivery and release the gift.
+
+                <p className="text-[12px] text-slate-500 leading-relaxed max-w-[280px] mx-auto">
+                  Provide this 6-digit code sent to your email to the vendor or
+                  delivery person when you receive your gift. This confirms the
+                  delivery was successful.
                 </p>
               </div>
-              <form onSubmit={onConfirm} className="space-y-3">
-                <input
-                  type="text"
-                  placeholder="CODE"
-                  className="w-full px-4 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 text-center text-xl font-black tracking-[0.5em] uppercase"
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  style={{ fontFamily: font }}
-                />
-                <button
-                  type="submit"
-                  disabled={isConfirming || code.length !== 6}
-                  className="w-full py-4 rounded-xl text-white text-sm font-bold shadow-lg hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
-                  style={{ background: accent, fontFamily: font }}
-                >
-                  {isConfirming ? "Confirming..." : "Finalize Delivery"}
-                </button>
-              </form>
             </div>
           )}
         </div>
