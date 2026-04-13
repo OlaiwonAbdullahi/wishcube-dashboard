@@ -107,7 +107,6 @@ export const Overview = ({
           value={`₦${stats.wallet.toLocaleString()}`}
           hint="Total Funds"
           isLoading={!initialStats}
-          accent={isPro ? proAccent ?? undefined : undefined}
         />
         <KpiCard
           title="Gifts"
@@ -155,7 +154,7 @@ export const Overview = ({
             title="Create Website"
             icon={WebDesign02Icon}
             color="bg-[#D1E9FF]"
-            href="/dashboard/websites"
+            href="/dashboard/website"
           />
           <QuickAction
             title="Fund Wallet"

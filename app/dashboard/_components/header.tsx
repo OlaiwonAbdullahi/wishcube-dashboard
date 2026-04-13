@@ -28,6 +28,7 @@ import {
   SubscriptionStatusData,
 } from "@/lib/subscriptions";
 import { cn } from "@/lib/utils";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 // Tier accent palette
 const TIER_STYLES: Record<
@@ -77,7 +78,6 @@ export function DashboardHeader() {
       fetchBalance();
       fetchSubscription();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = () => {
@@ -94,14 +94,19 @@ export function DashboardHeader() {
   return (
     <header className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3 border-b bg-card sticky top-0 z-10 w-full shrink-0">
       <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <HugeiconsIcon
-            icon={Folder01Icon}
-            size={16}
-            color="currentColor"
-            strokeWidth={1.5}
-          />
-          <span className="text-sm font-medium">Dashboard</span>
+        <div className=" flex gap-0">
+          <div className="md:hidden flex">
+            <SidebarTrigger />
+          </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <HugeiconsIcon
+              icon={Folder01Icon}
+              size={16}
+              color="currentColor"
+              strokeWidth={1.5}
+            />
+            <span className="text-sm font-medium">Dashboard</span>
+          </div>
         </div>
 
         {/* PRO / Premium tier badge in breadcrumb area */}
@@ -179,7 +184,9 @@ export function DashboardHeader() {
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium leading-none">{user?.name}</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.name}
+                  </p>
                   {isPro && tierStyle && (
                     <span
                       className={cn(

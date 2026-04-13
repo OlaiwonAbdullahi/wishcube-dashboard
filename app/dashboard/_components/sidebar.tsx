@@ -89,7 +89,7 @@ export function DashboardSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="offcanvas" className="border-r-0!" {...props}>
-      <SidebarHeader className="px-4 py-5 border-b border-neutral-300">
+      <SidebarHeader className="px-4 py-5 border-b border-neutral-300 bg-[#F3F3F3]">
         <div className="flex items-end gap-1  w-full">
           <img
             src="/logo.png"
@@ -102,7 +102,7 @@ export function DashboardSidebar(props: React.ComponentProps<typeof Sidebar>) {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 pt-10">
+      <SidebarContent className="px-2 pt-10 bg-[#F3F3F3]">
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu>
