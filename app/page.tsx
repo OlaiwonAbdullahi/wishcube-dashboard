@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState, FormEvent, useEffect } from "react";
-import { login, getAuth, googleAuth } from "@/lib/auth";
+import { login, getAuth, googleAuth, resendVerification } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGoogleLogin } from "@react-oauth/google";
@@ -23,6 +23,8 @@ export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export default function Page() {
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
+    setUnverifiedEmail("");
     try {
       const response = await login(email, password);
       if (response.success) {
@@ -53,11 +56,32 @@ export default function Page() {
         }
       } else {
         toast.error(response.message || "Login failed");
+        if (response.message?.toLowerCase().includes("verify your email")) {
+          setUnverifiedEmail(email);
+        }
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    try {
+      const resp = await resendVerification(unverifiedEmail);
+      if (resp.success) {
+        toast.success(resp.message || "Verification email sent!");
+      } else {
+        toast.error(resp.message || "Failed to resend verification");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setResending(false);
+      setUnverifiedEmail("");
     }
   };
 
@@ -147,7 +171,7 @@ export default function Page() {
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-neutral-500">Password</Label>
                     <Link
-                      href="#"
+                      href="/forgot-password"
                       className="text-xs text-neutral-500 hover:text-neutral-400 underline-offset-4 hover:underline"
                     >
                       Forgot password?
@@ -171,6 +195,17 @@ export default function Page() {
                 >
                   {loading ? "Logging in..." : "Log in"}
                 </Button>
+                {unverifiedEmail && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleResend}
+                    disabled={resending}
+                    className="w-full mt-2 h-10 border-[#191A23] border-b-2 hover:translate-y-[2px] transition-all bg-white"
+                  >
+                    {resending ? "Resending..." : "Resend Verification Email"}
+                  </Button>
+                )}
                 <Button
                   variant="link"
                   size="sm"

@@ -27,11 +27,24 @@ export default function SignUp() {
 
   const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Password Validation
+    const minLength = password.length >= 8;
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[^A-Za-z0-9]/.test(password);
+    
+    if (!(minLength && hasUpper && hasLower && hasNumber && hasSpecial)) {
+      toast.error("Password must be at least 8 characters long, contain 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await register(name, email, password);
       if (response.success) {
-        toast.success("Account created successfully!");
+        toast.success(response.message || "User registered. Please check your email to verify your account.");
         router.push("/");
       } else {
         toast.error(response.message || "Signup failed");

@@ -74,9 +74,7 @@ export const register = async (
       body: JSON.stringify({ name, email, password }),
     });
     const data = await response.json();
-    if (data.success && data.data) {
-      setAuth(data.data);
-    }
+    // Do not call setAuth here because the backend now requires email verification and doesn't send tokens immediately.
     return data;
   } catch (error) {
     console.error("Registration error:", error);
@@ -159,5 +157,57 @@ export const googleAuth = async (token: string): Promise<AuthResponse> => {
       success: false,
       message: "Network error during Google authentication",
     };
+  }
+};
+
+export const verifyEmail = async (token: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/verify-email/${token}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Verify email error:", error);
+    return { success: false, message: "Network error during email verification" };
+  }
+};
+
+export const resendVerification = async (email: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/resend-verification`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    return { success: false, message: "Network error while resending verification" };
+  }
+};
+
+export const forgotPassword = async (email: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return { success: false, message: "Network error during forgot password" };
+  }
+};
+
+export const resetPassword = async (token: string, password: string): Promise<AuthResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/reset-password/${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return { success: false, message: "Network error during reset password" };
   }
 };
