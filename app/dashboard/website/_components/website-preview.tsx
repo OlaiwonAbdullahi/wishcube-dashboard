@@ -11,6 +11,7 @@ import {
   SentIcon,
   CameraIcon,
   Save,
+  AudioWaveIcon,
 } from "@hugeicons/core-free-icons";
 import { Theme } from "./website-form";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ interface WebsitePreviewProps {
   isPublishing: boolean;
   isCreating?: boolean;
   layout?: "classic" | "modern";
+  voiceMessageUrl?: string | null;
 }
 
 function SectionLabel({
@@ -71,6 +73,7 @@ export default function WebsitePreview({
   isPublishing,
   isCreating,
   layout = "classic",
+  voiceMessageUrl,
 }: WebsitePreviewProps) {
   const displayMessage = customMessage || message;
   const accent = selectedTheme.hex ?? "#6366f1";
@@ -266,6 +269,49 @@ export default function WebsitePreview({
                       </div>
                     </div>
                   )}
+
+                  {voiceMessageUrl && (
+                    <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100">
+                      <SectionLabel
+                        icon={AudioWaveIcon}
+                        label="Voice Message"
+                        accent={accent}
+                      />
+                      <div
+                        className="flex items-center gap-3 p-2 rounded-lg border"
+                        style={{
+                          background: accent + "08",
+                          borderColor: accent + "20",
+                        }}
+                      >
+                        <div
+                          className="size-8 rounded-full flex items-center justify-center shrink-0"
+                          style={{ background: accent }}
+                        >
+                          <HugeiconsIcon
+                            icon={AudioWaveIcon}
+                            size={14}
+                            color="white"
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <div
+                            className="h-1 w-full rounded-full bg-slate-200 overflow-hidden"
+                            style={{ background: accent + "20" }}
+                          >
+                            <div
+                              className="h-full w-1/3 rounded-full"
+                              style={{ background: accent }}
+                            />
+                          </div>
+                        </div>
+                        <span className="text-[7px] font-bold text-slate-400">
+                          0:42
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="bg-white rounded-xl shadow-sm p-3 border border-slate-100 relative overflow-hidden">
                     <div
                       className="absolute -top-1 -left-0.5 text-[50px] font-serif leading-none opacity-[0.04] select-none pointer-events-none"

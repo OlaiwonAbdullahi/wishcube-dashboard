@@ -56,15 +56,6 @@ export const Overview = ({
             <h1 className="text-2xl font-bold tracking-tight text-[#191A23]">
               Dashboard Overview
             </h1>
-            {isPro && proAccent && (
-              <span
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-sm text-[9px] font-black uppercase tracking-widest text-white"
-                style={{ backgroundColor: proAccent }}
-              >
-                <HugeiconsIcon icon={AiMagicIcon} size={9} color="white" />
-                {tier}
-              </span>
-            )}
           </div>
           <p className="text-sm text-neutral-600">
             Start something new or pick up from your recent activity.

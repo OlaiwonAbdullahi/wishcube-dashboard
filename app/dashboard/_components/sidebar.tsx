@@ -52,6 +52,12 @@ const navItems: NavItem[] = [
     iconColor: "text-amber-500",
     href: "/dashboard/website",
   },
+  {
+    title: "Bulk Builder",
+    icon: WebDesign02Icon, // Reusing WebDesign02Icon
+    iconColor: "text-indigo-500",
+    href: "/dashboard/bulk-builder",
+  },
   // {
   //   title: "RSVP",
   //   icon: Calendar02FreeIcons,

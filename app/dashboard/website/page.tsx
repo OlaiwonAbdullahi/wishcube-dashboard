@@ -734,6 +734,7 @@ Return ONLY the font name.
             isPublishing={isPublishing}
             isCreating={isCreating}
             layout={layout}
+            voiceMessageUrl={voiceMessageUrl}
           />
         </div>
       </div>

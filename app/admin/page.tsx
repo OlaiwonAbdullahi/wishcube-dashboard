@@ -128,7 +128,7 @@ const AdminDashboard = () => {
                     <div className="h-full w-[95%] bg-green-400 rounded-sm border-r-2 border-[#191A23]"></div>
                   </div>
                 </div>
-              )
+              ),
             )}
           </div>
         </div>
