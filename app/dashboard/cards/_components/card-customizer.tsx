@@ -210,9 +210,66 @@ export function CardCustomizer({
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!cardState._id) {
+    toast.error("Please complete Step 2 (Basic Details) first before uploading an image.");
+    e.target.value = "";
+    return;
+  }
+
+  setIsUploading(true);
+  const auth = getAuth();
+  const formData = new FormData();
+  formData.append("image", file);
+
+  try {
+    const res = await fetch(
+      `https://api.usewishcube.com/api/cards/${cardState._id}/background`,
+      {
+        method: "POST",
+        headers: { Authorization: `Bearer ${auth?.token}` },
+        body: formData,
+      }
+    );
+    const data = await res.json();
+    if (data.success) {
+      setCardState({ ...cardState, backgroundImageUrl: data.data.backgroundImageUrl });
+      toast.success("Background image uploaded!");
+    } else {
+      toast.error("Failed to upload image");
+    }
+  } catch (error) {
+    console.error("Upload error:", error);
+    toast.error("Error uploading image");
+  } finally {
+    setIsUploading(false);
+  }
+}
+  
+  
+  /*async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !cardState._id) return;
+    //if (!file || !cardState._id) return; 
+    setIsUploading(true);
+    //console.log("Image upload triggered", file);
+
+    
+        setCardState({
+          ...cardState,
+          backgroundImageUrl: file ? URL.createObjectURL(file) : undefined,
+        });
+        toast.success("Background image uploaded!");
+        setIsUploading(false);
+
+    
+  }*/
+
+  /*const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file /*|| !cardState._id) return; //issue is the cardState._id is not set when this function is called
 
     setIsUploading(true);
     const auth = getAuth();
@@ -246,7 +303,7 @@ export function CardCustomizer({
     } finally {
       setIsUploading(false);
     }
-  };
+  };*/
 
   const handleFontSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value);
@@ -620,48 +677,59 @@ export function CardCustomizer({
               <div className="p-6 space-y-4">
                 {/* Background Image */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold uppercase text-[#191A23]">
-                      Background Image
-                    </Label>
-                    {isUploading && (
-                      <Loader2 className="size-4 animate-spin text-[#191A23]" />
-                    )}
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="bg-image-upload"
-                    />
-                    <label
-                      htmlFor="bg-image-upload"
-                      className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-[#191A23]/30 rounded-lg cursor-pointer hover:bg-[#191A23]/5 hover:border-[#191A23] transition-all"
-                    >
-                      {cardState.backgroundImageUrl ? (
-                        <div className="relative w-full h-full">
-                          <img
-                            src={cardState.backgroundImageUrl}
-                            alt="Background"
-                            className="w-full h-full object-cover rounded-md opacity-50"
-                          />
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <ImagePlus className="size-6 text-[#191A23]" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center gap-2">
-                          <ImagePlus className="size-5 text-[#191A23]/60" />
-                          <span className="text-[8px] font-bold uppercase text-[#191A23]/60">
-                            Upload Image
-                          </span>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                </div>
+  <div className="flex items-center justify-between">
+    <Label className="text-xs font-bold uppercase text-[#191A23]">
+      Background Image
+    </Label>
+    {isUploading && (
+      <Loader2 className="size-4 animate-spin text-[#191A23]" />
+    )}
+  </div>
+  <div className="relative">
+    <input
+      type="file"
+      accept="image/*"
+      onChange={handleImageUpload}
+      className="hidden"
+      id="bg-image-upload"
+      disabled={!cardState._id}
+    />
+    <label
+      htmlFor="bg-image-upload"
+      className={cn(
+        "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-lg transition-all",
+        !cardState._id
+          ? "border-[#191A23]/10 cursor-not-allowed opacity-40"
+          : "border-[#191A23]/30 cursor-pointer hover:bg-[#191A23]/5 hover:border-[#191A23]"
+      )}
+    >
+      {cardState.backgroundImageUrl ? (
+        <div className="relative w-full h-full">
+          <img
+            src={cardState.backgroundImageUrl}
+            alt="Background"
+            className="w-full h-full object-cover rounded-md opacity-50"
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <ImagePlus className="size-6 text-[#191A23]" />
+          </div>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center gap-2">
+          <ImagePlus className="size-5 text-[#191A23]/60" />
+          <span className="text-[8px] font-bold uppercase text-[#191A23]/60">
+            Upload Image
+          </span>
+        </div>
+      )}
+    </label>
+    {!cardState._id && (
+      <p className="text-[9px] text-[#991B1B] font-bold mt-1">
+        Complete Step 2 first to enable image upload
+      </p>
+    )}
+  </div>
+</div>
 
                 <Separator className="bg-[#191A23]/10" />
 
