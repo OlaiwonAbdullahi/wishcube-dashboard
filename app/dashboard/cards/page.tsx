@@ -25,7 +25,7 @@ export default function CardsPage() {
   const [activeCard, setActiveCard] = useState<CardState | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"list" | "edit">("list");
-
+  //console.log("card state", activeCard);
   useEffect(() => {
     fetchCards();
   }, []);
