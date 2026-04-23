@@ -70,26 +70,61 @@ export function CardPreview({ cardState }: CardPreviewProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const handleDownload = async () => {
-    if (!cardRef.current) return;
 
-    setIsDownloading(true);
-    try {
-      const dataUrl = await toPng(cardRef.current, {
-        cacheBust: true,
-        pixelRatio: 2,
-      });
+ function handleDownload() {
+  setIsDownloading(true);
+  if (!cardRef.current) return;
 
-      const link = document.createElement("a");
-      link.href = dataUrl;
+  toPng(cardRef.current, {
+    cacheBust: true,
+    skipFonts: true, // ← skips the cssRules traversal entirely
+  })
+    .then((dataUrl) => {
+      const link = document.createElement('a');
       link.download = `greeting-card-${Date.now()}.png`;
+      link.href = dataUrl;
       link.click();
-    } catch (error) {
-      console.error("Failed to download card:", error);
-    } finally {
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+    .finally(() => {
       setIsDownloading(false);
-    }
-  };
+    });
+}
+
+  /*const handleDownload = async () => {
+  if (!cardRef.current) return;
+
+  setIsDownloading(true);
+  try {
+    const dataUrl = await toPng(cardRef.current, {
+      cacheBust: true,
+      pixelRatio: 2,
+      filter: (node: HTMLElement) => {
+        // Skip <style>
+        if (node.tagName === "STYLE") return false;
+
+        // Narrow type before accessing "rel"
+        if (node.tagName === "LINK") {
+          const link = node as HTMLLinkElement;
+          if (link.rel === "stylesheet") return false;
+        }
+
+        return true;
+      },
+    });
+
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `greeting-card-${Date.now()}.png`;
+    link.click();
+  } catch (error) {
+    console.error("Failed to download card:", error);
+  } finally {
+    setIsDownloading(false);
+  }
+};*/
 
   const handleShare = async () => {
     if (!cardRef.current) return;
