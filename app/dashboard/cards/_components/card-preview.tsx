@@ -170,11 +170,25 @@ export function CardPreview({ cardState }: CardPreviewProps) {
     };
   };
 
-  const getFontSizeValue = () => {
-    if (cardState.textSize === "small") return 12;
-    if (cardState.textSize === "large") return 28;
-    return 20;
-  };
+  // const getFontSizeValue = () => {
+  //   if (cardState.textSize === "small") return 12;
+  //   if (cardState.textSize === "large") return 28;
+  //   return 20;
+  // };
+
+ const getFontSizeValue = () => {
+  const base =
+    cardState.textSize === "small"
+      ? 12
+      : cardState.textSize === "large"
+        ? 24
+        : 18;
+  const len = (cardState.message || "").length;
+  if (len > 238) return Math.min(base, 10);
+  if (len > 160) return Math.min(base, 12);
+  if (len > 100) return Math.min(base, 14);
+  return base;
+};
 
   const DecorativeIcons = () => (
     <div className="flex items-center justify-center gap-6 opacity-60">
@@ -272,8 +286,10 @@ export function CardPreview({ cardState }: CardPreviewProps) {
                 </div>
 
                 {/* Main Message Box (Glassmorphism) */}
-                <div className="flex-1 flex items-center justify-center -mt-2">
-                  <div className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 relative overflow-hidden">
+                {/* <div className="flex-1 flex items-center justify-center -mt-2">
+                  <div className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 relative overflow-hidden"> */}
+                  <div className="flex-1 flex items-center justify-center -mt-2">
+                    <div className="w-full bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 relative">
                     {/* Corner Accents */}
                     <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/20" />
                     <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/20" />
@@ -290,12 +306,9 @@ export function CardPreview({ cardState }: CardPreviewProps) {
                         </p>
                       )}
 
-                      <p
-                        className="text-xs leading-relaxed opacity-90 italic font-medium max-w-[90%] mx-auto"
-                        style={{
-                          fontSize: `${getFontSizeValue()}px`,
-                          fontFamily: cardState.font,
-                        }}
+                     <p
+                        className="leading-relaxed opacity-90 italic font-medium max-w-[90%] mx-auto line-clamp-[8]"
+                        style={{ fontSize: `${getFontSizeValue()}px`, fontFamily: cardState.font }}
                       >
                         &quot;
                         {cardState.message ||
