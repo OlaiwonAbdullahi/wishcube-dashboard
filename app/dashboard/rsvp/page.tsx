@@ -10,7 +10,7 @@ import {
   UserGroupIcon,
   Loading03Icon,
 } from "@hugeicons/core-free-icons";
-import { Send } from "lucide-react";
+import { Send, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -30,22 +30,28 @@ import {
 import Form from "./_components/form";
 
 const EMPTY_FORM: RsvpCreateData = {
+  title: "",
   occasion: "Birthday",
   message: "",
+  coverImage: null,
   venueName: "",
   venueAddress: "",
   occasionDate: "",
   startTime: "",
   endTime: "",
   accentColor: "#9151FF",
+  capacity: null,
+  customQuestions: [],
 };
 
 const attendeeCounts = (rsvp: Rsvp) => {
   const attendees = rsvp.attendees || [];
+  const yesAttendees = attendees.filter((a) => a.response === "yes");
   return {
-    yes: attendees.filter((a) => a.response === "yes").length,
+    yes: yesAttendees.length,
     no: attendees.filter((a) => a.response === "no").length,
     maybe: attendees.filter((a) => a.response === "maybe").length,
+    headcount: yesAttendees.reduce((sum, a) => sum + 1 + (a.plusOnes || 0), 0),
   };
 };
 
@@ -77,8 +83,24 @@ const Page = () => {
   };
 
   const handleCreate = async () => {
+    if (!formData.title.trim()) {
+      toast.error("Please give your event a name");
+      return;
+    }
     if (!formData.occasionDate) {
       toast.error("Please pick an event date");
+      return;
+    }
+    if (formData.customQuestions.some((q) => !q.label.trim())) {
+      toast.error("Every custom question needs a label");
+      return;
+    }
+    if (
+      formData.customQuestions.some(
+        (q) => q.type === "multiple_choice" && q.options.filter((o) => o.trim()).length < 2,
+      )
+    ) {
+      toast.error("Multiple choice questions need at least 2 options");
       return;
     }
     setIsCreating(true);
@@ -158,14 +180,31 @@ const Page = () => {
                 key={rsvp._id}
                 className="bg-white border-2 border-[#191A23] rounded-sm shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] overflow-hidden"
               >
-                <div
-                  className="h-1.5"
-                  style={{ background: rsvp.accentColor || "#9151FF" }}
-                />
+                {rsvp.coverImage?.url ? (
+                  <div className="h-32 w-full relative">
+                    <img
+                      src={rsvp.coverImage.url}
+                      alt={rsvp.title || rsvp.occasion}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="h-1.5"
+                    style={{ background: rsvp.accentColor || "#9151FF" }}
+                  />
+                )}
                 <div className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-lg font-black text-[#191A23]">{rsvp.occasion}</h3>
+                      <h3 className="text-lg font-black text-[#191A23]">
+                        {rsvp.title || rsvp.occasion}
+                      </h3>
+                      {rsvp.title && (
+                        <p className="text-[10px] font-black uppercase tracking-wider text-neutral-400">
+                          {rsvp.occasion}
+                        </p>
+                      )}
                       {rsvp.occasionDate && (
                         <p className="text-xs text-neutral-500 flex items-center gap-1.5 mt-1">
                           <HugeiconsIcon icon={Calendar03Icon} size={12} />
@@ -212,6 +251,26 @@ const Page = () => {
                         </span>
                       </button>
 
+                      {rsvp.capacity && (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-[9px] font-black uppercase text-neutral-400">
+                            <span>Capacity</span>
+                            <span>
+                              {counts.headcount}/{rsvp.capacity}
+                            </span>
+                          </div>
+                          <div className="h-1.5 w-full bg-neutral-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full transition-all"
+                              style={{
+                                width: `${Math.min(100, (counts.headcount / rsvp.capacity) * 100)}%`,
+                                background: rsvp.accentColor || "#9151FF",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
                       {isExpanded && (
                         <div className="border border-[#191A23]/10 rounded-sm divide-y divide-[#191A23]/5 max-h-48 overflow-y-auto">
                           {(rsvp.attendees || []).length === 0 ? (
@@ -220,36 +279,66 @@ const Page = () => {
                             </p>
                           ) : (
                             rsvp.attendees!.map((a, i) => (
-                              <div key={i} className="px-3 py-2 flex items-center justify-between gap-2">
-                                <div className="min-w-0">
-                                  <p className="text-xs font-bold text-[#191A23] truncate">{a.name}</p>
-                                  <p className="text-[10px] text-neutral-400 truncate">{a.email}</p>
+                              <div key={i} className="px-3 py-2 space-y-1.5">
+                                <div className="flex items-center justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <p className="text-xs font-bold text-[#191A23] truncate">{a.name}</p>
+                                    <p className="text-[10px] text-neutral-400 truncate">{a.email}</p>
+                                  </div>
+                                  <span
+                                    className={`text-[9px] font-black uppercase shrink-0 ${
+                                      a.response === "yes"
+                                        ? "text-green-600"
+                                        : a.response === "no"
+                                          ? "text-red-500"
+                                          : "text-amber-600"
+                                    }`}
+                                  >
+                                    {a.response}
+                                    {a.plusOnes > 0 ? ` +${a.plusOnes}` : ""}
+                                  </span>
                                 </div>
-                                <span
-                                  className={`text-[9px] font-black uppercase shrink-0 ${
-                                    a.response === "yes"
-                                      ? "text-green-600"
-                                      : a.response === "no"
-                                        ? "text-red-500"
-                                        : "text-amber-600"
-                                  }`}
-                                >
-                                  {a.response}
-                                  {a.plusOnes > 0 ? ` +${a.plusOnes}` : ""}
-                                </span>
+                                {a.message && (
+                                  <p className="text-[10px] italic text-neutral-500">
+                                    &ldquo;{a.message}&rdquo;
+                                  </p>
+                                )}
+                                {a.answers && a.answers.filter((ans) => ans.value).length > 0 && (
+                                  <div className="space-y-0.5">
+                                    {a.answers
+                                      .filter((ans) => ans.value)
+                                      .map((ans, ai) => (
+                                        <p key={ai} className="text-[10px] text-neutral-500">
+                                          <span className="font-bold text-neutral-600">{ans.question}:</span>{" "}
+                                          {ans.value}
+                                        </p>
+                                      ))}
+                                  </div>
+                                )}
                               </div>
                             ))
                           )}
                         </div>
                       )}
 
-                      <button
-                        onClick={() => copyLink(rsvp.publicUrl || "")}
-                        className="w-full flex items-center justify-center gap-2 py-2 border-2 border-[#191A23] rounded-sm text-[10px] font-black uppercase hover:bg-[#F3F3F3] transition-colors"
-                      >
-                        <HugeiconsIcon icon={Copy01Icon} size={12} />
-                        Copy Guest Link
-                      </button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <a
+                          href={rsvp.publicUrl || `/r/${rsvp.slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 py-2 border-2 border-[#191A23] rounded-sm bg-[#191A23] text-white text-[10px] font-black uppercase hover:bg-[#191A23]/90 transition-colors"
+                        >
+                          <ExternalLink size={12} />
+                          View Page
+                        </a>
+                        <button
+                          onClick={() => copyLink(rsvp.publicUrl || "")}
+                          className="flex items-center justify-center gap-2 py-2 border-2 border-[#191A23] rounded-sm text-[10px] font-black uppercase hover:bg-[#F3F3F3] transition-colors"
+                        >
+                          <HugeiconsIcon icon={Copy01Icon} size={12} />
+                          Copy Link
+                        </button>
+                      </div>
                     </>
                   ) : (
                     <button
@@ -273,7 +362,7 @@ const Page = () => {
       )}
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New RSVP Event</DialogTitle>
           </DialogHeader>

@@ -155,7 +155,9 @@ function BulkBuilderContent() {
   );
   const [isPasswordProtected, setIsPasswordProtected] = useState(false);
   const [password, setPassword] = useState("");
-  const [stylingOpen, setStylingOpen] = useState(true);
+  // Collapsed by default: right after upload the user wants to review
+  // recipients/AI messages first, not a wall of theme/font/password controls.
+  const [stylingOpen, setStylingOpen] = useState(false);
 
   // ── Publish ────────────────────────────────────────────────────────────────
   const [isPublishing, setIsPublishing] = useState(false);
@@ -184,7 +186,7 @@ function BulkBuilderContent() {
     setAiTone("Professional");
     setIsPasswordProtected(false);
     setPassword("");
-    setStylingOpen(true);
+    setStylingOpen(false);
     router.replace("/dashboard/bulk-builder");
   };
 

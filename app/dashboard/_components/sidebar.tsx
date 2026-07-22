@@ -58,12 +58,12 @@ const navItems: NavItem[] = [
     iconColor: "text-indigo-500",
     href: "/dashboard/bulk-builder",
   },
-  // {
-  //   title: "RSVP",
-  //   icon: Calendar02FreeIcons,
-  //   iconColor: "text-pink-500",
-  //   href: "/dashboard/rsvp",
-  // },
+  {
+    title: "RSVP",
+    icon: Calendar02FreeIcons,
+    iconColor: "text-pink-500",
+    href: "/dashboard/rsvp",
+  },
   {
     title: "Marketplace",
     icon: GiftCardIcon,
