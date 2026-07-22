@@ -28,7 +28,6 @@ import {
 import { verifyGiftPayment } from "@/lib/gifts";
 import { getSubscriptionStatus } from "@/lib/subscriptions";
 import { useRouter, useSearchParams } from "next/navigation";
-import { callAI } from "@/lib/ai";
 import { generateAiMessage } from "@/lib/cards";
 import WebsiteForm, { THEMES, Theme } from "./_components/website-form";
 import WebsitePreview from "./_components/website-preview";
@@ -343,7 +342,6 @@ const Generator: React.FC<{ initialData?: any }> = ({ initialData }) => {
   const [isOn, setIsOn] = useState(!!initialData?.giftIds?.length);
   const [addMusic, setAddMusic] = useState(false);
   const [isGeneratingMessage, setIsGeneratingMessage] = useState(false);
-  const [isSuggestingFont, setIsSuggestingFont] = useState(false);
   const [selectedFont, setSelectedFont] = useState<string>(
     initialData?.font || "Space Grotesk",
   );
@@ -424,35 +422,6 @@ const Generator: React.FC<{ initialData?: any }> = ({ initialData }) => {
       toast.error("An error occurred while generating suggestions.");
     } finally {
       setIsGeneratingMessage(false);
-    }
-  };
-
-  const suggestFont = async (): Promise<void> => {
-    if (!occasion) {
-      toast.error("Please select an occasion first.");
-      return;
-    }
-    setIsSuggestingFont(true);
-    const fontListNames = fonts
-      .map((f) => f.family)
-      .slice(0, 30)
-      .join(", ");
-    const prompt = `
-Based on the occasion "${occasion}", suggest the most appropriate font name from this list:
-${fontListNames}.
-Return ONLY the font name.
-`;
-    try {
-      const suggestedName = await callAI(prompt, "openai/gpt-5-mini");
-      const font =
-        fonts.find(
-          (f) => f.family.toLowerCase() === suggestedName.trim().toLowerCase(),
-        ) || fonts[0];
-      setSelectedFont(font.family);
-    } catch (error) {
-      console.error("Failed to suggest font:", error);
-    } finally {
-      setIsSuggestingFont(false);
     }
   };
 
@@ -666,8 +635,6 @@ Return ONLY the font name.
           setSelectedFont={setSelectedFont}
           fontSearch={fontSearch}
           setFontSearch={setFontSearch}
-          suggestFont={suggestFont}
-          isSuggestingFont={isSuggestingFont}
           fonts={fonts}
           isOn={isOn}
           setIsOn={setIsOn}

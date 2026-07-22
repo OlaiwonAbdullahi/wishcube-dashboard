@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   RocketIcon,
@@ -33,6 +33,30 @@ interface WebsitePreviewProps {
   isCreating?: boolean;
   layout?: "classic" | "modern";
   voiceMessageUrl?: string | null;
+}
+
+// Reads the real duration off the uploaded clip instead of showing a fake
+// fixed timestamp for every voice message.
+function useAudioDuration(url?: string | null) {
+  const [duration, setDuration] = useState<number | null>(null);
+
+  useEffect(() => {
+    setDuration(null);
+    if (!url) return;
+    const audio = new Audio(url);
+    const onLoaded = () => setDuration(audio.duration);
+    audio.addEventListener("loadedmetadata", onLoaded);
+    return () => audio.removeEventListener("loadedmetadata", onLoaded);
+  }, [url]);
+
+  return duration;
+}
+
+function formatDuration(seconds: number | null) {
+  if (seconds === null || !isFinite(seconds)) return "--:--";
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
 function SectionLabel({
@@ -77,6 +101,7 @@ export default function WebsitePreview({
 }: WebsitePreviewProps) {
   const displayMessage = customMessage || message;
   const accent = selectedTheme.hex ?? "#6366f1";
+  const voiceDuration = useAudioDuration(voiceMessageUrl);
 
   return (
     <div className="flex flex-col gap-6">
@@ -306,7 +331,7 @@ export default function WebsitePreview({
                           </div>
                         </div>
                         <span className="text-[7px] font-bold text-slate-400">
-                          0:42
+                          {formatDuration(voiceDuration)}
                         </span>
                       </div>
                     </div>

@@ -6,9 +6,8 @@ import {
   SparklesIcon,
   ClipboardIcon,
   CloudUploadIcon,
-  MagicWand01Icon,
 } from "@hugeicons/core-free-icons";
-import { Search } from "lucide-react";
+import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GiftSelector from "./gift";
 import Music from "./music";
@@ -79,6 +78,21 @@ export const OCCASIONS: Occasion[] = [
   { value: "holiday", label: "Holiday" },
   { value: "other", label: "Other" },
 ];
+
+// Curated pairings (not AI-generated — a fixed, hand-picked shortlist per
+// occasion, restricted to fonts in FALLBACK_FONTS so they always work even
+// without a Google Fonts API key).
+const FONT_SUGGESTIONS: Record<string, string[]> = {
+  birthday: ["Pacifico", "Poppins", "Caveat"],
+  anniversary: ["Playfair Display", "Lora", "Dancing Script"],
+  congratulations: ["Montserrat", "Poppins", "Space Grotesk"],
+  appreciation: ["Lora", "Merriweather", "Playfair Display"],
+  wedding: ["Playfair Display", "Dancing Script", "Lora"],
+  getwell: ["Poppins", "Merriweather", "Inter"],
+  professional: ["Inter", "Roboto", "Space Grotesk"],
+  holiday: ["Playfair Display", "Caveat", "Shadows Into Light"],
+  other: ["Inter", "Poppins", "Space Grotesk"],
+};
 
 function ThemePicker({
   selectedTheme,
@@ -217,6 +231,121 @@ const FontOption = ({
   );
 };
 
+function FontPicker({
+  selectedFont,
+  setSelectedFont,
+  fontSearch,
+  setFontSearch,
+  fonts,
+  occasion,
+}: {
+  selectedFont: string;
+  setSelectedFont: (f: string) => void;
+  fontSearch: string;
+  setFontSearch: (v: string) => void;
+  fonts: any[];
+  occasion: string;
+}) {
+  const [showPicker, setShowPicker] = React.useState(false);
+  useLoadFontPreview(selectedFont);
+
+  const suggestions = FONT_SUGGESTIONS[occasion] || [];
+
+  return (
+    <div className="flex flex-col gap-2">
+      <label className="text-[10px] font-bold uppercase text-[#191A23]">
+        Select Font
+      </label>
+
+      <button
+        type="button"
+        onClick={() => setShowPicker((p) => !p)}
+        className="flex items-center justify-between border-2 border-[#191A23] rounded-sm px-3 py-2 bg-white shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] text-left"
+      >
+        <span className="flex items-center gap-2.5 min-w-0">
+          <span
+            className="text-sm font-black text-[#191A23] shrink-0"
+            style={{ fontFamily: selectedFont }}
+          >
+            Aa
+          </span>
+          <span className="text-xs font-bold text-[#191A23] truncate">
+            {selectedFont}
+          </span>
+        </span>
+        {showPicker ? (
+          <ChevronUp size={14} className="text-[#191A23] shrink-0" />
+        ) : (
+          <ChevronDown size={14} className="text-[#191A23] shrink-0" />
+        )}
+      </button>
+
+      {showPicker && (
+        <div className="border-2 border-[#191A23] rounded-sm bg-white p-3 shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] animate-in slide-in-from-top-2 duration-200 space-y-3">
+          {suggestions.length > 0 && (
+            <div className="space-y-1.5">
+              <p className="text-[9px] font-black uppercase text-neutral-400 tracking-wider">
+                Suggested for this occasion
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {suggestions.map((family) => (
+                  <button
+                    key={family}
+                    type="button"
+                    onClick={() => setSelectedFont(family)}
+                    style={{ fontFamily: family }}
+                    className={cn(
+                      "px-2.5 py-1.5 rounded-sm border-2 text-xs transition-all",
+                      selectedFont === family
+                        ? "border-[#191A23] bg-[#B4F8C8] text-[#191A23]"
+                        : "border-[#191A23]/20 bg-white text-[#191A23] hover:border-[#191A23]",
+                    )}
+                  >
+                    {family}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-[#191A23]/40" />
+            <input
+              type="text"
+              placeholder="Search fonts..."
+              value={fontSearch}
+              onChange={(e) => setFontSearch(e.target.value)}
+              className="w-full pl-8 pr-4 py-2 border-2 border-[#191A23] rounded-sm text-xs font-bold focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all bg-white"
+            />
+          </div>
+
+          <p className="text-[9px] font-black uppercase text-neutral-400 tracking-wider">
+            {fonts.length > 0 ? "All Fonts" : "Popular Fonts"}
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
+            {(fonts.length > 0 ? fonts : FALLBACK_FONTS)
+              .filter((f) =>
+                f.family.toLowerCase().includes(fontSearch.toLowerCase()),
+              )
+              .slice(0, 50)
+              .map((font) => (
+                <FontOption
+                  key={font.family}
+                  font={font}
+                  isSelected={selectedFont === font.family}
+                  onSelect={(f) => {
+                    setSelectedFont(f);
+                  }}
+                />
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface WebsiteFormProps {
   isFreeUser: boolean;
   recipientName: string;
@@ -244,8 +373,6 @@ interface WebsiteFormProps {
   setSelectedFont: (font: string) => void;
   fontSearch: string;
   setFontSearch: (val: string) => void;
-  suggestFont: () => void;
-  isSuggestingFont: boolean;
   fonts: any[];
   isOn: boolean;
   setIsOn: (val: boolean) => void;
@@ -311,8 +438,6 @@ export default function WebsiteForm({
   setSelectedFont,
   fontSearch,
   setFontSearch,
-  suggestFont,
-  isSuggestingFont,
   fonts,
   isOn,
   setIsOn,
@@ -819,78 +944,40 @@ export default function WebsiteForm({
         setSelectedTheme={setSelectedTheme}
       />
 
-      <div className="flex flex-col">
-        <label className="text-[10px] font-bold uppercase text-[#191A23] mb-2 flex items-center justify-between">
-          <span>Select Font</span>
+      <FontPicker
+        selectedFont={selectedFont}
+        setSelectedFont={setSelectedFont}
+        fontSearch={fontSearch}
+        setFontSearch={setFontSearch}
+        fonts={fonts}
+        occasion={occasion}
+      />
+
+      <div className="p-4 border-2 border-[#191A23] rounded-sm bg-[#F3F3F3] shadow-[4px_4px_0px_0px_rgba(25,26,35,0.15)] space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-black uppercase text-[#191A23]">
+              Add a Gift
+            </p>
+            <p className="text-[9px] font-medium text-neutral-400 mt-0.5">
+              Attach a gift the recipient can redeem from this page
+            </p>
+          </div>
           <button
             type="button"
-            onClick={suggestFont}
-            disabled={isSuggestingFont}
-            className="flex items-center gap-1 px-2 py-1 hidden bg-green-100 border border-green-300 rounded-sm text-[8px] font-black text-green-700 hover:bg-green-200 transition-all disabled:opacity-50"
+            className={cn(
+              "h-5 w-10 rounded-full border-2 border-[#191A23] transition-colors relative shrink-0",
+              isOn ? "bg-[#B4F8C8]" : "bg-neutral-200",
+            )}
+            onClick={() => setIsOn(!isOn)}
           >
-            <HugeiconsIcon
-              icon={MagicWand01Icon}
-              size={10}
-              className={isSuggestingFont ? "animate-spin" : ""}
+            <div
+              className={cn(
+                "absolute top-0.5 size-3 bg-[#191A23] rounded-full transition-all",
+                isOn ? "left-5.5" : "left-0.5",
+              )}
             />
-            {isSuggestingFont ? "SUGGESTING..." : "MAGIC SUGGEST"}
           </button>
-        </label>
-        <div className="space-y-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-[#191A23]/40" />
-            <input
-              type="text"
-              placeholder="Search fonts..."
-              value={fontSearch}
-              onChange={(e) => setFontSearch(e.target.value)}
-              className="w-full pl-8 pr-4 py-2 border-2 border-[#191A23] rounded-sm text-xs font-bold focus:outline-none focus:ring-0 focus:shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] transition-all bg-white"
-            />
-          </div>
-          <div className="">Popular Fonts</div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-            {(fonts.length > 0 ? fonts : FALLBACK_FONTS)
-              .filter((f) =>
-                f.family.toLowerCase().includes(fontSearch.toLowerCase()),
-              )
-              .slice(0, 50)
-              .map((font) => (
-                <FontOption
-                  key={font.family}
-                  font={font}
-                  isSelected={selectedFont === font.family}
-                  onSelect={setSelectedFont}
-                />
-              ))}
-          </div>
-        </div>
-      </div>
-
-      <div className=" space-y-4">
-        <div className="border-t border-gray-200 pt-4 mb-4">
-          <div className=" flex items-center justify-between  mx-auto border border-gray-300 rounded-xl p-3">
-            <div className="flex flex-col gap-2 w-full">
-              <div className="flex items-center gap-2">
-                <h2 className=" text-xl font-medium">Add Gift</h2>
-              </div>
-            </div>
-            <button
-              type="button"
-              className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
-                isOn ? "bg-[#B4F8C8]" : "bg-gray-200"
-              }`}
-              onClick={() => setIsOn(!isOn)}
-            >
-              <div
-                className={`bg-gray-800 h-4 w-4 rounded-full shadow-sm transition-transform duration-200 ${
-                  isOn
-                    ? "transform translate-x-5 "
-                    : "transform translate-x-0.5 bg-gray-700"
-                }`}
-              />
-            </button>
-          </div>
         </div>
 
         <div className="space-y-3">
