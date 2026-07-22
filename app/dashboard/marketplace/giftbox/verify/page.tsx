@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState, Suspense, useRef } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   CheckmarkCircle02Icon,
@@ -11,44 +11,19 @@ import {
   ShoppingBag01Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
-import { verifyGiftPayment, Gift } from "@/lib/gifts";
+import { verifyGiftPayment } from "@/lib/gifts";
+import { usePaystackVerify } from "@/lib/use-paystack-verify";
 
 function VerifyGiftInner() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const reference = searchParams.get("reference") || searchParams.get("trxref");
-
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [gift, setGift] = useState<Gift | null>(null);
-  const [message, setMessage] = useState("");
-  const verifiedRef = useRef(false);
-
-  useEffect(() => {
-    if (verifiedRef.current) return;
-
-    const verify = async () => {
-      if (!reference) {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-        setStatus("error");
-        setMessage("No payment reference found.");
-        return;
-      }
-
-      verifiedRef.current = true;
-
-      const res = await verifyGiftPayment(reference);
-      if (res.success && res.data) {
-        setGift(res.data.gift);
-        setStatus("success");
-        setMessage(res.message || "Payment verified successfully!");
-      } else {
-        setStatus("error");
-        setMessage(res.message || "Could not verify payment.");
-      }
-    };
-
-    verify();
-  }, [reference]);
+  const { state, data, message } = usePaystackVerify(verifyGiftPayment);
+  const gift = data?.gift ?? null;
+  const status =
+    state === "verifying" || state === "pending"
+      ? "loading"
+      : state === "success"
+        ? "success"
+        : "error";
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-space flex items-center justify-center px-4">
@@ -59,8 +34,14 @@ function VerifyGiftInner() {
               <div className="w-16 h-16 rounded-full bg-[#F3F3F3] flex items-center justify-center mx-auto">
                 <HugeiconsIcon icon={Loading03Icon} size={32} color="#191A23" strokeWidth={1.5} className="animate-spin" />
               </div>
-              <h1 className="text-xl font-black text-[#191A23]">Verifying Payment…</h1>
-              <p className="text-sm text-neutral-500">Please wait while we confirm your gift purchase.</p>
+              <h1 className="text-xl font-black text-[#191A23]">
+                {state === "pending" ? "Still processing…" : "Verifying Payment…"}
+              </h1>
+              <p className="text-sm text-neutral-500">
+                {state === "pending"
+                  ? "Paystack hasn't confirmed this payment yet — we'll keep checking automatically."
+                  : "Please wait while we confirm your gift purchase."}
+              </p>
             </>
           )}
 

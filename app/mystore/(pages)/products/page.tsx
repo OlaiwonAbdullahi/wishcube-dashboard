@@ -17,6 +17,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -32,6 +39,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [stockFilter, setStockFilter] = useState<"all" | "in_stock" | "sold_out">("all");
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -86,9 +94,15 @@ export default function ProductsPage() {
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredProducts = products
+    .filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    )
+    .filter((product) => {
+      if (stockFilter === "in_stock") return product.stock > 0;
+      if (stockFilter === "sold_out") return product.stock <= 0;
+      return true;
+    });
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -129,13 +143,28 @@ export default function ProductsPage() {
             className="pl-10 h-12 border-2 border-[#191A23] rounded-sm font-bold uppercase text-xs focus-visible:ring-0 focus-visible:shadow-[4px_4px_0px_0px_rgba(25,26,35,1)] transition-all"
           />
         </div>
-        <Button
-          variant="outline"
-          className="h-12 border-2 border-[#191A23] rounded-sm font-black uppercase text-xs hover:bg-neutral-50"
+        <Select
+          value={stockFilter}
+          onValueChange={(v) => setStockFilter(v as typeof stockFilter)}
         >
-          <HugeiconsIcon icon={FilterIcon} size={18} className="mr-2" />
-          Filter
-        </Button>
+          <SelectTrigger className="h-12 w-full sm:w-44 border-2 border-[#191A23] rounded-sm font-black uppercase text-xs">
+            <div className="flex items-center gap-2">
+              <HugeiconsIcon icon={FilterIcon} size={16} />
+              <SelectValue />
+            </div>
+          </SelectTrigger>
+          <SelectContent className="border-2 border-[#191A23] rounded-sm">
+            <SelectItem value="all" className="font-bold uppercase text-xs">
+              All Products
+            </SelectItem>
+            <SelectItem value="in_stock" className="font-bold uppercase text-xs">
+              In Stock
+            </SelectItem>
+            <SelectItem value="sold_out" className="font-bold uppercase text-xs">
+              Sold Out
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

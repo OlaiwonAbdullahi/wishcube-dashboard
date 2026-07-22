@@ -83,7 +83,7 @@ export default function Page() {
                     Password
                   </Label>
                   <Link
-                    href="#"
+                    href="/vendor/forgot-password"
                     className="text-[10px] font-black uppercase text-neutral-500 hover:text-[#191A23] transition-colors"
                   >
                     Forgot password?

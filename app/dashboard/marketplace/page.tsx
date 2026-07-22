@@ -121,14 +121,13 @@ export default function MarketplacePage() {
             />
             My Gift Box
           </Button>
-          <div className="hidden">
-            <MarketplaceFilters
-              filters={filters}
-              onChange={handleFilterChange}
-              onResetAdvanced={handleResetAdvanced}
-            />
-          </div>
         </div>
+
+        <MarketplaceFilters
+          filters={filters}
+          onChange={handleFilterChange}
+          onResetAdvanced={handleResetAdvanced}
+        />
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent h-auto p-0 border-2 border-[#191A23] border-b-4 rounded-sm flex gap-0 overflow-x-auto no-scrollbar mb-8">

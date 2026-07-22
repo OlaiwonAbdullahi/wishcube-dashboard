@@ -15,6 +15,7 @@ interface PublishedStepProps {
   aiTone: string;
   onExport: () => void;
   onReset: () => void;
+  isPublishComplete: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,6 +30,7 @@ export function PublishedStep({
   aiTone,
   onExport,
   onReset,
+  isPublishComplete,
 }: PublishedStepProps) {
   return (
     <div className="max-w-lg mx-auto">
@@ -94,18 +96,31 @@ export function PublishedStep({
 
           {/* Processing note */}
           <p className="text-xs font-medium text-neutral-500 max-w-xs mx-auto">
-            Wait a few moments for background processing to complete, then
-            download the CSV with all generated links.
+            {isPublishComplete
+              ? "All pages are live — download the CSV with all generated links."
+              : "The batch is still processing in the background. This can take a few moments depending on batch size."}
           </p>
 
           {/* Export button */}
           <button
             type="button"
             onClick={onExport}
-            className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-[#191A23] rounded-sm text-[10px] font-black uppercase bg-[#191A23] text-white hover:bg-[#191A23]/90 transition-all shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none"
+            disabled={!isPublishComplete}
+            title={
+              !isPublishComplete
+                ? "Export unlocks once every page in this batch has finished publishing"
+                : undefined
+            }
+            className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-[#191A23] rounded-sm text-[10px] font-black uppercase bg-[#191A23] text-white hover:bg-[#191A23]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none disabled:hover:translate-y-0 disabled:hover:shadow-[3px_3px_0px_0px_rgba(25,26,35,1)]"
           >
-            <LinkIcon size={13} strokeWidth={2.5} />
-            Download Generated Links CSV
+            {isPublishComplete ? (
+              <LinkIcon size={13} strokeWidth={2.5} />
+            ) : (
+              <span className="size-3 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+            )}
+            {isPublishComplete
+              ? "Download Generated Links CSV"
+              : "Waiting for batch to finish…"}
           </button>
 
           {/* New batch ghost button */}

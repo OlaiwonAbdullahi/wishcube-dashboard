@@ -111,6 +111,10 @@ export function UploadStep({
                   {file.name} selected
                 </p>
               )}
+              <p className="text-[9px] text-neutral-400 font-medium pl-0.5">
+                Max 500 recipients per file. Larger files will be rejected —
+                split them into multiple batches instead.
+              </p>
             </div>
 
             {/* Upload button */}

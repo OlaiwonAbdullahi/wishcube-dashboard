@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { verifyWalletFunding } from "@/lib/wallet";
+import { usePaystackVerify } from "@/lib/use-paystack-verify";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Loading03Icon,
@@ -13,58 +14,13 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
 
-type VerifyState = "verifying" | "success" | "error" | "invalid_ref";
-
-interface ResultMeta {
-  newBalance?: number;
-  message?: string;
-}
-
 function VerifyPageInner() {
-  const searchParams = useSearchParams();
   const router = useRouter();
+  const { state, data, message, reference } = usePaystackVerify(
+    verifyWalletFunding,
+  );
 
-  const [state, setState] = useState<VerifyState>("verifying");
-  const [meta, setMeta] = useState<ResultMeta>({});
-
-  useEffect(() => {
-    const ref = searchParams.get("reference") || searchParams.get("trxref");
-
-    if (!ref || ref.trim() === "") {
-      // No reference at all — wrong URL
-      setState("invalid_ref");
-      return;
-    }
-
-    const verify = async () => {
-      try {
-        const res = await verifyWalletFunding(ref);
-
-        if (res.success && res.data) {
-          setState("success");
-          setMeta({ newBalance: res.data.newBalance });
-        } else {
-          // API returned failure — could be wrong ref, expired, already used, etc.
-          setState("error");
-          setMeta({
-            message:
-              res.message ||
-              "We could not verify this transaction. The reference may be invalid, expired, or already used.",
-          });
-        }
-      } catch {
-        setState("error");
-        setMeta({
-          message:
-            "A network error occurred while verifying your payment. Please check your internet connection and try again.",
-        });
-      }
-    };
-
-    verify();
-  }, [searchParams]);
-
-  if (state === "verifying") {
+  if (state === "verifying" || state === "pending") {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4 font-space">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -78,17 +34,21 @@ function VerifyPageInner() {
             />
           </div>
           <p className="text-lg font-bold text-[#191A23]">
-            Verifying your payment…
+            {state === "pending"
+              ? "Still processing…"
+              : "Verifying your payment…"}
           </p>
           <p className="text-sm text-neutral-500">
-            Please wait, this only takes a second.
+            {state === "pending"
+              ? "Paystack hasn't confirmed this payment yet — we'll keep checking automatically."
+              : "Please wait, this only takes a second."}
           </p>
         </div>
       </div>
     );
   }
 
-  if (state === "success") {
+  if (state === "success" && data) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center px-4 font-space">
         <div className="w-full max-w-md rounded-sm border-2 border-[#191A23] border-b-4 bg-white p-8 space-y-6 shadow-[4px_4px_0px_0px_rgba(25,26,35,0.15)] text-center">
@@ -115,7 +75,7 @@ function VerifyPageInner() {
           </div>
 
           {/* New balance pill */}
-          {meta.newBalance !== undefined && (
+          {data.newBalance !== undefined && (
             <div className="inline-flex items-center gap-2 bg-[#F3F3F3] border border-[#191A23]/20 rounded-sm px-4 py-2">
               <HugeiconsIcon
                 icon={WalletAdd02Icon}
@@ -126,7 +86,7 @@ function VerifyPageInner() {
               <span className="text-sm font-bold text-[#191A23]">
                 New balance:{" "}
                 <span className="text-green-600">
-                  ₦{meta.newBalance.toLocaleString()}
+                  ₦{data.newBalance.toLocaleString()}
                 </span>
               </span>
             </div>
@@ -215,18 +175,18 @@ function VerifyPageInner() {
             Verification Failed
           </h1>
           <p className="text-sm text-neutral-500 leading-relaxed">
-            {meta.message}
+            {message}
           </p>
         </div>
 
         {/* Reference display for debugging / support */}
-        {searchParams.get("reference") || searchParams.get("trxref") ? (
+        {reference ? (
           <div className="bg-[#F3F3F3] rounded-sm border border-[#191A23]/10 px-4 py-2 text-left">
             <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 mb-1">
               Reference
             </p>
             <p className="text-xs font-mono text-[#191A23] break-all">
-              {searchParams.get("reference") || searchParams.get("trxref")}
+              {reference}
             </p>
           </div>
         ) : null}

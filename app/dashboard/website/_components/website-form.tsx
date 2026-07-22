@@ -878,7 +878,7 @@ export default function WebsiteForm({
             <button
               type="button"
               className={`h-5 w-10 rounded-xl border border-gray-400 flex items-center cursor-pointer transition-colors duration-200 ${
-                isOn ? "bg-gray-200" : "bg-gray-200"
+                isOn ? "bg-[#B4F8C8]" : "bg-gray-200"
               }`}
               onClick={() => setIsOn(!isOn)}
             >

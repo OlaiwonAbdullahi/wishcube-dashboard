@@ -112,6 +112,123 @@ export const deleteVendor = async (id: string): Promise<AdminResponse<any>> => {
   }
 };
 
+// User Management (moderation)
+export const toggleUserActive = async (id: string): Promise<AdminResponse<any>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/${id}/status`, {
+      method: "PATCH",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Toggle user active error:", error);
+    return { success: false, message: "Network error updating user status" };
+  }
+};
+
+// Platform Overview
+export interface AdminOverview {
+  totals: {
+    totalUsers: number;
+    totalCards: number;
+    totalWebsites: number;
+    totalVendors: number;
+    activeVendors: number;
+    totalOrders: number;
+  };
+  thisWeek: {
+    newUsersThisWeek: number;
+    newCardsThisWeek: number;
+    newWebsitesThisWeek: number;
+  };
+  dailySeries: { date: string; users: number; cards: number; websites: number }[];
+  recentActivity: { type: string; description: string; createdAt: string }[];
+}
+
+export const getAdminOverview = async (): Promise<AdminResponse<AdminOverview>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/overview`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch admin overview error:", error);
+    return { success: false, message: "Network error fetching overview" };
+  }
+};
+
+// Admin Cards / Websites listings
+export const getAdminCards = async (): Promise<
+  AdminResponse<{ total: number; cards: any[] }>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/cards`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch admin cards error:", error);
+    return { success: false, message: "Network error fetching cards" };
+  }
+};
+
+export const getAdminWebsites = async (): Promise<
+  AdminResponse<{ total: number; websites: any[] }>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/websites`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch admin websites error:", error);
+    return { success: false, message: "Network error fetching websites" };
+  }
+};
+
+// Platform Settings
+export interface PlatformSettings {
+  _id?: string;
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  supportEmail: string;
+  allowNewVendorRegistrations: boolean;
+}
+
+export const getAdminSettings = async (): Promise<
+  AdminResponse<{ settings: PlatformSettings }>
+> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/settings`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch admin settings error:", error);
+    return { success: false, message: "Network error fetching settings" };
+  }
+};
+
+export const updateAdminSettings = async (
+  data: Partial<PlatformSettings>,
+): Promise<AdminResponse<{ settings: PlatformSettings }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/settings`, {
+      method: "PUT",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Update admin settings error:", error);
+    return { success: false, message: "Network error updating settings" };
+  }
+};
+
 // Waitlist Management
 export const getWaitlist = async (): Promise<
   AdminResponse<{ total: number; waitlist: any[] }>
@@ -143,11 +260,9 @@ export const createDigitalGift = async (
     const response = await fetch(`${API_BASE_URL}/admin/digital-gifts`, {
       method: "POST",
       headers: getHeaders(),
-      body: JSON.stringify({
-        ...data,
-        category: "Vouchers",
-        stock: "Infinity",
-      }),
+      // Stock is always unlimited for digital gifts - the backend sets it,
+      // no need (or ability) to pass it from here.
+      body: JSON.stringify({ ...data, category: "Vouchers" }),
     });
 
     const result = await response.json();

@@ -10,6 +10,7 @@ import {
   CheckmarkCircle02Icon,
   Loading03Icon,
   SparklesIcon,
+  Cards02Icon,
   Globe02Icon,
   VideoIcon,
   Key01Icon,
@@ -58,7 +59,7 @@ const PLANS: Plan[] = [
     badgeColor: "#F3F3F3",
     description: "Get started and explore the basics of WishCube.",
     features: [
-      { text: "Unlimited cards creation", icon: ICON(SparklesIcon) },
+      { text: "Unlimited cards creation", icon: ICON(Cards02Icon) },
       { text: "1 active website at a time", icon: ICON(Globe02Icon) },
       { text: "Media uploads (Photos only)", icon: ICON(Camera02Icon) },
       {
@@ -78,9 +79,9 @@ const PLANS: Plan[] = [
     badgeColor: "#EDE0FF",
     description: "Perfect for creators who want more power and flexibility.",
     features: [
-      { text: "Unlimited cards creation", icon: ICON(SparklesIcon) },
+      { text: "Unlimited cards creation", icon: ICON(Cards02Icon) },
       { text: "Unlimited active websites", icon: ICON(Globe02Icon) },
-      { text: "AI-powered message generation", icon: ICON(SparklesIcon) },
+      { text: "Personalized message generation", icon: ICON(SparklesIcon) },
       { text: "Media uploads (Photos,Video & Voice)", icon: ICON(VideoIcon) },
       { text: "Password-protected pages", icon: ICON(Key01Icon) },
     ],
@@ -94,7 +95,7 @@ const PLANS: Plan[] = [
     badgeColor: "#FEF3C7",
     description: "Everything you need to run a professional gifting brand.",
     features: [
-      { text: "Unlimited cards creation", icon: ICON(SparklesIcon) },
+      { text: "Unlimited cards creation", icon: ICON(Cards02Icon) },
       { text: "Unlimited active websites", icon: ICON(Globe02Icon) },
       {
         text: "Custom subdomains (yourname.wishcube.com)",

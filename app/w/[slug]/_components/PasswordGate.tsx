@@ -3,27 +3,30 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { LockPasswordIcon } from "@hugeicons/core-free-icons";
+import { LockPasswordIcon, Loading03Icon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 
 export function PasswordGate({
   accent,
   font,
   recipientName,
-  hasError,
+  errorMessage,
+  isUnlocking,
   onUnlock,
 }: {
   accent: string;
   font: string;
   recipientName: string;
-  hasError: boolean;
+  errorMessage?: string | null;
+  isUnlocking?: boolean;
   onUnlock: (input: string) => void;
 }) {
   const [input, setInput] = useState("");
+  const hasError = !!errorMessage;
 
   const attempt = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isUnlocking) return;
     onUnlock(input.trim());
   };
 
@@ -99,19 +102,24 @@ export function PasswordGate({
                 className="text-xs text-red-500 font-medium"
                 style={{ fontFamily: font }}
               >
-                Incorrect password. Please try again.
+                {errorMessage}
               </p>
             )}
           </div>
 
           <button
             type="submit"
-            disabled={!input.trim()}
+            disabled={!input.trim() || isUnlocking}
             className="w-full py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
             style={{ background: accent, fontFamily: font }}
           >
-            <HugeiconsIcon icon={LockPasswordIcon} size={14} color="white" />
-            Unlock
+            <HugeiconsIcon
+              icon={isUnlocking ? Loading03Icon : LockPasswordIcon}
+              size={14}
+              color="white"
+              className={isUnlocking ? "animate-spin" : undefined}
+            />
+            {isUnlocking ? "Unlocking…" : "Unlock"}
           </button>
         </form>
 

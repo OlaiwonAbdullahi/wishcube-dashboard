@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getAllUsers } from "@/lib/admin";
+import { getAllUsers, toggleUserActive } from "@/lib/admin";
+import { getAuth } from "@/lib/auth";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   UserGroupIcon,
@@ -9,12 +10,27 @@ import {
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 export default function UsersPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [confirmTarget, setConfirmTarget] = useState<any>(null);
+  const [isActionLoading, setIsActionLoading] = useState(false);
+  const currentUserId = getAuth()?.user?.id;
 
   useEffect(() => {
     fetchUsers();
@@ -39,6 +55,26 @@ export default function UsersPage() {
       setUsers([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleActive = async () => {
+    if (!confirmTarget) return;
+    setIsActionLoading(true);
+    try {
+      const userId = confirmTarget._id || confirmTarget.id;
+      const response = await toggleUserActive(userId);
+      if (response.success) {
+        toast.success(response.message || "User status updated");
+        await fetchUsers();
+      } else {
+        toast.error(response.message || "Failed to update user status");
+      }
+    } catch {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsActionLoading(false);
+      setConfirmTarget(null);
     }
   };
 
@@ -82,12 +118,15 @@ export default function UsersPage() {
                 <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
                   Last Login
                 </th>
+                <th className="px-6 py-4 text-xs font-black uppercase tracking-wider text-[#191A23]">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-4 border-[#191A23] border-t-transparent rounded-full animate-spin"></div>
                       <p className="text-xs font-bold uppercase text-neutral-400">
@@ -99,7 +138,7 @@ export default function UsersPage() {
               ) : (users || []).length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-6 py-12 text-center text-sm font-bold text-neutral-400 uppercase"
                   >
                     No users found
@@ -108,6 +147,7 @@ export default function UsersPage() {
               ) : (
                 (users || []).map((user) => {
                   const userId = user._id || user.id;
+                  const isSelf = userId === currentUserId;
                   return (
                     <tr
                       key={userId}
@@ -173,6 +213,22 @@ export default function UsersPage() {
                           ? new Date(user.lastLogin).toLocaleDateString()
                           : "Never"}
                       </td>
+                      <td className="px-6 py-4">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isSelf}
+                          title={isSelf ? "You can't deactivate your own account" : undefined}
+                          onClick={() => setConfirmTarget(user)}
+                          className={`h-8 rounded-sm border-2 border-[#191A23] text-[10px] font-black uppercase ${
+                            user.isActive
+                              ? "hover:bg-red-50 hover:text-red-600"
+                              : "hover:bg-green-50 hover:text-green-600"
+                          }`}
+                        >
+                          {user.isActive ? "Deactivate" : "Activate"}
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })
@@ -181,6 +237,31 @@ export default function UsersPage() {
           </table>
         </div>
       </div>
+
+      <AlertDialog
+        open={!!confirmTarget}
+        onOpenChange={(open) => !open && setConfirmTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmTarget?.isActive ? "Deactivate" : "Activate"}{" "}
+              {confirmTarget?.name}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmTarget?.isActive
+                ? "They'll immediately be signed out and unable to log back in until reactivated."
+                : "They'll be able to log in again."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={isActionLoading} onClick={handleToggleActive}>
+              {isActionLoading ? "Working…" : "Confirm"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

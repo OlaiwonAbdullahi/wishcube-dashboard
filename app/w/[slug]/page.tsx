@@ -3,7 +3,12 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { getLiveWebsite, submitReaction, submitReply } from "@/lib/websites";
+import {
+  getLiveWebsite,
+  unlockLiveWebsite,
+  submitReaction,
+  submitReply,
+} from "@/lib/websites";
 import { redeemGift, trackOrder } from "@/lib/gifts";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -48,28 +53,36 @@ export default function PublicWebsitePage() {
   const [activeGift, setActiveGift] = useState<GiftInfo | null>(null);
   const [showTrackingModal, setShowTrackingModal] = useState(false);
   const [trackingData, setTrackingData] = useState<any>(null);
-  const [trackingGift, setTrackingGift] = useState<GiftInfo | null>(null);
 
   const [replySent, setReplySent] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
-  const [pwError, setPwError] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [isUnlocking, setIsUnlocking] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
   const font = website?.font || "Inter";
   useDynamicFont(website?.font);
 
+  const unlockStorageKey = `wishcube_unlock_${slug}`;
+
   const fetchWebsite = async () => {
     setLoading(true);
     try {
-      const res = await getLiveWebsite(slug as string);
-      console.log(res);
+      const storedToken =
+        typeof window !== "undefined"
+          ? sessionStorage.getItem(unlockStorageKey)
+          : null;
+      const res = await getLiveWebsite(slug as string, storedToken);
       if (res.success && res.data) {
         setWebsite(res.data.website);
+        if (res.data.website.locked && storedToken) {
+          // Stored token was stale/expired - drop it so we stop sending it.
+          sessionStorage.removeItem(unlockStorageKey);
+        }
         if (res.data.website.reaction?.emoji) {
           setReaction(res.data.website.reaction.emoji);
         }
-      } else if ((res as any).status === 410) {
+      } else if (res.httpStatus === 410) {
         setExpired(true);
       } else {
         toast.error(res.message || "Website not found");
@@ -78,6 +91,27 @@ export default function PublicWebsitePage() {
       toast.error("Failed to load website");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUnlock = async (input: string) => {
+    setIsUnlocking(true);
+    setPwError(null);
+    try {
+      const res = await unlockLiveWebsite(slug as string, input);
+      if (res.success && res.data) {
+        sessionStorage.setItem(unlockStorageKey, res.data.unlockToken);
+        setWebsite(res.data.website);
+        if (res.data.website.reaction?.emoji) {
+          setReaction(res.data.website.reaction.emoji);
+        }
+      } else {
+        setPwError(res.message || "Incorrect password. Please try again.");
+      }
+    } catch {
+      setPwError("Something went wrong. Please try again.");
+    } finally {
+      setIsUnlocking(false);
     }
   };
 
@@ -176,23 +210,15 @@ export default function PublicWebsitePage() {
   if (!website) return <ErrorScreen />;
 
   const accent = website.primaryColor || "#6366f1";
-  const needsPassword = website.isPasswordProtected && !!website.password;
-  if (needsPassword && !unlocked) {
+  if (website.locked) {
     return (
       <PasswordGate
         accent={accent}
         font={font}
         recipientName={website.recipientName}
-        hasError={pwError}
-        onUnlock={(input) => {
-          if (input === website.password) {
-            setUnlocked(true);
-            setPwError(false);
-          } else {
-            setPwError(true);
-            setTimeout(() => setPwError(false), 700);
-          }
-        }}
+        errorMessage={pwError}
+        isUnlocking={isUnlocking}
+        onUnlock={handleUnlock}
       />
     );
   }
@@ -655,6 +681,9 @@ export default function PublicWebsitePage() {
           accent={accent}
           font={font}
           tracking={trackingData}
+          orderId={activeGift?.orderId}
+          token={activeGift?.redeemToken}
+          onConfirmed={fetchWebsite}
           onClose={() => setShowTrackingModal(false)}
         />
       )}

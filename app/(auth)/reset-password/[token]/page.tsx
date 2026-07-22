@@ -1,22 +1,37 @@
 "use client";
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { resetPassword } from "@/lib/auth";
+import { resetPassword, validateResetToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordStrength, isPasswordValid } from "@/components/password-strength";
 import Link from "next/link";
 import { toast } from "sonner";
+
+type TokenState = "checking" | "valid" | "invalid";
 
 export default function ResetPasswordPage() {
   const params = useParams();
   const router = useRouter();
   const token = params.token as string;
 
+  const [tokenState, setTokenState] = useState<TokenState>("checking");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    validateResetToken(token).then((res) => {
+      if (cancelled) return;
+      setTokenState(res.success ? "valid" : "invalid");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,13 +40,7 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    const minLength = password.length >= 8;
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-    
-    if (!(minLength && hasUpper && hasLower && hasNumber && hasSpecial)) {
+    if (!isPasswordValid(password)) {
       toast.error("Password must be at least 8 characters long, contain 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
       return;
     }
@@ -51,6 +60,44 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
+
+  if (tokenState === "checking") {
+    return (
+      <div className="min-h-screen w-full flex items-center font-space justify-center px-4 py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#191A23]" />
+      </div>
+    );
+  }
+
+  if (tokenState === "invalid") {
+    return (
+      <div className="min-h-screen w-full flex items-center font-space justify-center px-4 py-16">
+        <div className="relative w-full max-w-4xl flex gap-10 justify-center">
+          <div className="w-full max-w-md">
+            <Card className="w-full border border-[#191A23] border-b-4 bg-[#F3F3F3]">
+              <CardHeader className="space-y-1">
+                <CardTitle className="text-2xl text-[#191A23] font-bold text-center">
+                  Link expired
+                </CardTitle>
+                <CardDescription className="text-neutral-600 text-center">
+                  This password reset link is invalid or has expired. Request
+                  a new one to continue.
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="flex flex-col gap-3">
+                <Button asChild className="w-full cursor-pointer rounded-sm h-10 bg-primary text-primary-foreground font-semibold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+                  <Link href="/forgot-password">Request a new link</Link>
+                </Button>
+                <Button asChild variant="link" size="sm" className="text-xs cursor-pointer text-neutral-500 hover:text-neutral-500/90">
+                  <Link href="/">Back to Login</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full flex items-center font-space justify-center px-4 py-16">
@@ -76,6 +123,7 @@ export default function ResetPasswordPage() {
                   placeholder="New password"
                   className="bg-transparent border-[#191A23]/50 rounded-sm h-10 text-sm placeholder:text-neutral-500"
                 />
+                <PasswordStrength password={password} />
               </div>
               <div className="space-y-2 text-left">
                 <Label className="text-xs text-neutral-500">Confirm New Password</Label>

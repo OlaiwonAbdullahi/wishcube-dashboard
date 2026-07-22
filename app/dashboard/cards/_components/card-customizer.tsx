@@ -356,7 +356,7 @@ export function CardCustomizer({
               className={cn(
                 "flex-1 flex flex-col items-center justify-center gap-1 py-3 px-2 rounded-md transition-all duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-[#191A23] to-[#2D2E38] text-white shadow-md"
+                  ? "bg-[#191A23] text-white shadow-md"
                   : isPast
                     ? "bg-[#E8F5E9] text-[#2E7D32]"
                     : "text-[#191A23]/40 hover:bg-[#F5F5F5]",
@@ -377,7 +377,7 @@ export function CardCustomizer({
         {currentStep === 0 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white border border-[#191A23]/10 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-[#191A23] to-[#2D2E38] px-6 py-4">
+              <div className="bg-[#191A23] px-6 py-4">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-white">
                   <Sparkles className="size-5" />
                   Choose Template
@@ -412,7 +412,7 @@ export function CardCustomizer({
         {currentStep === 1 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white border border-[#191A23]/10 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-[#191A23] to-[#2D2E38] px-6 py-4">
+              <div className="bg-[#191A23] px-6 py-4">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-white">
                   <PaletteIcon className="size-5" />
                   Basic Details
@@ -432,7 +432,7 @@ export function CardCustomizer({
         {currentStep === 2 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white border border-[#191A23]/10 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-[#191A23] to-[#2D2E38] px-6 py-4">
+              <div className="bg-[#191A23] px-6 py-4">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-white">
                   <Type className="size-5" />
                   Edit Text
@@ -668,7 +668,7 @@ export function CardCustomizer({
         {currentStep === 3 && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="bg-white border border-[#191A23]/10 rounded-lg shadow-sm overflow-hidden">
-              <div className="bg-gradient-to-r from-[#191A23] to-[#2D2E38] px-6 py-4">
+              <div className="bg-[#191A23] px-6 py-4">
                 <h3 className="text-sm font-bold flex items-center gap-2 text-white">
                   <Zap className="size-5" />
                   Design & Colors
@@ -828,7 +828,7 @@ export function CardCustomizer({
             "flex-1 py-3 rounded-lg font-bold uppercase text-xs transition-all text-white",
             isSaving
               ? "opacity-70 bg-[#191A23] cursor-not-allowed"
-              : "bg-gradient-to-r from-[#191A23] to-[#2D2E38] hover:shadow-lg hover:shadow-[#191A23]/30 active:scale-95 shadow-md",
+              : "bg-[#191A23] hover:shadow-lg hover:shadow-[#191A23]/30 active:scale-95 shadow-md",
           )}
         >
           {isSaving ? (

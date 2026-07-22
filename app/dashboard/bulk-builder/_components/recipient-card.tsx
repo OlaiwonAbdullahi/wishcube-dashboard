@@ -1,18 +1,31 @@
 "use client";
 import { useState, useEffect } from "react";
 
-import { Check, Link as LinkIcon, Camera, Mic, Edit2, RotateCw, Save, X, Sparkles, Loader2 } from "lucide-react";
+import { Check, Link as LinkIcon, Camera, Mic, Edit2, Save, X, Sparkles, Loader2, ChevronDown } from "lucide-react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { GiftIcon } from "@hugeicons/core-free-icons";
 import { cn } from "@/lib/utils";
 import { BulkRecipient } from "@/lib/bulk";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AI_TONES, LANGUAGES } from "./batch-styling-panel";
 
 interface RecipientCardProps {
   recipient: BulkRecipient;
   onAttachGift: (rowId: string) => void;
   onAttachAssets: (rowId: string) => void;
   onUpdateMessage: (rowId: string, message: string) => Promise<void>;
-  onRegenerateMessage: (rowId: string) => Promise<void>;
+  onRegenerateMessage: (
+    rowId: string,
+    aiTone?: string,
+    language?: string,
+  ) => Promise<void>;
 }
 
 export function RecipientCard({
@@ -26,6 +39,9 @@ export function RecipientCard({
   const [editedMessage, setEditedMessage] = useState(recipient.ai_message || "");
   const [isSaving, setIsSaving] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [regenOpen, setRegenOpen] = useState(false);
+  const [overrideTone, setOverrideTone] = useState<string>("");
+  const [overrideLanguage, setOverrideLanguage] = useState<string>("");
 
   useEffect(() => {
     setEditedMessage(recipient.ai_message || "");
@@ -40,7 +56,12 @@ export function RecipientCard({
 
   const handleRegenerate = async () => {
     setIsRegenerating(true);
-    await onRegenerateMessage(recipient.row_id);
+    setRegenOpen(false);
+    await onRegenerateMessage(
+      recipient.row_id,
+      overrideTone || undefined,
+      overrideLanguage || undefined,
+    );
     setIsRegenerating(false);
   };
 
@@ -133,19 +154,68 @@ export function RecipientCard({
                 >
                   <Edit2 size={8} />
                 </button>
-                <button
-                  type="button"
-                  onClick={handleRegenerate}
-                  disabled={isRegenerating}
-                  className="size-5 flex items-center justify-center rounded-sm bg-white border border-[#9151FF]/30 text-[#9151FF] hover:bg-[#9151FF] hover:text-white transition-all shadow-[1px_1px_0px_0px_rgba(145,81,255,0.2)]"
-                  title="Regenerate with AI"
-                >
-                  {isRegenerating ? (
-                    <Loader2 size={8} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={8} />
-                  )}
-                </button>
+                <Popover open={regenOpen} onOpenChange={setRegenOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={isRegenerating}
+                      className="h-5 px-1 flex items-center gap-0.5 rounded-sm bg-white border border-[#9151FF]/30 text-[#9151FF] hover:bg-[#9151FF] hover:text-white transition-all shadow-[1px_1px_0px_0px_rgba(145,81,255,0.2)]"
+                      title="Regenerate message"
+                    >
+                      {isRegenerating ? (
+                        <Loader2 size={8} className="animate-spin" />
+                      ) : (
+                        <>
+                          <Sparkles size={8} />
+                          <ChevronDown size={7} />
+                        </>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="end"
+                    className="w-56 space-y-2 p-3 text-[#191A23]"
+                  >
+                    <p className="text-[9px] font-black uppercase text-neutral-500">
+                      Regenerate this message
+                    </p>
+                    <Select value={overrideTone} onValueChange={setOverrideTone}>
+                      <SelectTrigger className="h-8 w-full text-[10px]">
+                        <SelectValue placeholder="Batch default tone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {AI_TONES.map((t) => (
+                          <SelectItem key={t} value={t} className="text-[10px]">
+                            {t}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={overrideLanguage}
+                      onValueChange={setOverrideLanguage}
+                    >
+                      <SelectTrigger className="h-8 w-full text-[10px]">
+                        <SelectValue placeholder="Batch default language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LANGUAGES.map((l) => (
+                          <SelectItem key={l} value={l} className="text-[10px]">
+                            {l}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={handleRegenerate}
+                      className="w-full flex items-center justify-center gap-1.5 py-2 text-[9px] font-black uppercase rounded-sm bg-[#9151FF] text-white hover:bg-[#9151FF]/80 transition-colors"
+                    >
+                      <Sparkles size={9} />
+                      Regenerate
+                    </button>
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
           </div>
@@ -237,7 +307,7 @@ export function RecipientCard({
 
             {/* Type */}
             <p className="text-[9px] font-black uppercase tracking-wider text-neutral-400">
-              {recipient.gift.type}
+              {recipient.gift.gift_type}
             </p>
 
             {/* Change button */}

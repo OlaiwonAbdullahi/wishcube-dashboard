@@ -56,7 +56,7 @@ export default function Page() {
         }
       } else {
         toast.error(response.message || "Login failed");
-        if (response.message?.toLowerCase().includes("verify your email")) {
+        if (response.code === "EMAIL_NOT_VERIFIED") {
           setUnverifiedEmail(email);
         }
       }

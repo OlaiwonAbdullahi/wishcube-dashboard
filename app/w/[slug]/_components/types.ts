@@ -39,7 +39,7 @@ export interface WebsiteData {
   primaryColor?: string;
   countdownDate?: string | null;
   isPasswordProtected?: boolean;
-  password?: string | null;
+  locked?: boolean;
   giftIds?: GiftInfo[];
   status: string;
   slug?: string;

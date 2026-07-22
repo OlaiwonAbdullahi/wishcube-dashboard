@@ -3,10 +3,7 @@
 
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  PackageIcon,
-  ShoppingBasketAdd03Icon,
-} from "@hugeicons/core-free-icons";
+import { PackageIcon } from "@hugeicons/core-free-icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -105,13 +102,6 @@ export function ProductCard({ product }: { product: Product }) {
             <Link href={`/dashboard/marketplace/product/${product._id}`}>
               View Details
             </Link>
-          </Button>
-          <Button
-            variant="default"
-            size="icon"
-            className="h-8 w-8 shrink-0 rounded-sm border-2 border-[#191A23] bg-[#FFD700] hover:bg-[#e6c200] text-[#191A23] transition-all active:translate-x-px active:translate-y-px"
-          >
-            <HugeiconsIcon icon={ShoppingBasketAdd03Icon} size={15} />
           </Button>
         </div>
       </div>

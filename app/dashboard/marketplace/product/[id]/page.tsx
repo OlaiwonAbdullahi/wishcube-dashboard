@@ -50,7 +50,6 @@ export default function ProductDetailPage() {
         const res = await getProductById(id as string);
         if (res.success && res.data) {
           setProduct(res.data.product);
-          console.log(res.data.product);
           if (res.data.product.category === "Vouchers") {
             setDigital(true);
           } else {

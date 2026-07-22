@@ -31,6 +31,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -44,6 +54,8 @@ export default function VendorsPage() {
   const [togglingVendor, setTogglingVendor] = useState<any>(null);
   const [rejectingVendor, setRejectingVendor] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [approvingVendor, setApprovingVendor] = useState<any>(null);
+  const [confirmToggleVendor, setConfirmToggleVendor] = useState<any>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   useEffect(() => {
@@ -54,7 +66,6 @@ export default function VendorsPage() {
     setLoading(true);
     try {
       const response = await getAllVendorsAdmin();
-      console.log(response);
       if (response.success) {
         const vendorList = response.data?.vendors || [];
         const vendorTotal = response.data?.total || 0;
@@ -261,10 +272,10 @@ export default function VendorsPage() {
                       <td className="px-6 py-4">
                         <div className="flex flex-col">
                           <span className="text-sm font-bold text-[#191A23]">
-                            {vendor.userId?.name || "Unknown"}
+                            {vendor.ownerName || "Unknown"}
                           </span>
                           <span className="text-[10px] text-neutral-400">
-                            {vendor.userId?.email || "No email"}
+                            {vendor.email || "No email"}
                           </span>
                         </div>
                       </td>
@@ -301,7 +312,7 @@ export default function VendorsPage() {
                           {vendor.status === "pending" && (
                             <>
                               <button
-                                onClick={() => handleApprove(vendor)}
+                                onClick={() => setApprovingVendor(vendor)}
                                 disabled={isActionLoading}
                                 className="p-1.5 rounded-sm bg-green-100 border-2 border-[#191A23] text-green-600 hover:bg-green-200 transition-colors"
                                 title="Approve"
@@ -320,7 +331,11 @@ export default function VendorsPage() {
                           )}
                           {vendor.status === "approved" && (
                             <button
-                              onClick={() => handleToggleActive(vendor)}
+                              onClick={() =>
+                                vendor.isActive
+                                  ? setConfirmToggleVendor(vendor)
+                                  : handleToggleActive(vendor)
+                              }
                               disabled={isActionLoading}
                               className={cn(
                                 "p-1.5 rounded-sm border-2 border-[#191A23] transition-all",
@@ -463,6 +478,64 @@ export default function VendorsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Approve confirmation */}
+      <AlertDialog
+        open={!!approvingVendor}
+        onOpenChange={(open) => !open && setApprovingVendor(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Approve {approvingVendor?.storeName}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              They&apos;ll be able to log in and start listing products on the
+              marketplace immediately.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleApprove(approvingVendor);
+                setApprovingVendor(null);
+              }}
+            >
+              Approve
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Deactivate confirmation */}
+      <AlertDialog
+        open={!!confirmToggleVendor}
+        onOpenChange={(open) => !open && setConfirmToggleVendor(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Deactivate {confirmToggleVendor?.storeName}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Their storefront and products will be hidden from the
+              marketplace until you reactivate them.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                handleToggleActive(confirmToggleVendor);
+                setConfirmToggleVendor(null);
+              }}
+            >
+              Deactivate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

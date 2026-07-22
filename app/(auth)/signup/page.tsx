@@ -17,6 +17,7 @@ import { register, googleAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useGoogleLogin } from "@react-oauth/google";
+import { PasswordStrength, isPasswordValid } from "@/components/password-strength";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -27,15 +28,8 @@ export default function SignUp() {
 
   const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Password Validation
-    const minLength = password.length >= 8;
-    const hasUpper = /[A-Z]/.test(password);
-    const hasLower = /[a-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    const hasSpecial = /[^A-Za-z0-9]/.test(password);
-    
-    if (!(minLength && hasUpper && hasLower && hasNumber && hasSpecial)) {
+
+    if (!isPasswordValid(password)) {
       toast.error("Password must be at least 8 characters long, contain 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
       return;
     }
@@ -161,6 +155,7 @@ export default function SignUp() {
                     placeholder="Your password"
                     className="bg-transparent border-[#191A23]/50 rounded-sm h-10 text-sm placeholder:text-neutral-500"
                   />
+                  <PasswordStrength password={password} />
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">

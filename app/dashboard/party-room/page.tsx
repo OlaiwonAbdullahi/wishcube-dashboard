@@ -1,13 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
   Confetti,
   Notification03Icon,
+  Tick02Icon,
+  Loading03Icon,
 } from "@hugeicons/core-free-icons";
 import { Button } from "@/components/ui/button";
+import { getAuth } from "@/lib/auth";
+import { joinWaitlist } from "@/lib/waitlist";
+import { toast } from "sonner";
 
 const FEATURES = [
   "Real-time collaborative countdowns",
@@ -18,6 +24,28 @@ const FEATURES = [
 
 export default function PartyRoomPage() {
   const router = useRouter();
+  const [isNotifying, setIsNotifying] = useState(false);
+  const [notified, setNotified] = useState(false);
+
+  const handleNotifyMe = async () => {
+    const auth = getAuth();
+    if (!auth) {
+      toast.error("Please log in to get notified");
+      return;
+    }
+    setIsNotifying(true);
+    try {
+      const res = await joinWaitlist(auth.user.name, auth.user.email);
+      if (res.success) {
+        setNotified(true);
+        toast.success("You're on the list! We'll email you when it's ready.");
+      } else {
+        toast.error(res.message);
+      }
+    } finally {
+      setIsNotifying(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-space flex flex-col">
@@ -89,17 +117,28 @@ export default function PartyRoomPage() {
 
           {/* Notify CTA */}
           <Button
-            className="rounded-sm bg-[#191A23] text-white border-b-4 border-b-black hover:bg-[#191A23]/90 active:border-b-2 active:translate-y-0.5 transition-all font-bold px-6 py-5 text-sm"
-            onClick={() => router.push("/dashboard")}
+            className="rounded-sm bg-[#191A23] text-white border-b-4 border-b-black hover:bg-[#191A23]/90 active:border-b-2 active:translate-y-0.5 transition-all font-bold px-6 py-5 text-sm disabled:opacity-60"
+            onClick={handleNotifyMe}
+            disabled={isNotifying || notified}
           >
             <HugeiconsIcon
-              icon={Notification03Icon}
+              icon={
+                notified
+                  ? Tick02Icon
+                  : isNotifying
+                    ? Loading03Icon
+                    : Notification03Icon
+              }
               size={16}
               color="white"
               strokeWidth={1.5}
-              className="mr-2"
+              className={`mr-2 ${isNotifying ? "animate-spin" : ""}`}
             />
-            Notify Me When It&apos;s Ready
+            {notified
+              ? "You're on the list!"
+              : isNotifying
+                ? "Submitting…"
+                : "Notify Me When It's Ready"}
           </Button>
         </div>
       </div>

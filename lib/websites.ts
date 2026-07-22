@@ -41,6 +41,10 @@ export interface WebsiteResponse<T> {
   success: boolean;
   message: string;
   data?: T;
+  // Real HTTP status code, not the JSON body's "fail"/"error" status string -
+  // callers that need to distinguish e.g. 410 (expired) from 404 (not found)
+  // should check this instead.
+  httpStatus?: number;
 }
 
 const getHeaders = () => {
@@ -195,16 +199,39 @@ export const deleteWebsite = async (
 // Get live website (Public)
 export const getLiveWebsite = async (
   slug: string,
+  unlockToken?: string | null,
 ): Promise<WebsiteResponse<{ website: any }>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/live/${slug}`, {
+    const url = unlockToken
+      ? `${API_BASE_URL}/live/${slug}?unlock=${encodeURIComponent(unlockToken)}`
+      : `${API_BASE_URL}/live/${slug}`;
+    const response = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
-    return await response.json();
+    const json = await response.json();
+    return { ...json, httpStatus: response.status };
   } catch (error) {
     console.error("Get live website error:", error);
     return { success: false, message: "Network error fetching live website" };
+  }
+};
+
+// Unlock a password-protected live website (Public)
+export const unlockLiveWebsite = async (
+  slug: string,
+  password: string,
+): Promise<WebsiteResponse<{ website: any; unlockToken: string }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/live/${slug}/unlock`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Unlock live website error:", error);
+    return { success: false, message: "Network error unlocking website" };
   }
 };
 

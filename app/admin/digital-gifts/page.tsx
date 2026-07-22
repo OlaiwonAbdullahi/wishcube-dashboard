@@ -27,6 +27,16 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,6 +48,8 @@ export default function DigitalGiftsPage() {
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingGift, setDeletingGift] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState<DigitalGiftData>({
@@ -146,11 +158,11 @@ export default function DigitalGiftsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this digital gift?")) return;
-
+  const handleDelete = async () => {
+    if (!deletingGift) return;
+    setIsDeleting(true);
     try {
-      const response = await deleteDigitalGift(id);
+      const response = await deleteDigitalGift(deletingGift._id || deletingGift.id);
       if (response.success) {
         toast.success("Digital gift deleted successfully");
         fetchGifts();
@@ -159,6 +171,9 @@ export default function DigitalGiftsPage() {
       }
     } catch (error) {
       toast.error("An unexpected error occurred");
+    } finally {
+      setIsDeleting(false);
+      setDeletingGift(null);
     }
   };
 
@@ -430,9 +445,7 @@ export default function DigitalGiftsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-black text-[#191A23] uppercase">
-                        {gift.stock === "Infinity" || gift.stock > 1000000
-                          ? "∞"
-                          : gift.stock}
+                        {gift.stock === -1 ? "∞" : gift.stock}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-xs font-bold text-neutral-400 uppercase">
@@ -442,7 +455,7 @@ export default function DigitalGiftsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDelete(gift._id || gift.id)}
+                        onClick={() => setDeletingGift(gift)}
                         className="h-8 w-8 rounded-sm border-2 border-transparent hover:border-red-500 hover:bg-red-50 text-red-500 transition-all"
                       >
                         <HugeiconsIcon icon={Delete02Icon} size={16} />
@@ -455,6 +468,26 @@ export default function DigitalGiftsPage() {
           </table>
         </div>
       </div>
+
+      <AlertDialog
+        open={!!deletingGift}
+        onOpenChange={(open) => !open && setDeletingGift(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {deletingGift?.name}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This removes it from the marketplace permanently. This can&apos;t be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction disabled={isDeleting} onClick={handleDelete}>
+              {isDeleting ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -105,8 +105,9 @@ function UpdateModal({
   const [note, setNote] = useState("");
   const [otpCode, setOtpCode] = useState("");
 
+  const isDisputed = order.status === "disputed";
   const canUpdate =
-    order.status !== "delivered" && order.status !== "cancelled";
+    !isDisputed && order.status !== "delivered" && order.status !== "cancelled";
 
   const handleUpdate = async () => {
     setLoading(true);
@@ -214,10 +215,18 @@ function UpdateModal({
               <p
                 className={cn(
                   "text-[10px] font-bold uppercase",
-                  order.vendorPaidOut ? "text-green-600" : "text-amber-600",
+                  order.vendorPaidOut
+                    ? "text-green-600"
+                    : isDisputed
+                      ? "text-red-600"
+                      : "text-amber-600",
                 )}
               >
-                {order.vendorPaidOut ? "✓ Paid out" : "Pending payout"}
+                {order.vendorPaidOut
+                  ? "✓ Paid out"
+                  : isDisputed
+                    ? "Escrow held — disputed"
+                    : "Pending payout (escrow)"}
               </p>
             </div>
           </div>
@@ -250,6 +259,20 @@ function UpdateModal({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {isDisputed && (
+            <div className="p-4 border-2 border-red-300 rounded-sm bg-red-50 space-y-1.5">
+              <p className="text-xs font-black uppercase text-red-600 flex items-center gap-2">
+                <HugeiconsIcon icon={Cancel01Icon} size={13} />
+                Disputed — under manual review
+              </p>
+              <p className="text-[11px] text-red-500 leading-relaxed">
+                The recipient entered an incorrect delivery code too many
+                times. Your payout for this order is held in escrow while our
+                team reviews it — you don&apos;t need to take any action here.
+              </p>
             </div>
           )}
 

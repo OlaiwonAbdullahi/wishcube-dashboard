@@ -20,11 +20,12 @@ import { getUnattachedGifts, Gift } from "@/lib/gifts";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface AttachGiftData {
-  /** MUST be "type" — NOT "gift_type" (that was the previous bug). */
-  type: string;
+  /** Must match the backend's field name exactly: `gift_type`. */
+  gift_type: string;
   amount: number;
   currency: string;
-  gift_id: string;
+  /** Only required when gift_type is "physical". */
+  gift_id?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -149,6 +150,12 @@ export function BulkGiftModal({
   const [error, setError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  const [mode, setMode] = useState<"box" | "custom">("box");
+  const [customType, setCustomType] = useState<"voucher" | "wallet_credit">(
+    "voucher",
+  );
+  const [customAmount, setCustomAmount] = useState("");
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -173,11 +180,22 @@ export function BulkGiftModal({
   }, [isOpen]);
 
   const selectedGift = gifts.find((g) => g._id === selectedId) ?? null;
+  const customAmountValue = Number(customAmount);
+  const isCustomValid = customAmountValue > 0;
 
   const handleConfirm = () => {
+    if (mode === "custom") {
+      if (!isCustomValid) return;
+      onAttach({
+        gift_type: customType,
+        amount: customAmountValue,
+        currency: "NGN",
+      });
+      return;
+    }
     if (!selectedGift) return;
     onAttach({
-      type: selectedGift.type,        // ← FIXED: was "gift_type" before
+      gift_type: selectedGift.type,
       amount: selectedGift.amountPaid,
       currency: selectedGift.currency ?? "NGN",
       gift_id: selectedGift._id,
@@ -208,6 +226,86 @@ export function BulkGiftModal({
 
         {/* ── Body ── */}
         <div className="px-5 py-4 space-y-4">
+          {/* Mode tabs */}
+          <div className="grid grid-cols-2 gap-2 p-1 bg-[#F3F3F3] border-2 border-[#191A23] rounded-sm">
+            <button
+              type="button"
+              onClick={() => setMode("box")}
+              className={cn(
+                "py-2 text-[9px] font-black uppercase rounded-sm transition-all",
+                mode === "box"
+                  ? "bg-[#191A23] text-white"
+                  : "text-neutral-500 hover:text-[#191A23]",
+              )}
+            >
+              From Gift Box
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("custom")}
+              className={cn(
+                "py-2 text-[9px] font-black uppercase rounded-sm transition-all",
+                mode === "custom"
+                  ? "bg-[#191A23] text-white"
+                  : "text-neutral-500 hover:text-[#191A23]",
+              )}
+            >
+              Custom Amount
+            </button>
+          </div>
+
+          {mode === "custom" ? (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-neutral-500">
+                  Gift Type
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCustomType("voucher")}
+                    className={cn(
+                      "py-2 text-[10px] font-black uppercase border-2 border-[#191A23] rounded-sm transition-all",
+                      customType === "voucher"
+                        ? "bg-[#B4F8C8] text-[#191A23]"
+                        : "bg-white text-neutral-500",
+                    )}
+                  >
+                    Voucher
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCustomType("wallet_credit")}
+                    className={cn(
+                      "py-2 text-[10px] font-black uppercase border-2 border-[#191A23] rounded-sm transition-all",
+                      customType === "wallet_credit"
+                        ? "bg-[#B4F8C8] text-[#191A23]"
+                        : "bg-white text-neutral-500",
+                    )}
+                  >
+                    Wallet Credit
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-neutral-500">
+                  Amount (NGN)
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={customAmount}
+                  onChange={(e) => setCustomAmount(e.target.value)}
+                  placeholder="e.g. 5000"
+                  className="w-full px-3 py-2.5 border-2 border-[#191A23] rounded-sm text-sm font-bold focus:outline-none"
+                />
+              </div>
+              <p className="text-[9px] text-neutral-400 leading-relaxed">
+                This creates a fresh {customType === "voucher" ? "voucher" : "wallet credit"} gift for this recipient when the batch publishes — no need to pre-purchase it from the marketplace.
+              </p>
+            </div>
+          ) : (
+            <>
           {/* Count header */}
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-neutral-500">
@@ -292,6 +390,8 @@ export function BulkGiftModal({
               </p>
             </div>
           )}
+            </>
+          )}
         </div>
 
         {/* ── Footer ── */}
@@ -304,7 +404,9 @@ export function BulkGiftModal({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={!selectedGift || isAttaching}
+            disabled={
+              isAttaching || (mode === "custom" ? !isCustomValid : !selectedGift)
+            }
             className="flex-1 py-2.5 border-2 border-[#191A23] rounded-sm text-[10px] font-black uppercase bg-[#191A23] text-white hover:bg-[#191A23]/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-[2px_2px_0px_0px_rgba(25,26,35,1)] flex items-center justify-center gap-2"
           >
             {isAttaching ? (

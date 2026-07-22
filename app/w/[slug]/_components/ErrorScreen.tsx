@@ -5,7 +5,7 @@ import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Time01Icon,
-  SparklesIcon,
+  AlertCircleIcon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 
@@ -15,7 +15,7 @@ export function ErrorScreen({ expired = false }: { expired?: boolean }) {
       <div className="text-center space-y-5 p-10 bg-white rounded-3xl shadow-xl max-w-sm w-full">
         <div className="size-16 mx-auto rounded-2xl bg-slate-100 flex items-center justify-center">
           <HugeiconsIcon
-            icon={expired ? Time01Icon : SparklesIcon}
+            icon={expired ? Time01Icon : AlertCircleIcon}
             size={28}
             color="#94a3b8"
           />

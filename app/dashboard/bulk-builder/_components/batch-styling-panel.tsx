@@ -61,8 +61,8 @@ export interface BatchStylingProps {
 // Constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LANGUAGES = ["English", "Yoruba", "Igbo", "Hausa", "Pidgin", "French"];
-const AI_TONES: AiTone[] = [
+export const LANGUAGES = ["English", "Yoruba", "Igbo", "Hausa", "Pidgin", "French"];
+export const AI_TONES: AiTone[] = [
   "Heartfelt",
   "Funny",
   "Poetic",

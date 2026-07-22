@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Send, Loader2, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,16 @@ import { BulkGiftModal, AttachGiftData } from "./_components/gift-modal";
 import { BulkAssetModal, AssetData } from "./_components/asset-modal";
 import { PublishedStep } from "./_components/published-step";
 import { THEMES, Theme } from "./_components/theme-picker";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 import {
   BulkUpload,
@@ -23,6 +34,7 @@ import {
   attachGiftToRecipient,
   attachAssetsToRecipient,
   getBulkSummary,
+  getRecipients,
   publishBulk,
   exportBulkLinks,
   updateRecipientMessage,
@@ -37,6 +49,14 @@ type Step = (typeof STEPS)[number];
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function BulkBuilderPage() {
+  return (
+    <Suspense fallback={null}>
+      <BulkBuilderContent />
+    </Suspense>
+  );
+}
+
+function BulkBuilderContent() {
   // ── Upload ─────────────────────────────────────────────────────────────────
   const [step, setStep] = useState<Step>("upload");
   const [occasion, setOccasion] = useState("");
@@ -50,12 +70,44 @@ export default function BulkBuilderPage() {
     total: number;
     gift_attached: number;
     pending: number;
-    ai_generation_status: "pending" | "completed" | "failed";
+    ai_generation_status: "processing" | "completed" | "failed";
+    status: string;
     ready_to_publish: boolean;
   } | null>(null);
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Resume an in-progress batch after a page refresh (bulk id lives in the URL).
+  const [isResuming, setIsResuming] = useState(true);
   useEffect(() => {
-    if (step === "preview" && bulkInfo?.bulk_id) {
+    const resumeId = searchParams.get("bulk");
+    if (!resumeId) {
+      setIsResuming(false);
+      return;
+    }
+    (async () => {
+      const [summaryRes, recipientsRes] = await Promise.all([
+        getBulkSummary(resumeId),
+        getRecipients(resumeId),
+      ]);
+      if (summaryRes.success && summaryRes.data && recipientsRes.success && recipientsRes.data) {
+        setBulkInfo({ bulk_id: resumeId, occasion: "", total: summaryRes.data.total });
+        setRecipients(recipientsRes.data.recipients);
+        setSummary(summaryRes.data);
+        setStep(summaryRes.data.status === "completed" ? "published" : "preview");
+      } else {
+        toast.error("Couldn't resume that batch — it may no longer exist.");
+        router.replace("/dashboard/bulk-builder");
+      }
+      setIsResuming(false);
+    })();
+    // Only ever run once, on mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if ((step === "preview" || step === "published") && bulkInfo?.bulk_id) {
       fetchSummary();
       const interval = setInterval(fetchSummary, 5000);
       return () => clearInterval(interval);
@@ -67,7 +119,16 @@ export default function BulkBuilderPage() {
     if (!bulkInfo?.bulk_id) return;
     try {
       const res = await getBulkSummary(bulkInfo.bulk_id);
-      if (res.success && res.data) setSummary(res.data);
+      if (res.success && res.data) {
+        setSummary(res.data);
+        // Live-refresh recipient messages while the background AI job is still running.
+        if (res.data.ai_generation_status === "processing") {
+          const recipientsRes = await getRecipients(bulkInfo.bulk_id);
+          if (recipientsRes.success && recipientsRes.data) {
+            setRecipients(recipientsRes.data.recipients);
+          }
+        }
+      }
     } catch (err) {
       console.error("Failed to fetch bulk summary:", err);
     }
@@ -98,6 +159,7 @@ export default function BulkBuilderPage() {
 
   // ── Publish ────────────────────────────────────────────────────────────────
   const [isPublishing, setIsPublishing] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
 
   // Load chosen font into the document so the live preview renders correctly
   useLoadSelectedFont(selectedFont);
@@ -123,6 +185,7 @@ export default function BulkBuilderPage() {
     setIsPasswordProtected(false);
     setPassword("");
     setStylingOpen(true);
+    router.replace("/dashboard/bulk-builder");
   };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -152,6 +215,7 @@ export default function BulkBuilderPage() {
       setBulkInfo(res.data.upload);
       setRecipients(res.data.preview);
       setStep("preview");
+      router.replace(`/dashboard/bulk-builder?bulk=${res.data.upload.bulk_id}`);
       toast.success(
         `Uploaded! ${res.data.preview.length} recipient(s) processed.`,
       );
@@ -226,13 +290,17 @@ export default function BulkBuilderPage() {
     }
   };
 
-  const handleRegenerateMessage = async (rowId: string) => {
+  const handleRegenerateMessage = async (
+    rowId: string,
+    toneOverride?: string,
+    languageOverride?: string,
+  ) => {
     if (!bulkInfo?.bulk_id) return;
     const res = await regenerateRecipientMessage(
       bulkInfo.bulk_id,
       rowId,
-      aiTone,
-      language,
+      toneOverride || aiTone,
+      languageOverride || language,
     );
     if (res.success && res.data) {
       setRecipients((prev) =>
@@ -246,6 +314,7 @@ export default function BulkBuilderPage() {
 
   const handlePublish = async () => {
     if (!bulkInfo?.bulk_id) return;
+    setShowPublishConfirm(false);
     setIsPublishing(true);
 
     const styleConfig: BulkStyleConfig = {
@@ -287,6 +356,14 @@ export default function BulkBuilderPage() {
   // ════════════════════════════════════════════════════════════════════════════
   // RENDER
   // ════════════════════════════════════════════════════════════════════════════
+
+  if (isResuming) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 size={20} className="animate-spin text-neutral-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="px-4 sm:px-6 py-6 space-y-6 font-space">
@@ -352,7 +429,7 @@ export default function BulkBuilderPage() {
                   Batch Summary
                 </p>
                 <h2 className="text-base font-black text-[#191A23] mt-0.5 capitalize">
-                  {bulkInfo?.occasion}
+                  {bulkInfo?.occasion || "Bulk Batch"}
                 </h2>
                 <p className="text-xs font-medium text-neutral-500 mt-0.5">
                   {bulkInfo?.total ?? recipients.length} recipient
@@ -373,7 +450,7 @@ export default function BulkBuilderPage() {
                       {summary.pending} pending
                     </span>
                   )}
-                  {summary.ai_generation_status === "pending" && (
+                  {summary.ai_generation_status === "processing" && (
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 border border-blue-300 rounded-sm bg-blue-50 text-[9px] font-black uppercase text-blue-700">
                       <Loader2 size={9} className="animate-spin" />
                       AI Generating...
@@ -394,8 +471,13 @@ export default function BulkBuilderPage() {
               )}
 
               <button
-                onClick={handlePublish}
-                disabled={isPublishing}
+                onClick={() => setShowPublishConfirm(true)}
+                disabled={isPublishing || !summary?.ready_to_publish}
+                title={
+                  !summary?.ready_to_publish
+                    ? "All recipients need a gift attached, and AI message generation must finish, before you can publish."
+                    : undefined
+                }
                 className="shrink-0 flex items-center justify-center gap-2 px-6 py-2.5 border-2 border-[#191A23] rounded-sm text-[10px] font-black uppercase bg-[#191A23] text-white hover:bg-[#191A23]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-[3px_3px_0px_0px_rgba(25,26,35,1)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none"
               >
                 {isPublishing ? (
@@ -487,6 +569,7 @@ export default function BulkBuilderPage() {
           aiTone={aiTone}
           onExport={handleExport}
           onReset={resetAll}
+          isPublishComplete={summary?.status === "completed"}
         />
       )}
 
@@ -532,6 +615,25 @@ export default function BulkBuilderPage() {
             : null
         }
       />
+
+      <AlertDialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publish {recipients.length} pages?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This generates a live celebration page for every recipient and
+              emails each of them a link right away. This can&apos;t be undone
+              once it starts.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePublish}>
+              Publish All Pages
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

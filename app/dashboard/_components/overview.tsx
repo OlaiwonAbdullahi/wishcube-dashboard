@@ -6,7 +6,6 @@ import {
   Cards02Icon,
   WebDesign02Icon,
   GiftCardIcon,
-  AiMagicIcon,
   WalletAdd01Icon,
   Layout01Icon,
   GridIcon,
@@ -116,14 +115,6 @@ export const Overview = ({
         </div>
         <div className="flex items-start gap-8 overflow-x-auto py-4 scrollbar-hide no-scrollbar">
           <QuickAction
-            title="Magic AI"
-            icon={AiMagicIcon}
-            color="bg-[#E6D1FF]"
-            isNew
-            href="#"
-          />
-
-          <QuickAction
             title="Create Cards"
             icon={Cards02Icon}
             color="bg-[#FFD1D1]"
@@ -157,7 +148,7 @@ export const Overview = ({
             title="Explore Templates"
             icon={GridIcon}
             color="bg-[#D1FFEB]"
-            href="/dashboard/websites"
+            href="/dashboard/website"
           />
           <QuickAction
             title="Custom Designs"

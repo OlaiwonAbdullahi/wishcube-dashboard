@@ -27,7 +27,7 @@ export interface BulkRecipient {
   original_message?: string;
   ai_message?: string;
   gift?: {
-    type: string;
+    gift_type: string;
     amount: number;
     currency: string;
     gift_id?: string;
@@ -163,7 +163,7 @@ export const attachGiftToRecipient = async (
   bulkId: string,
   rowId: string,
   giftData: {
-    type: string;
+    gift_type: string;
     amount: number;
     currency: string;
     gift_id?: string;
@@ -215,7 +215,7 @@ export const attachAssetsToRecipient = async (
 export const updateRecipientMessage = async (
   bulkId: string,
   rowId: string,
-  ai_message: string,
+  message: string,
 ): Promise<BulkResponse<{ recipient: BulkRecipient }>> => {
   try {
     const response = await fetch(
@@ -223,7 +223,7 @@ export const updateRecipientMessage = async (
       {
         method: "PATCH",
         headers: getHeaders(),
-        body: JSON.stringify({ ai_message }),
+        body: JSON.stringify({ message }),
       },
     );
     return await response.json();
@@ -265,7 +265,9 @@ export const getBulkSummary = async (
     total: number;
     gift_attached: number;
     pending: number;
-    ai_generation_status: "pending" | "completed" | "failed";
+    ai_generation_status: "processing" | "completed" | "failed";
+    // Raw BulkUpload.status: "processing_ai" | "ready" | "publishing" | "completed"
+    status: string;
     ready_to_publish: boolean;
   }>
 > => {
@@ -278,6 +280,24 @@ export const getBulkSummary = async (
   } catch (error) {
     console.error("Fetch summary error:", error);
     return { success: false, message: "Network error fetching bulk summary" };
+  }
+};
+
+// Fetch all recipients for a batch (used to poll for fresh AI-generated
+// messages while ai_generation_status is "processing", and to resume an
+// in-progress batch after a page refresh)
+export const getRecipients = async (
+  bulkId: string,
+): Promise<BulkResponse<{ recipients: BulkRecipient[] }>> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/${bulkId}/recipients`, {
+      method: "GET",
+      headers: getHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    console.error("Fetch recipients error:", error);
+    return { success: false, message: "Network error fetching recipients" };
   }
 };
 

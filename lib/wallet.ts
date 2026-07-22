@@ -34,6 +34,7 @@ export interface TransactionsResponse {
 export interface WalletResponse<T> {
   success: boolean;
   message: string;
+  pending?: boolean;
   data?: T;
 }
 

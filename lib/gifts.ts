@@ -86,6 +86,7 @@ export interface Gift {
 export interface GiftResponse<T> {
   success: boolean;
   message: string;
+  pending?: boolean;
   data?: T;
 }
 
