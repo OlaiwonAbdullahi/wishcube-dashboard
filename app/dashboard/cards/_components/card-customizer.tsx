@@ -441,9 +441,27 @@ export function CardCustomizer({
               <div className="p-6 space-y-4">
                 {/* Message */}
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-[#191A23] block">
-                    Message
-                  </Label>
+                  {/* Character limit warning */}
+                {(() => {
+                  const len = cardState.message?.length || 0;
+                  const warn = len > 160;
+                  const danger = len > 238;
+                  return (
+                    <div className={cn(
+                      "flex items-center justify-between text-[10px] font-bold uppercase transition-colors",
+                      danger ? "text-red-500" : warn ? "text-amber-500" : "text-[#191A23]/30"
+                    )}>
+                      <span>
+                        {danger
+                          ? "⚠ Text will be clipped on card"
+                          : warn
+                          ? "Message is getting long"
+                          : "Message"}
+                      </span>
+                      <span>{len} chars</span>
+                    </div>
+                  );
+                })()}
                   <textarea
                     value={cardState.message}
                     onChange={(e) =>
